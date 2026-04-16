@@ -1,1 +1,2305 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>نظام التقويم الذكي</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --navy:#182038;--navy2:#212d50;--navy3:#2a3a6e;
+  --teal:#0c9b87;--teal2:#14b8a6;--teal3:#e7f8f6;
+  --gold:#e9a217;--goldf:#fef7e6;
+  --red:#dc4c4c;--redf:#fdf0f0;
+  --blue:#3572d4;--bluef:#edf3fd;
+  --green:#22a05a;--greenf:#eaf7f0;
+  --purple:#7c3aed;--purplef:#f4f0fe;
+  --orange:#e07820;--orangef:#fff3e8;
+  --bg:#f3f5fa;--surface:#fff;--surface2:#f0f3f8;--surface3:#e8ecf5;
+  --border:#dde2ee;--border2:#c8cfe0;
+  --text:#182038;--text2:#4f5d7e;--text3:#8b95b0;
+  --r:12px;--rs:8px;--rx:18px;
+  --sh:0 1px 8px rgba(24,32,56,.07);--shm:0 4px 20px rgba(24,32,56,.11);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6;}
 
+/* ══ SIDEBAR ══ */
+.sb{position:fixed;right:0;top:0;bottom:0;width:236px;background:var(--navy);display:flex;flex-direction:column;z-index:100;}
+.sb-logo{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.09);}
+.sb-logo h2{color:#fff;font-size:14.5px;font-weight:600;}
+.sb-logo small{font-size:10.5px;color:rgba(255,255,255,.35);display:block;margin-top:2px;}
+.sb-teacher{padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px;}
+.sb-av{width:34px;height:34px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;flex-shrink:0;}
+.sb-tn{color:#fff;font-size:12.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sb-ts{color:rgba(255,255,255,.38);font-size:10.5px;}
+.sb-nav{flex:1;padding:8px 0;overflow-y:auto;}
+.sb-sec{padding:9px 18px 3px;font-size:9.5px;font-weight:700;color:rgba(255,255,255,.28);letter-spacing:1px;text-transform:uppercase;}
+.ni{display:flex;align-items:center;gap:9px;padding:9px 18px;color:rgba(255,255,255,.56);cursor:pointer;border-right:3px solid transparent;transition:all .18s;font-size:13px;user-select:none;}
+.ni:hover{background:rgba(255,255,255,.05);color:rgba(255,255,255,.88);}
+.ni.active{background:rgba(12,155,135,.14);color:#2dd4c0;border-right-color:var(--teal);}
+.ni .ni-ico{font-size:15px;flex-shrink:0;}
+.ni .ni-badge{margin-right:auto;background:rgba(12,155,135,.3);color:#2dd4c0;font-size:10px;padding:1px 7px;border-radius:20px;font-weight:600;}
+.sb-foot{padding:12px 18px;border-top:1px solid rgba(255,255,255,.07);font-size:10.5px;color:rgba(255,255,255,.25);}
+
+/* ══ MAIN ══ */
+.main{margin-right:236px;min-height:100vh;display:flex;flex-direction:column;}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:var(--sh);}
+.tb-l h2{font-size:16px;font-weight:700;}
+.tb-l p{font-size:11.5px;color:var(--text3);margin-top:1px;}
+.tb-r{display:flex;gap:8px;align-items:center;}
+
+/* ══ CONTEXT BAR ══ */
+.ctxbar{background:var(--surface2);border-bottom:1px solid var(--border);padding:9px 24px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.ctx-sel{border:1.5px solid var(--border);border-radius:var(--rs);padding:6px 11px;font-family:inherit;font-size:12.5px;color:var(--text);background:var(--surface);cursor:pointer;min-width:150px;}
+.ctx-sel:focus{outline:none;border-color:var(--teal);}
+.ctx-pill{background:var(--teal3);color:var(--teal);border:1px solid rgba(12,155,135,.2);padding:3px 11px;border-radius:20px;font-size:11.5px;font-weight:600;}
+.ctx-div{color:var(--text3);font-size:18px;line-height:1;}
+
+/* ══ CONTENT ══ */
+.content{padding:20px 24px;flex:1;}
+.view{display:none;}
+.view.active{display:block;}
+
+/* ══ STAT CARDS ══ */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+.scard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:15px 17px;display:flex;align-items:center;gap:12px;}
+.si{width:42px;height:42px;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;}
+.si-t{background:var(--teal3);}
+.si-g{background:var(--goldf);}
+.si-b{background:var(--bluef);}
+.si-r{background:var(--redf);}
+.si-gr{background:var(--greenf);}
+.si-p{background:var(--purplef);}
+.sval{font-size:22px;font-weight:700;}
+.slbl{font-size:11px;color:var(--text3);}
+
+/* ══ CARD ══ */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:17px 20px;margin-bottom:14px;}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px;}
+.card-title{font-size:13.5px;font-weight:700;}
+.card-sub{font-size:11.5px;color:var(--text3);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;}
+
+/* ══ TABLES ══ */
+.tw{overflow-x:auto;}
+table.dt{width:100%;border-collapse:collapse;font-size:13px;}
+table.dt th{background:var(--surface2);padding:9px 12px;text-align:right;font-weight:600;color:var(--text2);font-size:11.5px;border-bottom:2px solid var(--border);white-space:nowrap;}
+table.dt td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+table.dt tbody tr:hover{background:#fafbff;}
+table.dt tbody tr:last-child td{border-bottom:none;}
+.tc{font-weight:700;color:var(--teal);}
+
+/* ══ BUTTONS ══ */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 15px;border-radius:var(--rs);border:none;cursor:pointer;font-family:inherit;font-size:13px;font-weight:500;transition:all .18s;white-space:nowrap;}
+.btn-p{background:var(--teal);color:#fff;}.btn-p:hover{background:var(--teal2);}
+.btn-o{background:transparent;border:1.5px solid var(--border);color:var(--text2);}.btn-o:hover{border-color:var(--teal);color:var(--teal);}
+.btn-d{background:var(--redf);color:var(--red);border:1px solid #f5c0c0;}.btn-d:hover{background:var(--red);color:#fff;}
+.btn-g{background:var(--greenf);color:var(--green);border:1px solid #b6e8cc;}.btn-g:hover{background:var(--green);color:#fff;}
+.btn-wa{background:#25D366;color:#fff;}.btn-wa:hover{background:#1db954;}
+.btn-gold{background:var(--goldf);color:#7a4f00;border:1px solid #f0d090;}.btn-gold:hover{background:var(--gold);color:#fff;}
+.btn-sm{padding:5px 11px;font-size:12px;}
+.btn-xs{padding:3px 8px;font-size:11px;}
+
+/* ══ FORMS ══ */
+.fr{margin-bottom:12px;}
+.fl{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px;}
+.fi{width:100%;border:1.5px solid var(--border);border-radius:var(--rs);padding:8px 11px;font-family:inherit;font-size:13px;background:var(--surface);color:var(--text);transition:border-color .18s;}
+.fi:focus{outline:none;border-color:var(--teal);}
+.fi-sm{padding:5px 9px;font-size:12px;}
+.fr2{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.fr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;}
+
+/* ══ MODAL ══ */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.42);display:none;align-items:center;justify-content:center;z-index:200;}
+.overlay.open{display:flex;}
+.modal{background:var(--surface);border-radius:var(--r);padding:24px;width:520px;max-width:95vw;box-shadow:var(--shm);max-height:92vh;overflow-y:auto;}
+.modal.wide{width:660px;}
+.modal.xl{width:780px;}
+.modal h3{font-size:15px;font-weight:700;margin-bottom:16px;}
+.modal-footer{display:flex;gap:9px;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid var(--border);}
+
+/* ══ OBSERVATION LOG ══ */
+.obs-quick{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-bottom:16px;position:sticky;top:56px;z-index:30;box-shadow:var(--sh);}
+.obs-quick-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+.obs-type-toggle{display:flex;border:1.5px solid var(--border);border-radius:var(--rs);overflow:hidden;}
+.ott-btn{padding:7px 16px;font-family:inherit;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .18s;}
+.ott-pos{background:var(--surface2);color:var(--text3);}
+.ott-neg{background:var(--surface2);color:var(--text3);}
+.ott-btn.sel-pos{background:var(--green);color:#fff;}
+.ott-btn.sel-neg{background:var(--red);color:#fff;}
+.cat-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
+.cat-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);font-size:12px;cursor:pointer;transition:all .15s;font-family:inherit;font-weight:500;}
+.cat-chip:hover{border-color:var(--text3);}
+.cat-chip.sel-chip{border-width:2px;color:#fff;}
+/* Observation Entry Card */
+.obs-log{display:flex;flex-direction:column;gap:10px;}
+.obs-day-group{}
+.obs-day-label{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;padding:6px 0;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+.obs-day-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.obs-entry{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:13px 16px;display:flex;align-items:flex-start;gap:12px;transition:box-shadow .18s;}
+.obs-entry:hover{box-shadow:var(--sh);}
+.obs-entry.pos{border-right:3px solid var(--green);}
+.obs-entry.neg{border-right:3px solid var(--red);}
+.obs-cat-ico{width:38px;height:38px;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.obs-body{flex:1;min-width:0;}
+.obs-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px;}
+.obs-cat-name{font-weight:600;font-size:13px;}
+.obs-time{font-size:11px;color:var(--text3);}
+.obs-students{font-size:12px;color:var(--text2);}
+.obs-note{font-size:12.5px;color:var(--text2);margin-top:4px;font-style:italic;}
+.obs-actions{display:flex;gap:5px;flex-shrink:0;}
+.edited-badge{font-size:10px;color:var(--text3);font-style:italic;}
+
+/* ══ EVALUATION ══ */
+.eval-tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:16px;}
+.eval-tab{padding:9px 18px;font-size:13px;font-weight:500;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .18s;}
+.eval-tab.active{color:var(--teal);border-bottom-color:var(--teal);}
+.eval-tab-panel{display:none;}
+.eval-tab-panel.active{display:block;}
+
+/* Axis rating */
+.axis-card{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;transition:border-color .18s;}
+.axis-card.has-rating{border-color:var(--teal);}
+.axis-name{font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.axis-ratings{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;}
+.ar-btn{width:42px;height:42px;border-radius:50%;border:2px solid var(--border);background:var(--surface);font-size:15px;font-weight:700;cursor:pointer;transition:all .18s;font-family:inherit;color:var(--text3);}
+.ar-btn:hover{border-color:var(--teal2);color:var(--teal2);}
+.ar-btn.sel{background:var(--teal);border-color:var(--teal);color:#fff;box-shadow:0 2px 8px rgba(12,155,135,.35);}
+.axis-indicator{font-size:12.5px;color:var(--teal);font-weight:500;min-height:18px;margin-top:2px;}
+.eval-preview{background:var(--navy2);border-radius:var(--rs);padding:14px 16px;color:rgba(255,255,255,.85);font-size:13px;line-height:1.8;margin-top:14px;min-height:60px;}
+.eval-preview-label{font-size:11px;color:rgba(255,255,255,.4);margin-bottom:6px;}
+
+/* Period selector */
+.period-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px;}
+.period-type-btn{padding:6px 14px;border-radius:var(--rx);border:1.5px solid var(--border);background:var(--surface2);color:var(--text3);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .18s;}
+.period-type-btn.sel{background:var(--teal);border-color:var(--teal);color:#fff;}
+
+/* Student multi-select */
+.stu-multi{max-height:200px;overflow-y:auto;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--surface);}
+.stu-check-item{display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid var(--border);cursor:pointer;}
+.stu-check-item:last-child{border-bottom:none;}
+.stu-check-item:hover{background:var(--surface2);}
+.stu-check-item input[type=checkbox]{accent-color:var(--teal);width:15px;height:15px;cursor:pointer;}
+.stu-check-item label{font-size:13px;cursor:pointer;flex:1;}
+.stu-check-all{display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:2px solid var(--border);font-weight:600;font-size:12.5px;cursor:pointer;background:var(--surface2);}
+.stu-check-all input{accent-color:var(--teal);width:15px;height:15px;}
+
+/* Evaluation history card */
+.eval-hist-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;}
+.eval-hist-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.eval-hist-name{font-weight:700;font-size:13.5px;flex:1;}
+.eval-period-badge{font-size:11px;padding:2px 10px;border-radius:20px;font-weight:600;}
+.eval-weekly{background:var(--bluef);color:#1f5da6;}
+.eval-monthly{background:var(--purplef);color:#5b21b6;}
+.eval-hist-text{font-size:13px;color:var(--text2);line-height:1.75;border-right:3px solid var(--teal);padding-right:10px;}
+.eval-hist-ratings{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;}
+.rating-pill{display:flex;align-items:center;gap:4px;font-size:11.5px;color:var(--text2);}
+.rating-dot{width:20px;height:20px;border-radius:50%;background:var(--teal);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+
+/* ══ AXES CONFIG ══ */
+.axis-config-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;overflow:hidden;}
+.axis-config-header{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--surface2);cursor:pointer;}
+.axis-config-header h4{font-size:13px;font-weight:700;flex:1;}
+.indicators-list{padding:12px 16px;}
+.indicator-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.ind-rating-badge{width:28px;height:28px;border-radius:50%;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ind-5{background:#d1fae5;color:#065f46;}
+.ind-4{background:#dbeafe;color:#1e40af;}
+.ind-3{background:#fef9c3;color:#854d0e;}
+.ind-2{background:#fed7aa;color:#9a3412;}
+.ind-1{background:#fee2e2;color:#991b1b;}
+.cat-config-row{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--border);border-radius:var(--rs);margin-bottom:7px;background:var(--surface);}
+.cat-type-sel{border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:11.5px;font-family:inherit;cursor:pointer;}
+
+/* ══ BADGES ══ */
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:100px;font-size:11.5px;font-weight:500;white-space:nowrap;}
+.bT{background:var(--teal3);color:#0a6b5c;}
+.bJJ{background:var(--bluef);color:#1e4db0;}
+.bJ{background:var(--goldf);color:#8c5500;}
+.bM{background:#fff3e0;color:#c65000;}
+.bR{background:var(--redf);color:var(--red);}
+.bN{background:var(--surface2);color:var(--text3);}
+.badge-pos{background:var(--greenf);color:#0d5e32;border:1px solid #b0e8c8;}
+.badge-neg{background:var(--redf);color:#8b1a1a;border:1px solid #f5c0c0;}
+
+/* ══ ALERTS ══ */
+.alert{padding:10px 13px;border-radius:var(--rs);font-size:13px;margin-bottom:12px;}
+.a-info{background:var(--bluef);color:#1e4db0;border:1px solid #b5d0f5;}
+.a-warn{background:var(--goldf);color:#7a4f00;border:1px solid #f0d080;}
+.a-success{background:var(--greenf);color:#0d5e32;border:1px solid #b0e8c8;}
+
+/* ══ TOOLBAR ══ */
+.toolbar{display:flex;align-items:center;gap:9px;margin-bottom:13px;flex-wrap:wrap;}
+.search-in{border:1.5px solid var(--border);border-radius:var(--rs);padding:7px 12px;font-family:inherit;font-size:13px;background:var(--surface);color:var(--text);width:200px;}
+.search-in:focus{outline:none;border-color:var(--teal);}
+.filter-sel{border:1.5px solid var(--border);border-radius:var(--rs);padding:7px 10px;font-family:inherit;font-size:12.5px;color:var(--text);background:var(--surface);cursor:pointer;}
+.filter-sel:focus{outline:none;border-color:var(--teal);}
+
+/* ══ GRADE TREE ══ */
+.grade-row{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;overflow:hidden;}
+.grade-hdr{padding:13px 17px;display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,var(--navy) 0%,var(--navy2) 100%);}
+.grade-hdr h3{color:#fff;font-size:13.5px;font-weight:700;flex:1;}
+.grade-hdr .ghc{color:rgba(255,255,255,.45);font-size:11.5px;}
+.grade-body{padding:11px 14px;}
+.sec-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:11px 13px;margin-bottom:7px;display:flex;align-items:center;gap:11px;}
+.sec-name{font-weight:700;font-size:13px;flex:1;}
+.sec-meta{font-size:11.5px;color:var(--text3);}
+
+/* ══ RATING ══ */
+.rating-wrap{display:flex;gap:3px;}
+.rb{width:27px;height:27px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface2);color:var(--text3);font-size:11px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;font-family:inherit;}
+.rb.sel{background:var(--teal);border-color:var(--teal);color:#fff;}
+
+/* ══ SCORE INPUT ══ */
+.score-in{width:62px;border:1.5px solid var(--border);border-radius:6px;padding:5px 6px;font-family:inherit;font-size:13px;text-align:center;background:var(--surface);color:var(--text);transition:border-color .18s;}
+.score-in:focus{outline:none;border-color:var(--teal);}
+.score-in.err{border-color:var(--red);background:var(--redf);}
+
+/* ══ PROG BAR ══ */
+.prog-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:3px;background:var(--teal);}
+
+/* ══ WA / BOT ══ */
+.chat-area{background:#e5ddd5;border-radius:var(--rs);padding:13px;min-height:160px;display:flex;flex-direction:column;gap:7px;font-size:12.5px;}
+.chat-msg{max-width:76%;padding:8px 11px;border-radius:10px;line-height:1.5;}
+.chat-msg.in{background:#fff;align-self:flex-start;border-top-right-radius:2px;}
+.chat-msg.out{background:#d9fdd3;align-self:flex-end;border-top-left-radius:2px;}
+.chat-time{font-size:10px;color:var(--text3);margin-top:2px;text-align:left;}
+.code-block{background:#182038;color:#a8d8a8;border-radius:var(--rs);padding:13px 15px;font-family:monospace;font-size:11.5px;line-height:1.7;overflow-x:auto;margin:7px 0;}
+
+/* ══ TOOL EDITOR ══ */
+.tool-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;padding:9px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);}
+.tool-row-name{flex:1;border:1px solid var(--border);border-radius:6px;padding:5px 9px;font-family:inherit;font-size:12.5px;background:var(--surface);}
+.tool-row-max{width:66px;border:1px solid var(--border);border-radius:6px;padding:5px 7px;font-family:inherit;font-size:12.5px;text-align:center;background:var(--surface);}
+
+/* ══ EMPTY STATE ══ */
+.empty{text-align:center;padding:40px 20px;color:var(--text3);}
+.empty .empty-ico{font-size:40px;margin-bottom:10px;}
+.empty p{font-size:13px;}
+
+/* ══ SCROLL ══ */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--surface2);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+
+@media print{.sb,.topbar,.ctxbar,.btn,.obs-quick,nav{display:none!important;}.main{margin-right:0;}}
+
+/* ══ LOGIN SCREEN ══ */
+.login-screen{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#182038 0%,#1a3560 40%,#0c3d2e 100%);overflow:hidden;}
+.login-bg-pattern{position:absolute;inset:0;opacity:.04;background-image:repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 0,transparent 50%);background-size:24px 24px;}
+.login-card{background:#fff;border-radius:20px;padding:40px 36px;width:440px;max-width:95vw;box-shadow:0 24px 64px rgba(0,0,0,.35);position:relative;animation:loginIn .4s cubic-bezier(.34,1.56,.64,1);}
+@keyframes loginIn{from{opacity:0;transform:translateY(24px) scale(.97);}to{opacity:1;transform:none;}}
+.login-school{text-align:center;margin-bottom:24px;}
+.login-school-ico{width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,var(--teal) 0%,var(--navy) 100%);display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 12px;}
+.login-school-name{font-size:15px;font-weight:700;color:var(--text);margin-bottom:2px;}
+.login-school-sub{font-size:12px;color:var(--text3);}
+.login-divider{height:1px;background:var(--border);margin:20px 0;}
+.login-title{font-size:16px;font-weight:700;text-align:center;margin-bottom:18px;color:var(--navy);}
+.login-field{position:relative;margin-bottom:13px;}
+.login-field label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px;}
+.login-field input{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:11px 14px 11px 40px;font-family:inherit;font-size:14px;background:#f8f9fb;color:var(--text);transition:all .2s;}
+.login-field input:focus{outline:none;border-color:var(--teal);background:#fff;box-shadow:0 0 0 3px rgba(12,155,135,.1);}
+.login-field .lf-ico{position:absolute;left:13px;bottom:11px;font-size:16px;color:var(--text3);}
+.login-btn{width:100%;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--teal) 0%,var(--navy3) 100%);color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:6px;letter-spacing:.3px;}
+.login-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(12,155,135,.4);}
+.login-btn:active{transform:translateY(0);}
+.login-forgot{text-align:center;margin-top:14px;font-size:12.5px;color:var(--text3);}
+.login-forgot a{color:var(--teal);cursor:pointer;text-decoration:none;font-weight:500;}
+.login-forgot a:hover{text-decoration:underline;}
+.login-err{background:var(--redf);border:1px solid #f5c0c0;color:var(--red);padding:9px 13px;border-radius:var(--rs);font-size:12.5px;margin-bottom:12px;display:none;}
+.login-setup-hint{text-align:center;font-size:12px;color:rgba(255,255,255,.5);margin-top:14px;}
+.login-setup-hint a{color:var(--teal2);cursor:pointer;}
+/* Show password toggle */
+.pw-toggle{position:absolute;left:13px;bottom:11px;cursor:pointer;font-size:16px;color:var(--text3);user-select:none;}
+/* Settings cards */
+.set-section{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--teal);display:flex;align-items:center;gap:6px;}
+.profile-avatar-row{display:flex;align-items:center;gap:16px;margin-bottom:18px;padding:14px 16px;background:var(--surface2);border-radius:var(--r);}
+.profile-avatar{width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--navy3));display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff;flex-shrink:0;cursor:pointer;}
+.profile-avatar-info{flex:1;}
+.profile-avatar-name{font-weight:700;font-size:15px;}
+.profile-avatar-sub{font-size:12px;color:var(--text3);margin-top:1px;}
+/* Recovery modal */
+.rec-option{display:flex;align-items:center;gap:12px;padding:14px 16px;border:1.5px solid var(--border);border-radius:var(--r);cursor:pointer;transition:all .18s;margin-bottom:10px;}
+.rec-option:hover{border-color:var(--teal);background:var(--teal3);}
+.rec-option-ico{font-size:26px;flex-shrink:0;}
+.rec-option-text h4{font-size:13.5px;font-weight:700;margin-bottom:2px;}
+.rec-option-text p{font-size:12px;color:var(--text3);}
+</style>
+/* ══ DRAG & DROP ══ */
+tr.dnd-dragging{opacity:.35;background:var(--teal3)!important;}
+tr.dnd-over{outline:2px dashed var(--teal);outline-offset:-2px;background:#f0fdf9!important;}
+.drag-handle{cursor:grab;color:var(--text3);font-size:17px;padding:0 4px;user-select:none;line-height:1;}
+.drag-handle:active{cursor:grabbing;color:var(--teal);}
+/* ══ TEMPLATE EDITOR ══ */
+.tmpl-type-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.tmpl-type-btn{padding:7px 16px;border-radius:var(--rx);border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .18s;}
+.tmpl-type-btn:hover{border-color:var(--teal);color:var(--teal);}
+.tmpl-type-btn.sel{background:var(--navy);border-color:var(--navy);color:#fff;}
+.tmpl-card{border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;overflow:hidden;}
+.tmpl-card-head{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--surface2);cursor:pointer;transition:background .15s;}
+.tmpl-card-head:hover{background:var(--surface3);}
+.tmpl-card-head .tc-name{flex:1;font-size:13px;font-weight:600;}
+.tmpl-card-head .tc-ico{font-size:16px;transition:transform .2s;}
+.tmpl-card.open .tc-ico{transform:rotate(90deg);}
+.tmpl-card-body{padding:14px 16px;display:none;}
+.tmpl-card.open .tmpl-card-body{display:block;}
+.var-section{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:10px 12px;margin-bottom:10px;}
+.var-section-label{font-size:10.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px;}
+.var-chips-row{display:flex;gap:5px;flex-wrap:wrap;}
+.vchip{padding:3px 10px;border-radius:20px;background:var(--navy);color:#8ab4e8;font-size:11px;font-family:monospace;cursor:pointer;border:1px solid rgba(255,255,255,.08);transition:all .15s;user-select:none;}
+.vchip:hover{background:var(--teal);color:#fff;transform:scale(1.05);}
+.vchip-desc{font-size:10px;color:var(--text3);display:inline;margin-right:3px;}
+.tmpl-ta{width:100%;border:1.5px solid var(--border);border-radius:var(--rs);padding:10px 12px;font-family:inherit;font-size:13px;background:var(--surface);color:var(--text);resize:vertical;min-height:110px;transition:border-color .18s;line-height:1.7;}
+.tmpl-ta:focus{outline:none;border-color:var(--teal);}
+/* ══ AI BOT SETTINGS ══ */
+.ai-prov-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;}
+.ai-prov-card{border:1.5px solid var(--border);border-radius:var(--r);padding:10px 6px;background:var(--surface2);cursor:pointer;text-align:center;transition:all .18s;font-family:inherit;}
+.ai-prov-card:hover{border-color:var(--teal);}
+.ai-prov-card.sel{border-color:var(--teal);background:var(--teal3);}
+.ai-prov-card .ap-ico{font-size:24px;display:block;margin-bottom:5px;}
+.ai-prov-card .ap-name{font-size:11px;font-weight:700;color:var(--text);}
+.ai-prov-card.sel .ap-name{color:var(--teal);}
+</head>
+
+<!-- ════════ SIDEBAR ════════ -->
+<aside class="sb">
+  <div class="sb-logo"><h2>📚 نظام التقويم الذكي</h2><small>إدارة الدرجات والمتابعة</small></div>
+  <div class="sb-teacher">
+    <div class="sb-av" id="sb-av">م</div>
+    <div><div class="sb-tn" id="sb-tn">المعلم</div><div class="sb-ts" id="sb-ts">—</div></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-sec">الرئيسية</div>
+    <div class="ni active" data-view="dashboard"><span class="ni-ico">🏠</span> لوحة التحكم</div>
+    <div class="ni" data-view="classes"><span class="ni-ico">🏫</span> الصفوف والشعب</div>
+    <div class="sb-sec">العمل اليومي</div>
+    <div class="ni" data-view="students"><span class="ni-ico">👥</span> الطلاب</div>
+    <div class="ni" data-view="grades"><span class="ni-ico">📊</span> إدخال الدرجات</div>
+    <div class="ni" data-view="behavioral"><span class="ni-ico">📋</span> سجل الملاحظات</div>
+    <div class="ni" data-view="evaluations"><span class="ni-ico">🎯</span> التقييم الدوري</div>
+    <div class="sb-sec">التواصل</div>
+    <div class="ni" data-view="reports"><span class="ni-ico">📄</span> التقارير والإرسال</div>
+    <div class="ni" data-view="whatsapp"><span class="ni-ico">💬</span> واتساب والبوت</div>
+    <div class="sb-sec">النظام</div>
+    <div class="ni" data-view="settings"><span class="ni-ico">⚙️</span> الإعدادات</div>
+    <div class="ni" onclick="doLogout()" style="margin-top:auto;border-top:1px solid rgba(255,255,255,.08)"><span class="ni-ico">🚪</span> تسجيل الخروج</div>
+  </nav>
+  <div class="sb-foot">الإصدار 3.0 — بيانات محلية آمنة</div>
+</aside>
+
+<!-- ════════ MAIN ════════ -->
+<div class="main">
+  <div class="topbar">
+    <div class="tb-l"><h2 id="tb-t">لوحة التحكم</h2><p id="tb-m">نظرة شاملة على جميع الصفوف</p></div>
+    <div class="tb-r">
+      <button class="btn btn-o btn-sm" onclick="exportData()">⬇ تصدير</button>
+      <button class="btn btn-p btn-sm" id="tb-btn" style="display:none"></button>
+    </div>
+  </div>
+  <div class="ctxbar" id="ctxbar" style="display:none">
+    <span style="font-size:11.5px;color:var(--text3)">الصف:</span>
+    <select class="ctx-sel" id="ctx-g" onchange="onCtxG()"></select>
+    <span class="ctx-div">‹</span>
+    <span style="font-size:11.5px;color:var(--text3)">الشعبة:</span>
+    <select class="ctx-sel" id="ctx-s" onchange="onCtxS()"></select>
+    <span class="ctx-pill" id="ctx-info">—</span>
+  </div>
+  <div class="content">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="view active" id="view-dashboard">
+      <div class="stats-grid" id="dash-stats"></div>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-header"><span class="card-title">توزيع المستويات</span></div>
+          <div style="position:relative;height:180px"><canvas id="ch-lv"></canvas></div>
+          <div id="ch-lv-lg" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;font-size:12px;"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">الشعب الدراسية</span></div>
+          <div id="dash-sec-list"></div>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-header"><span class="card-title">آخر الملاحظات</span></div>
+          <div id="dash-obs"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">آخر التقييمات الدورية</span></div>
+          <div id="dash-evals"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CLASSES ── -->
+    <div class="view" id="view-classes">
+      <div class="toolbar"><button class="btn btn-p" onclick="openAddGrade()">+ إضافة صف دراسي</button></div>
+      <div id="grade-tree"></div>
+      <div class="empty" id="no-grades" style="display:none"><div class="empty-ico">🏫</div><p>لا توجد صفوف دراسية — ابدأ بإضافة صف</p></div>
+    </div>
+
+    <!-- ── STUDENTS ── -->
+    <div class="view" id="view-students">
+      <div class="toolbar">
+        <input class="search-in" id="stu-q" placeholder="بحث عن طالب..." oninput="renderStudents()">
+        <div style="flex:1"></div>
+        <button class="btn btn-o btn-sm" onclick="openImportStudents()">📥 استيراد قائمة</button>
+        <button class="btn btn-p" onclick="openAddStudent()">+ إضافة طالب</button>
+      </div>
+      <div class="card"><div class="tw"><table class="dt">
+        <thead><tr><th>⠿</th><th>#</th><th>اسم الطالب</th><th>الرقم المدرسي</th><th>الجنسية</th><th>هاتف ولي الأمر</th><th>المستوى</th><th>الدرجة</th><th>إجراءات</th></tr></thead>
+        <tbody id="stu-tb"></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- ── GRADES ── -->
+    <div class="view" id="view-grades">
+      <div class="card" style="margin-bottom:13px">
+        <div class="card-header"><span class="card-title" id="gr-ct">أدوات التقويم المستمر</span><span class="card-sub" id="gr-cm"></span></div>
+        <div class="tw"><table class="dt"><thead><tr id="gr-ch"></tr></thead><tbody id="gr-cb"></tbody></table></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">الامتحان النهائي</span><span class="card-sub" id="gr-fm"></span></div>
+        <div class="tw"><table class="dt"><thead><tr><th>#</th><th>اسم الطالب</th><th id="gr-fth">الامتحان النهائي</th><th>الدرجة الإجمالية (100)</th><th>المستوى</th></tr></thead><tbody id="gr-fb"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- ── BEHAVIORAL LOG ── -->
+    <div class="view" id="view-behavioral">
+
+      <!-- QUICK ADD BAR -->
+      <div class="obs-quick">
+        <div class="obs-quick-row">
+          <span style="font-size:12px;font-weight:700;color:var(--text2)">تسجيل ملاحظة:</span>
+          <div class="obs-type-toggle">
+            <button class="ott-btn ott-pos sel-pos" id="ott-pos" onclick="setObsType('positive')">✅ إيجابية</button>
+            <button class="ott-btn ott-neg" id="ott-neg" onclick="setObsType('negative')">⚠️ سلبية</button>
+          </div>
+          <select class="fi" id="obs-stu-sel" style="width:200px;padding:6px 10px;">
+            <option value="__all__">— جميع الطلاب —</option>
+          </select>
+          <input class="fi fi-sm" id="obs-ts" type="datetime-local" style="width:190px;">
+          <button class="btn btn-p btn-sm" onclick="quickAddObs()">✚ تسجيل</button>
+        </div>
+        <div id="obs-cat-chips" class="cat-chips"></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+          <input class="fi fi-sm" id="obs-note" placeholder="ملاحظة إضافية اختيارية..." style="flex:1">
+        </div>
+      </div>
+
+      <!-- FILTER + LOG -->
+      <div class="toolbar">
+        <input class="search-in" id="obs-q" placeholder="بحث في الملاحظات..." oninput="renderObsLog()">
+        <select class="filter-sel" id="obs-f-type" onchange="renderObsLog()">
+          <option value="">الكل</option>
+          <option value="positive">إيجابية فقط</option>
+          <option value="negative">سلبية فقط</option>
+        </select>
+        <select class="filter-sel" id="obs-f-stu" onchange="renderObsLog()">
+          <option value="">كل الطلاب</option>
+        </select>
+        <div style="flex:1"></div>
+        <button class="btn btn-wa btn-sm" id="obs-send-sel-btn" onclick="sendObsToSelected()" style="display:none">💬 إرسال المحددين</button>
+      </div>
+      <div id="obs-log-cont"></div>
+    </div>
+
+    <!-- ── EVALUATIONS ── -->
+    <div class="view" id="view-evaluations">
+      <div class="eval-tabs" id="eval-tabs">
+        <div class="eval-tab active" data-etab="new-eval">📝 تقييم جديد</div>
+        <div class="eval-tab" data-etab="eval-history">📅 سجل التقييمات</div>
+        <div class="eval-tab" data-etab="axes-config">🔧 إعداد المحاور</div>
+        <div class="eval-tab" data-etab="cat-config">🏷 فئات الملاحظات</div>
+      </div>
+
+      <!-- NEW EVAL -->
+      <div class="eval-tab-panel active" id="etab-new-eval">
+        <div class="grid2">
+          <div>
+            <div class="card">
+              <div class="card-header"><span class="card-title">الطلاب</span><button class="btn btn-o btn-xs" onclick="toggleAllStudents()">تحديد الكل</button></div>
+              <div class="stu-multi" id="eval-stu-list"></div>
+            </div>
+            <div class="card">
+              <div class="card-header"><span class="card-title">الفترة الزمنية</span></div>
+              <div class="period-row">
+                <button class="period-type-btn sel" id="pt-w" onclick="setPeriodType('weekly')">أسبوعي</button>
+                <button class="period-type-btn" id="pt-m" onclick="setPeriodType('monthly')">شهري</button>
+              </div>
+              <div class="fr"><label class="fl">تسمية الفترة</label><input class="fi" id="eval-period-label" placeholder="مثال: الأسبوع الأول — نوفمبر"></div>
+              <div class="fr"><label class="fl">التاريخ</label><input class="fi" id="eval-date" type="date"></div>
+              <div class="fr"><label class="fl">ملاحظة عامة (اختياري)</label><textarea class="fi" id="eval-general-note" rows="2" placeholder="ملاحظة إضافية..."></textarea></div>
+            </div>
+          </div>
+          <div>
+            <div class="card">
+              <div class="card-header"><span class="card-title">التقييم على المحاور</span></div>
+              <div id="axes-rater"></div>
+              <!-- Tool Score Indicator -->
+              <div style="margin-top:12px;padding:12px;background:var(--surface2);border-radius:var(--rs);border:1px solid var(--border);">
+                <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;">📊 مؤشر درجة الأداة</div>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                  <select class="fi" id="eval-tool-sel" style="flex:1;padding:6px 10px;font-size:12.5px;" onchange="onEvalToolChange()">
+                    <option value="">— اختر الأداة —</option>
+                  </select>
+                </div>
+                <!-- Auto-fetched scores display -->
+                <div id="eval-tool-scores-display" style="margin-top:8px;display:none;"></div>
+                <div id="eval-tool-manual-row" style="display:none;margin-top:8px;">
+                  <div style="font-size:11px;color:var(--text3);margin-bottom:5px;">يمكنك تعديل الدرجة يدوياً إذا لزم الأمر:</div>
+                  <div style="display:flex;gap:8px;align-items:center;">
+                    <input class="fi" id="eval-tool-score" type="number" min="0" placeholder="الدرجة" style="width:80px;padding:6px 8px;font-size:13px;" oninput="updateEvalPreview()">
+                    <span id="eval-tool-max" style="font-size:13px;color:var(--text3);white-space:nowrap;"></span>
+                    <button class="btn btn-o btn-xs" onclick="clearToolScore()" title="مسح">✕</button>
+                  </div>
+                </div>
+              </div>
+              <!-- Preview -->
+              <div style="margin-top:10px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                  <div style="font-size:11.5px;font-weight:700;color:var(--text3);">معاينة العبارة الوصفية</div>
+                  <button class="btn btn-o btn-xs" onclick="copyEvalPreview()" title="نسخ العبارة">📋 نسخ</button>
+                </div>
+                <div class="eval-preview" id="eval-preview-text">—</div>
+              </div>
+              <div style="margin-top:14px;display:flex;gap:9px;">
+                <button class="btn btn-p" style="flex:1" onclick="saveEvaluation()">💾 حفظ التقييم</button>
+                <button class="btn btn-wa" onclick="saveAndSendEval()">💾+💬 حفظ وإرسال</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EVAL HISTORY -->
+      <div class="eval-tab-panel" id="etab-eval-history">
+        <div class="toolbar">
+          <select class="filter-sel" id="evh-f-stu" onchange="renderEvalHistory()"><option value="">كل الطلاب</option></select>
+          <select class="filter-sel" id="evh-f-period" onchange="renderEvalHistory()">
+            <option value="">كل الفترات</option>
+            <option value="weekly">أسبوعي</option>
+            <option value="monthly">شهري</option>
+          </select>
+          <div style="flex:1"></div>
+          <button class="btn btn-wa btn-sm" onclick="sendAllEvals()">💬 إرسال الكل</button>
+        </div>
+        <div id="eval-history-cont"></div>
+      </div>
+
+      <!-- AXES CONFIG -->
+      <div class="eval-tab-panel" id="etab-axes-config">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <span style="font-size:13.5px;font-weight:700;">محاور التقييم</span>
+          <button class="btn btn-p btn-sm" onclick="addAxis()">+ إضافة محور</button>
+        </div>
+        <div id="axes-config-list"></div>
+      </div>
+
+      <!-- CATEGORY CONFIG -->
+      <div class="eval-tab-panel" id="etab-cat-config">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <span style="font-size:13.5px;font-weight:700;">فئات الملاحظات</span>
+          <button class="btn btn-p btn-sm" onclick="addCategory()">+ إضافة فئة</button>
+        </div>
+        <div id="cats-config-list"></div>
+        <div style="margin-top:10px;">
+          <button class="btn btn-p" onclick="saveCatsConfig()">💾 حفظ الفئات</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── REPORTS ── -->
+    <div class="view" id="view-reports">
+      <div class="toolbar">
+        <select class="filter-sel" id="rep-type" onchange="renderReports()">
+          <option value="eval">التقييمات الدورية</option>
+          <option value="obs">سجل الملاحظات</option>
+          <option value="grades">كشف الدرجات</option>
+        </select>
+        <div style="flex:1"></div>
+        <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--surface2);border-radius:var(--rs);border:1px solid var(--border);">
+          <input type="checkbox" id="rep-sel-all" style="accent-color:var(--teal);width:15px;height:15px;cursor:pointer" onchange="toggleAllRepSel(this)">
+          <label for="rep-sel-all" style="font-size:12px;font-weight:600;cursor:pointer;color:var(--text2)">تحديد الكل</label>
+        </div>
+        <button class="btn btn-wa btn-sm" id="rep-send-sel-btn" onclick="sendSelectedReports()" style="display:none">💬 إرسال المحددين (<span id="rep-sel-count">0</span>)</button>
+        <button class="btn btn-wa btn-sm" onclick="sendAllWA()">💬 إرسال الكل</button>
+        <button class="btn btn-o btn-sm" onclick="window.print()">🖨 طباعة</button>
+      </div>
+      <div id="reports-cont"></div>
+    </div>
+
+    <!-- ── WHATSAPP ── -->
+    <div class="view" id="view-whatsapp">
+      <div class="alert a-info" style="font-size:13px;">⚙️ إعداد القوالب والبوت الذكي متاح في <strong>الإعدادات ← قوالب الرسائل / البوت الذكي</strong></div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">🎮 محاكاة البوت — اختبر ردود النظام</span></div>
+        <div class="grid2" style="margin-bottom:0">
+          <div>
+            <div class="fr"><label class="fl">رقم هاتف ولي الأمر (للاختبار)</label><input class="fi" id="bot-tp" placeholder="+96891234567" dir="ltr"></div>
+            <div class="fr"><label class="fl">رسالة ولي الأمر</label><input class="fi" id="bot-tm" placeholder="أريد معرفة درجات ابني" onkeydown="if(event.key==='Enter')simulateBot()"></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-p" onclick="simulateBot()">🤖 محاكاة الرد</button>
+              <button class="btn btn-o btn-sm" onclick="$i('bot-chat').innerHTML=''">🗑 مسح</button>
+            </div>
+            <div style="margin-top:14px;padding:12px;background:var(--surface2);border-radius:var(--rs);font-size:12px;color:var(--text2);">
+              <strong style="display:block;margin-bottom:6px;">متغيرات الرد التلقائي:</strong>
+              يُطابق النظام رقم الهاتف مع قائمة أولياء الأمور ثم يُرسل بيانات الطالب.
+            </div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;">📱 نافذة المحادثة</div>
+            <div class="chat-area" id="bot-chat">
+              <div class="chat-msg in">مرحباً، أريد معرفة درجات ابني<div class="chat-time">—</div></div>
+              <div class="chat-msg out">مرحباً 🎓 جاري التحقق من رقمك...<div class="chat-time">—</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS ── -->
+    <div class="view" id="view-settings">
+      <!-- Tabs -->
+      <div class="eval-tabs" style="margin-bottom:18px;">
+        <div class="eval-tab active" data-stab="profile" onclick="switchSetTab('profile')">👤 الملف الشخصي</div>
+        <div class="eval-tab" data-stab="account" onclick="switchSetTab('account')">🔐 الحساب والأمان</div>
+        <div class="eval-tab" data-stab="templates" onclick="switchSetTab('templates')">💬 قوالب الرسائل</div>
+        <div class="eval-tab" data-stab="bot" onclick="switchSetTab('bot')">🤖 البوت الذكي</div>
+        <div class="eval-tab" data-stab="data" onclick="switchSetTab('data')">💾 البيانات</div>
+      </div>
+
+      <!-- PROFILE TAB -->
+      <div id="stab-profile" class="eval-tab-panel active">
+        <!-- Avatar Row -->
+        <div class="profile-avatar-row card" style="margin-bottom:14px;">
+          <div class="profile-avatar" id="set-avatar" onclick="changeAvatar()">م</div>
+          <div class="profile-avatar-info">
+            <div class="profile-avatar-name" id="set-av-name">المعلم</div>
+            <div class="profile-avatar-sub" id="set-av-sub">لم يتم إدخال البيانات بعد</div>
+          </div>
+          <button class="btn btn-p btn-sm" onclick="saveProfile()">💾 حفظ الملف</button>
+        </div>
+        <div class="grid2">
+          <div class="card">
+            <div class="set-section">📋 البيانات الشخصية</div>
+            <div class="fr"><label class="fl">الاسم الكامل *</label><input class="fi" id="set-fullname" placeholder="أدخل الاسم الكامل للمعلم"></div>
+            <div class="fr2">
+              <div class="fr" style="margin-bottom:0"><label class="fl">رقم الهاتف</label><input class="fi" id="set-phone" placeholder="+968XXXXXXXX" dir="ltr" style="text-align:right;"></div>
+              <div class="fr" style="margin-bottom:0"><label class="fl">البريد الإلكتروني</label><input class="fi" id="set-email" type="email" placeholder="teacher@school.edu.om" dir="ltr" style="text-align:right;"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="set-section">🏫 بيانات المدرسة</div>
+            <div class="fr"><label class="fl">اسم المدرسة</label><input class="fi" id="set-school" placeholder="أدخل اسم المدرسة"></div>
+            <div class="fr2">
+              <div class="fr" style="margin-bottom:0"><label class="fl">اسم مدير المدرسة</label><input class="fi" id="set-principal" placeholder="اسم المدير"></div>
+              <div class="fr" style="margin-bottom:0"><label class="fl">هاتف المدرسة</label><input class="fi" id="set-school-phone" placeholder="+96824XXXXXX" dir="ltr" style="text-align:right;"></div>
+            </div>
+            <div class="fr2" style="margin-top:12px">
+              <div class="fr" style="margin-bottom:0"><label class="fl">المادة / التخصص</label><input class="fi" id="set-subject" placeholder="مثال: الكيمياء"></div>
+              <div class="fr" style="margin-bottom:0"><label class="fl">العام الدراسي</label><input class="fi" id="set-year" placeholder="2024 / 2025"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="set-section">🧑‍💼 بيانات الإشراف</div>
+          <div class="grid2" style="margin-bottom:0;">
+            <div class="fr" style="margin-bottom:0"><label class="fl">المشرف الزائر</label><input class="fi" id="set-visitor-sup" placeholder="اسم المشرف الزائر"></div>
+            <div class="fr" style="margin-bottom:0"><label class="fl">المشرف التربوي</label><input class="fi" id="set-edu-sup" placeholder="اسم المشرف التربوي"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACCOUNT TAB -->
+      <div id="stab-account" class="eval-tab-panel">
+        <div class="grid2">
+          <div class="card">
+            <div class="set-section">🔑 بيانات تسجيل الدخول</div>
+            <div class="alert a-success" id="acc-status-msg" style="font-size:12px;margin-bottom:13px;">✅ الحساب محفوظ بأمان في السيرفر</div>
+            <div class="fr"><label class="fl">اسم المستخدم *</label><input class="fi" id="set-username" placeholder="اختر اسم مستخدم"></div>
+            <div class="fr" style="position:relative">
+              <label class="fl">كلمة المرور الحالية *</label>
+              <input class="fi" type="password" id="set-pw0" placeholder="كلمة المرور الحالية">
+              <span class="pw-toggle" style="bottom:9px;" onclick="togglePwVis('set-pw0',this)">👁</span>
+            </div>
+            <div class="fr" style="position:relative">
+              <label class="fl">كلمة المرور الجديدة *</label>
+              <input class="fi" type="password" id="set-pw1" placeholder="8 أحرف على الأقل">
+              <span class="pw-toggle" style="bottom:9px;" onclick="togglePwVis('set-pw1',this)">👁</span>
+            </div>
+            <div class="fr" style="position:relative">
+              <label class="fl">تأكيد كلمة المرور *</label>
+              <input class="fi" type="password" id="set-pw2" placeholder="أعد كتابة كلمة المرور">
+              <span class="pw-toggle" style="bottom:9px;" onclick="togglePwVis('set-pw2',this)">👁</span>
+            </div>
+            <div id="pw-strength" style="margin-bottom:10px;display:none;">
+              <div style="display:flex;gap:4px;margin-bottom:4px;">
+                <div style="flex:1;height:4px;border-radius:2px;background:var(--border);" id="pws-1"></div>
+                <div style="flex:1;height:4px;border-radius:2px;background:var(--border);" id="pws-2"></div>
+                <div style="flex:1;height:4px;border-radius:2px;background:var(--border);" id="pws-3"></div>
+                <div style="flex:1;height:4px;border-radius:2px;background:var(--border);" id="pws-4"></div>
+              </div>
+              <span id="pws-label" style="font-size:11px;color:var(--text3)"></span>
+            </div>
+            <div class="fr2" style="margin-bottom:14px;">
+              <div><label class="fl">بريد الاسترجاع</label><input class="fi" id="set-rec-email" type="email" placeholder="البريد للاسترجاع" dir="ltr" style="text-align:right;"></div>
+              <div><label class="fl">هاتف الاسترجاع</label><input class="fi" id="set-rec-phone" placeholder="+968XXXXXXXX" dir="ltr" style="text-align:right;"></div>
+            </div>
+            <button class="btn btn-p" onclick="saveAccount()">💾 حفظ الحساب</button>
+          </div>
+          <div class="card">
+            <div class="set-section">ℹ️ معلومات الجلسة</div>
+            <div id="session-info"></div>
+            <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
+              <button class="btn btn-d" onclick="doLogout()">🚪 تسجيل الخروج</button>
+            </div>
+            <div style="margin-top:14px;">
+              <div class="set-section" style="margin-bottom:10px;">🔄 استرجاع الحساب</div>
+              <p style="font-size:12.5px;color:var(--text2);margin-bottom:10px;">إذا نسيت كلمة المرور يمكنك استرجاعها عبر:</p>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn btn-wa btn-sm" onclick="recoverViaWA()">💬 واتساب</button>
+                <button class="btn btn-o btn-sm" onclick="recoverViaEmail()">📧 بريد إلكتروني</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TEMPLATES TAB -->
+      <div id="stab-templates" class="eval-tab-panel">
+        <div class="tmpl-type-tabs" id="tmpl-type-tabs">
+          <button class="tmpl-type-btn sel" onclick="switchTmplType('obs',this)">📋 الملاحظات</button>
+          <button class="tmpl-type-btn" onclick="switchTmplType('grades',this)">📊 الدرجات</button>
+          <button class="tmpl-type-btn" onclick="switchTmplType('behavioral',this)">✅ السجل السلوكي</button>
+          <button class="tmpl-type-btn" onclick="switchTmplType('evaluation',this)">🎯 التقييم الدوري</button>
+        </div>
+        <!-- Variable reference -->
+        <div class="card" style="margin-bottom:14px;">
+          <div class="card-header" style="margin-bottom:10px;"><span class="card-title">📌 المتغيرات المتاحة — اضغط لإدراجها في القالب النشط</span></div>
+          <div class="var-section">
+            <div class="var-section-label">متغيرات مشتركة</div>
+            <div class="var-chips-row" id="vars-common"></div>
+          </div>
+          <div class="var-section" id="vars-specific-wrap">
+            <div class="var-section-label" id="vars-specific-label">متغيرات خاصة بالنوع</div>
+            <div class="var-chips-row" id="vars-specific"></div>
+          </div>
+        </div>
+        <!-- Templates list -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <span style="font-size:13.5px;font-weight:700;" id="tmpl-type-title">قوالب الملاحظات</span>
+          <button class="btn btn-p btn-sm" onclick="addTemplate()">+ إضافة قالب</button>
+        </div>
+        <div id="tmpl-list"></div>
+      </div>
+
+      <!-- BOT TAB -->
+      <div id="stab-bot" class="eval-tab-panel">
+        <div class="grid2">
+          <div class="card">
+            <div class="set-section">🤖 مزوّد الذكاء الاصطناعي</div>
+            <div class="ai-prov-grid" id="ai-prov-grid">
+              <button class="ai-prov-card sel" onclick="selectAIProv('claude',this)"><span class="ap-ico">🟣</span><span class="ap-name">Claude</span></button>
+              <button class="ai-prov-card" onclick="selectAIProv('openai',this)"><span class="ap-ico">🟢</span><span class="ap-name">OpenAI</span></button>
+              <button class="ai-prov-card" onclick="selectAIProv('gemini',this)"><span class="ap-ico">🔵</span><span class="ap-name">Gemini</span></button>
+              <button class="ai-prov-card" onclick="selectAIProv('custom',this)"><span class="ap-ico">⚙️</span><span class="ap-name">مخصص</span></button>
+            </div>
+            <div class="fr"><label class="fl">مفتاح الـ API *</label>
+              <div style="position:relative"><input class="fi" type="password" id="bot-apikey" placeholder="أدخل مفتاح API هنا"><span class="pw-toggle" style="bottom:9px" onclick="togglePwVis('bot-apikey',this)">👁</span></div>
+            </div>
+            <div class="fr" id="bot-endpoint-row">
+              <label class="fl">رابط الـ API (للمزود المخصص)</label>
+              <input class="fi" id="bot-endpoint" placeholder="https://api.example.com/v1/chat" dir="ltr">
+            </div>
+            <div class="fr"><label class="fl">النموذج (Model)</label><input class="fi" id="bot-model" placeholder="claude-sonnet-4-5 / gpt-4o / gemini-pro"></div>
+            <div class="fr"><label class="fl">رسالة النظام (System Prompt)</label>
+              <textarea class="fi" id="bot-sysprompt" rows="3" placeholder="أنت مساعد تعليمي. تُجيب على أسئلة أولياء الأمور عن درجات أبنائهم وملاحظات المعلم..."></textarea>
+            </div>
+            <button class="btn btn-p" onclick="saveBotCfg()">💾 حفظ إعدادات الذكاء الاصطناعي</button>
+          </div>
+          <div class="card">
+            <div class="set-section">📱 واتساب Business API</div>
+            <div class="alert a-warn" style="font-size:12px;">يتطلب حساباً في Meta Business مُفعّلاً</div>
+            <div class="fr"><label class="fl">Phone Number ID</label><input class="fi" id="bot-wapid" placeholder="رقم معرّف الهاتف من Meta"></div>
+            <div class="fr"><label class="fl">Access Token</label>
+              <div style="position:relative"><input class="fi" type="password" id="bot-wat" placeholder="EAAxxxxx..."><span class="pw-toggle" style="bottom:9px" onclick="togglePwVis('bot-wat',this)">👁</span></div>
+            </div>
+            <div class="fr"><label class="fl">Webhook Verify Token</label><input class="fi" id="bot-verify" placeholder="رمز التحقق الخاص بك"></div>
+            <button class="btn btn-p" onclick="saveBotCfg()">💾 حفظ إعدادات واتساب</button>
+            <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
+              <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;">🔗 رابط الـ Webhook</div>
+              <div style="background:var(--navy);color:#a8d8a8;border-radius:var(--rs);padding:10px 12px;font-size:12px;font-family:monospace;word-break:break-all;" id="webhook-url-display">https://your-server.com/webhook</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="stab-data" class="eval-tab-panel">
+        <div class="grid2">
+          <div class="card">
+            <div class="set-section">💾 النسخ الاحتياطي</div>
+            <div style="display:flex;flex-direction:column;gap:9px;">
+              <button class="btn btn-o" onclick="exportData()">⬇ تصدير بيانات JSON</button>
+              <button class="btn btn-o" onclick="document.getElementById('imp-f').click()">⬆ استيراد بيانات JSON</button>
+              <input type="file" id="imp-f" accept=".json" style="display:none" onchange="importData(this)">
+            </div>
+          </div>
+          <div class="card">
+            <div class="set-section">⚠️ إعادة ضبط</div>
+            <p style="font-size:12.5px;color:var(--text2);margin-bottom:12px;">سيتم حذف جميع البيانات نهائياً ولا يمكن التراجع.</p>
+            <button class="btn btn-d" onclick="clearAll()">🗑 مسح جميع البيانات</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ════════ MODALS ════════ -->
+<!-- Grade -->
+<div class="overlay" id="m-grade">
+  <div class="modal"><h3 id="mg-t">إضافة صف دراسي</h3>
+    <input type="hidden" id="mg-id">
+    <div class="fr"><label class="fl">اسم الصف *</label><input class="fi" id="mg-n" placeholder="مثال: الحادي عشر"></div>
+    <div class="modal-footer"><button class="btn btn-o" onclick="closeM('m-grade')">إلغاء</button><button class="btn btn-p" onclick="saveGrade()">حفظ</button></div>
+  </div>
+</div>
+<!-- Section -->
+<div class="overlay" id="m-sec">
+  <div class="modal wide"><h3 id="ms-t">إضافة شعبة</h3>
+    <input type="hidden" id="ms-gid"><input type="hidden" id="ms-id">
+    <div class="fr2">
+      <div class="fr" style="margin-bottom:0"><label class="fl">اسم الشعبة *</label><input class="fi" id="ms-n" placeholder="مثال: 11/1"></div>
+      <div class="fr" style="margin-bottom:0"><label class="fl">العام الدراسي</label><input class="fi" id="ms-y" placeholder="2024 / 2025"></div>
+    </div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:14px 0;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;">
+      <strong style="font-size:12.5px;">أدوات التقويم المستمر</strong>
+      <button class="btn btn-o btn-xs" onclick="addToolRow()">+ أداة</button>
+    </div>
+    <div id="tools-ed"></div>
+    <div class="fr2" style="margin-top:11px;">
+      <div><label class="fl">نسبة التقويم المستمر %</label><input class="fi" id="ms-cw" type="number" value="40" min="1" max="99"></div>
+      <div><label class="fl">نسبة الامتحان النهائي %</label><input class="fi" id="ms-fw" type="number" value="60" min="1" max="99"></div>
+    </div>
+    <div class="fr2">
+      <div><label class="fl">الدرجة القصوى للامتحان النهائي</label><input class="fi" id="ms-fm" type="number" value="100" min="1"></div>
+      <div></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-o" onclick="closeM('m-sec')">إلغاء</button><button class="btn btn-p" onclick="saveSec()">حفظ</button></div>
+  </div>
+</div>
+<!-- Student -->
+<div class="overlay" id="m-stu">
+  <div class="modal"><h3 id="mst-t">إضافة طالب</h3>
+    <input type="hidden" id="mst-id">
+    <div class="fr"><label class="fl">الاسم الكامل <span style="color:var(--red)">*</span></label><input class="fi" id="mst-n" placeholder="أدخل الاسم الكامل للطالب"></div>
+    <div class="fr2">
+      <div class="fr" style="margin-bottom:0"><label class="fl">الرقم المدرسي</label><input class="fi" id="mst-sid" placeholder="مثال: 202400123" dir="ltr" style="text-align:right;"></div>
+      <div class="fr" style="margin-bottom:0"><label class="fl">الجنسية</label>
+        <select class="fi" id="mst-nat">
+          <option value="">— اختر الجنسية —</option>
+          <option value="عُماني">🇴🇲 عُماني</option>
+          <option value="سعودي">🇸🇦 سعودي</option>
+          <option value="إماراتي">🇦🇪 إماراتي</option>
+          <option value="كويتي">🇰🇼 كويتي</option>
+          <option value="بحريني">🇧🇭 بحريني</option>
+          <option value="قطري">🇶🇦 قطري</option>
+          <option value="يمني">🇾🇪 يمني</option>
+          <option value="مصري">🇪🇬 مصري</option>
+          <option value="أردني">🇯🇴 أردني</option>
+          <option value="سوري">🇸🇾 سوري</option>
+          <option value="فلسطيني">🇵🇸 فلسطيني</option>
+          <option value="هندي">🇮🇳 هندي</option>
+          <option value="باكستاني">🇵🇰 باكستاني</option>
+          <option value="بنغلاديشي">🇧🇩 بنغلاديشي</option>
+          <option value="فلبيني">🇵🇭 فلبيني</option>
+          <option value="أخرى">أخرى</option>
+        </select>
+      </div>
+    </div>
+    <div class="fr" style="margin-top:12px">
+      <label class="fl">رقم الهاتف النقال لولي الأمر <span style="color:var(--red)">*</span></label>
+      <input class="fi" id="mst-p" placeholder="+968XXXXXXXX" dir="ltr" style="text-align:right;">
+      <small style="color:var(--text3);font-size:11px;">ابدأ برمز الدولة: +968 لعُمان</small>
+    </div>
+    <div class="modal-footer"><button class="btn btn-o" onclick="closeM('m-stu')">إلغاء</button><button class="btn btn-p" onclick="saveStu()">حفظ</button></div>
+  </div>
+</div>
+<!-- Import -->
+<div class="overlay" id="m-imp">
+  <div class="modal"><h3>📥 استيراد قائمة الطلاب</h3>
+    <div class="alert a-info" style="font-size:12px;">كل طالب في سطر: <strong>الاسم , الرقم المدرسي , الجنسية , رقم الهاتف</strong><br>أو بشكل مبسط: <strong>الاسم , رقم الهاتف</strong></div>
+    <div class="fr"><textarea class="fi" id="imp-txt" rows="10" placeholder="أحمد محمد علي , 202400123 , عُماني , +96891234567&#10;خالد سالم عبدالله , 202400124 , عُماني , +96899876543&#10;علي محمد , , , +96877665544"></textarea></div>
+    <div class="modal-footer"><button class="btn btn-o" onclick="closeM('m-imp')">إلغاء</button><button class="btn btn-p" onclick="doImport()">استيراد</button></div>
+  </div>
+</div>
+<!-- Recovery Modal -->
+<div class="overlay" id="m-recovery">
+  <div class="modal"><h3>🔄 استرجاع كلمة المرور</h3>
+    <div id="rec-step1">
+      <div class="alert a-info" style="font-size:12px;">أدخل بريدك الإلكتروني أو رقم هاتفك المسجّل للتحقق من هويتك</div>
+      <div class="fr"><label class="fl">البريد الإلكتروني أو رقم الهاتف</label><input class="fi" id="rec-input" placeholder="البريد أو الرقم المسجّل"></div>
+      <div id="rec-err" class="login-err" style="display:none">البيانات المدخلة لا تتطابق مع السجلات</div>
+      <div class="modal-footer"><button class="btn btn-o" onclick="closeM('m-recovery')">إلغاء</button><button class="btn btn-p" onclick="verifyRecovery()">تحقق</button></div>
+    </div>
+    <div id="rec-step2" style="display:none;">
+      <div class="alert a-success">✅ تم التحقق من هويتك بنجاح</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">اختر طريقة الاستلام:</p>
+      <div class="rec-option" onclick="sendRecoveryWA()">
+        <span class="rec-option-ico">💬</span>
+        <div class="rec-option-text"><h4>واتساب</h4><p>إرسال بيانات الدخول عبر واتساب</p></div>
+      </div>
+      <div class="rec-option" onclick="showRecoveryOnScreen()">
+        <span class="rec-option-ico">🔍</span>
+        <div class="rec-option-text"><h4>عرض على الشاشة</h4><p>عرض بيانات الدخول مباشرةً</p></div>
+      </div>
+      <div id="rec-reveal" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:14px;margin-top:10px;">
+        <div style="font-size:12px;color:var(--text3);margin-bottom:6px;">بيانات تسجيل الدخول:</div>
+        <div style="font-size:14px;font-weight:700;" id="rec-reveal-text"></div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-p" onclick="closeM('m-recovery')">إغلاق</button></div>
+    </div>
+  </div>
+</div>
+<div class="overlay" id="m-obs">
+  <div class="modal"><h3>تعديل الملاحظة</h3>
+    <input type="hidden" id="mobs-id">
+    <div class="fr"><label class="fl">الوقت والتاريخ</label><input class="fi" id="mobs-ts" type="datetime-local"></div>
+    <div class="fr"><label class="fl">ملاحظة</label><input class="fi" id="mobs-note" placeholder="نص الملاحظة..."></div>
+    <div class="modal-footer"><button class="btn btn-o" onclick="closeM('m-obs')">إلغاء</button><button class="btn btn-p" onclick="saveObsEdit()">حفظ</button></div>
+  </div>
+</div>
+<!-- Add Axis -->
+<div class="overlay" id="m-axis">
+  <div class="modal xl"><h3 id="max-t">إضافة محور تقييم</h3>
+    <input type="hidden" id="max-id">
+    <div class="fr"><label class="fl">اسم المحور *</label><input class="fi" id="max-n" placeholder="مثال: المستوى التحصيلي"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;margin-top:12px;">
+      <strong style="font-size:12.5px;">المؤشرات (من 5 إلى 1)</strong>
+    </div>
+    <div id="indicators-ed"></div>
+    <div class="modal-footer"><button class="btn btn-o" onclick="closeM('m-axis')">إلغاء</button><button class="btn btn-p" onclick="saveAxis()">حفظ المحور</button></div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════
+   DATA MODEL
+════════════════════════════════════ */
+const DEFAULT_AXES = [
+  { id:'ax1', name:'المستوى التحصيلي', indicators:[
+    {r:5,t:'متميز في التحصيل العلمي'},{r:4,t:'جيد جداً في التحصيل العلمي'},
+    {r:3,t:'جيد في التحصيل العلمي'},{r:2,t:'متوسط التحصيل العلمي'},{r:1,t:'يحتاج إلى رعاية ومتابعة'}]},
+  { id:'ax2', name:'السلوك', indicators:[
+    {r:5,t:'متميز سلوكياً بارك الله فيه'},{r:4,t:'حسن السلوك ويحترم المعلم'},
+    {r:3,t:'حسن السلوك'},{r:2,t:'سلوكه مقبول'},{r:1,t:'يحتاج إلى تعديل سلوكه'}]},
+  { id:'ax3', name:'المشاركة', indicators:[
+    {r:5,t:'مشاركته فاعلة ومثرية للحصة'},{r:4,t:'يشارك أحياناً في الحصة'},
+    {r:3,t:'يجتهد في الحصة'},{r:2,t:'قليل المشاركة'},{r:1,t:'لا يشارك في الحصة'}]},
+  { id:'ax4', name:'الانضباط', indicators:[
+    {r:5,t:'منضبط في الحصة ومنظم'},{r:4,t:'يهتم بالمادة ومنتبه'},
+    {r:3,t:'يهتم بالمادة أحياناً'},{r:2,t:'قليل الانتباه'},{r:1,t:'يحتاج إلى ضبط أكثر'}]},
+  { id:'ax5', name:'ملاحظات إضافية', indicators:[
+    {r:5,t:'ممتاز في جميع الجوانب'},{r:4,t:'أداؤه العام جيد جداً'},
+    {r:3,t:'أداؤه العام جيد'},{r:2,t:'يحتاج إلى متابعة'},{r:1,t:'يحتاج إلى رعاية خاصة'}]}
+];
+const DEFAULT_CATS = [
+  {id:'c1',name:'مشاركة صفية',type:'positive',icon:'✋',color:'#22a05a'},
+  {id:'c2',name:'حل التمارين',type:'positive',icon:'✏️',color:'#3572d4'},
+  {id:'c3',name:'تنفيذ نشاط',type:'positive',icon:'⭐',color:'#e9a217'},
+  {id:'c4',name:'إجابة ممتازة',type:'positive',icon:'🎯',color:'#0c9b87'},
+  {id:'c5',name:'مبادرة وإبداع',type:'positive',icon:'🏆',color:'#7c3aed'},
+  {id:'c6',name:'إنجاز الواجب',type:'positive',icon:'📝',color:'#22a05a'},
+  {id:'c7',name:'عدم إحضار الكتاب',type:'negative',icon:'📖',color:'#dc4c4c'},
+  {id:'c8',name:'عدم إحضار الأدوات',type:'negative',icon:'🎒',color:'#e07820'},
+  {id:'c9',name:'حديث جانبي',type:'negative',icon:'💬',color:'#c0392b'},
+  {id:'c10',name:'مخالفة صفية',type:'negative',icon:'⚠️',color:'#c0392b'},
+  {id:'c11',name:'عدم الانتباه',type:'negative',icon:'😴',color:'#7f8c8d'},
+  {id:'c12',name:'عدم إنجاز الواجب',type:'negative',icon:'📋',color:'#dc4c4c'}
+];
+let db = {
+  teacher: { name:'معلم الكيمياء', subject:'الكيمياء', year:'2024 / 2025' },
+  grades: [
+    { id:1, name:'الحادي عشر', sections:[
+      { id:1, name:'11/1', year:'2024 / 2025',
+        tools:[{id:'t1',name:'الواجب المنزلي',max:5},{id:'t2',name:'الحوار الشفوي',max:5},{id:'t3',name:'الاختبار القصير',max:10},{id:'t4',name:'الاختبار العملي',max:10}],
+        contWeight:40, finalMax:100, finalWeight:60,
+        students:[
+          {id:1,name:'آسر اسلام ابوالفتوح عبده النحاس',parentPhone:'+96891000001'},
+          {id:2,name:'أمجد بن بدر بن زهران سعود السليماني',parentPhone:'+96891000002'},
+          {id:3,name:'الخليل بن ابراهيم بن خميس الرميضي',parentPhone:'+96891000003'},
+          {id:4,name:'المنتصر بن ناصر بن علي العنقودي',parentPhone:'+96891000004'},
+          {id:5,name:'عبدالرحمن عصام عبدالمنعم محمد',parentPhone:'+96891000005'}
+        ],
+        gradeData:{}, observations:[], evaluations:[] }
+    ]}
+  ],
+  evaluationAxes: DEFAULT_AXES,
+  observationCategories: DEFAULT_CATS,
+  bot:{ provider:'claude', apiKey:'', endpoint:'', model:'', sysprompt:'أنت مساعد تعليمي. تُجيب على أسئلة أولياء الأمور عن درجات أبنائهم وملاحظات المعلم باختصار ووضوح.', waPhoneId:'', waToken:'', verifyToken:'' },
+  templates:{
+    obs:[
+      {id:'obs1',name:'ملاحظة عامة',body:'عزيزي ولي أمر الطالب {student} 📋\n\nتم تسجيل ملاحظة {obs_type} بتاريخ {date}:\n🏷 {category}\n{note}\n\nالمعلم: {teacher}\n{school}'},
+      {id:'obs2',name:'نسيان الكتاب/الأدوات',body:'عزيزي ولي أمر الطالب {student} 📚\n\nلم يحضر ابنكم {category} في حصة {subject} بتاريخ {date}.\n\nنرجو المتابعة والتوجيه.\nالمعلم: {teacher}'},
+      {id:'obs3',name:'درس أونلاين',body:'عزيزي ولي أمر الطالب {student} 💻\n\nتذكير: يوجد درس أونلاين في مادة {subject}\nالتاريخ: {date}\n\nيُرجى تهيئة الطالب للدرس عبر الرابط المرسل.\nالمعلم: {teacher}'}
+    ],
+    grades:[
+      {id:'gr1',name:'كشف الدرجات',body:'عزيزي ولي أمر الطالب {student} 🎓\n\nدرجة ابنكم في {subject}:\n📊 الدرجة الإجمالية: {score}/100\n🏆 المستوى: {level}\n\n{teacher} — {school}\nالعام الدراسي: {year}'},
+      {id:'gr2',name:'درجة الاختبار القصير',body:'عزيزي ولي أمر الطالب {student}\n\nأُعلمكم بدرجة الاختبار القصير في {subject}:\nالدرجة: {score}\nبتاريخ: {date}\n\nالمعلم: {teacher}'}
+    ],
+    behavioral:[
+      {id:'beh1',name:'ملخص السجل السلوكي',body:'عزيزي ولي أمر الطالب {student} 📋\n\nملخص الملاحظات السلوكية:\n✅ إيجابية: {pos_list}\n⚠️ تحتاج متابعة: {neg_list}\n\nعدد الملاحظات: {obs_count}\n\nالمعلم: {teacher}'}
+    ],
+    evaluation:[
+      {id:'eval1',name:'التقييم الدوري',body:'عزيزي ولي أمر الطالب {student} 🎯\n\nالتقييم الدوري — {period}\n\n{desc}\n\nالدرجة الإجمالية: {score}/100 — المستوى: {level}\n\nالمعلم: {teacher}\n{school} — {year}'}
+    ]
+  },
+  waTemplate:'عزيزي ولي أمر الطالب {student} 🎓\n\nالدرجة الإجمالية: {score}/100\nالمستوى: {level}\n\n{desc}\n\nالمعلم: {teacher}',
+  waObsTemplate:'عزيزي ولي أمر الطالب {student} 📋\n\nتم تسجيل ملاحظة بتاريخ {date}:\n{obs_type}: {category}\n{note}\n\nالمعلم: {teacher}'
+};
+let ctx = { gradeId: db.grades[0]?.id || null, sectionId: db.grades[0]?.sections[0]?.id || null };
+let obsState = { type: 'positive', catId: null };
+let evalState = { periodType: 'weekly', ratings: {} };
+let evalPeriodType = 'weekly';
+
+let _saveTimer=null;
+function save(){
+  clearTimeout(_saveTimer);
+  _saveTimer=setTimeout(()=>{
+    fetch('/api/data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(db)})
+    .catch(e=>console.error('Save error:',e));
+  },800);
+}
+const $i = id => document.getElementById(id);
+function closeM(id) { $i(id).classList.remove('open'); }
+function openM(id) { $i(id).classList.add('open'); }
+function nid() { return 'id_' + Date.now() + '_' + Math.floor(Math.random()*9999); }
+
+/* ── HELPERS ── */
+function getG(gid) { return db.grades.find(g=>g.id===gid); }
+function getSec(gid,sid) { const g=getG(gid); return g?.sections.find(s=>s.id===sid); }
+function curSec() { return getSec(ctx.gradeId, ctx.sectionId); }
+function calcCont(sec, sid) {
+  const gd = sec.gradeData[sid] || {};
+  const vals = sec.tools.map(t => Number(gd[t.id]||0));
+  if (vals.every(v=>v===0) && !gd.finalExam) return null;
+  return vals.reduce((a,b)=>a+b, 0);
+}
+function calcTotal(sec, sid) {
+  const gd = sec.gradeData[sid] || {};
+  const mx = sec.tools.reduce((a,t)=>a+t.max,0);
+  const cont = calcCont(sec, sid);
+  if (cont===null && !gd.finalExam) return null;
+  return Math.round(((cont||0)/mx*sec.contWeight + (gd.finalExam||0)/sec.finalMax*sec.finalWeight)*10)/10;
+}
+function levelOf(t) {
+  if (t===null||t===undefined) return {l:'—',c:'bN'};
+  if (t>=90) return {l:'متميز',c:'bT'};
+  if (t>=80) return {l:'جيد جدا',c:'bJJ'};
+  if (t>=70) return {l:'جيد',c:'bJ'};
+  if (t>=60) return {l:'متوسط',c:'bM'};
+  return {l:'يحتاج رعاية',c:'bR'};
+}
+function fmtDT(ts) {
+  const d = new Date(ts);
+  return d.toLocaleDateString('ar',{weekday:'short',day:'numeric',month:'short'}) + ' — ' + d.toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'});
+}
+function fmtDate(ts) {
+  return new Date(ts).toLocaleDateString('ar',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+function nowDTLocal() {
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'T'+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+
+/* ════ NAVIGATION ════ */
+const vMeta = {
+  dashboard:['لوحة التحكم','نظرة شاملة على الصفوف',false,null,null],
+  classes:['الصفوف والشعب','إدارة الصفوف وأدوات التقييم',false,'+ إضافة صف','openAddGrade()'],
+  students:['قائمة الطلاب','بيانات الطلاب وأولياء الأمور',true,'+ إضافة طالب','openAddStudent()'],
+  grades:['إدخال الدرجات','التقويم المستمر والامتحان النهائي',true,null,null],
+  behavioral:['سجل الملاحظات','تسجيل ومتابعة الملاحظات اليومية',true,null,null],
+  evaluations:['التقييم الدوري','التقييم الأسبوعي والشهري بالمحاور',true,null,null],
+  reports:['التقارير والإرسال','تقارير الأداء وإرسالها لأولياء الأمور',true,null,null],
+  whatsapp:['واتساب والبوت الذكي','الإرسال التلقائي والبوت',false,null,null],
+  settings:['الإعدادات','إعدادات المعلم والنظام',false,null,null]
+};
+document.querySelectorAll('.ni').forEach(el=>{
+  el.addEventListener('click',()=>{
+    const v=el.dataset.view;
+    document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    $i('view-'+v).classList.add('active');
+    const [t,m,ctx2,btn,act]=vMeta[v]||['','',false,null,null];
+    $i('tb-t').textContent=t; $i('tb-m').textContent=m;
+    $i('ctxbar').style.display=ctx2?'flex':'none';
+    if(btn){$i('tb-btn').textContent=btn;$i('tb-btn').setAttribute('onclick',act);$i('tb-btn').style.display='';}
+    else $i('tb-btn').style.display='none';
+    renderView(v);
+  });
+});
+function renderView(v){
+  updateCtx();
+  if(v==='dashboard') renderDash();
+  else if(v==='classes') renderClasses();
+  else if(v==='students') renderStudents();
+  else if(v==='grades') renderGrades();
+  else if(v==='behavioral') renderBehavioral();
+  else if(v==='evaluations') renderEvaluations();
+  else if(v==='reports') renderReports();
+  else if(v==='whatsapp') renderWA();
+  else if(v==='settings') renderSettings();
+}
+
+/* ── CONTEXT ── */
+function updateCtx(){
+  const gcSel=$i('ctx-g'), scSel=$i('ctx-s');
+  gcSel.innerHTML=db.grades.map(g=>`<option value="${g.id}"${ctx.gradeId===g.id?' selected':''}>${g.name}</option>`).join('');
+  if(!ctx.gradeId&&db.grades.length) ctx.gradeId=db.grades[0].id;
+  if(ctx.gradeId) gcSel.value=ctx.gradeId;
+  const g=getG(ctx.gradeId);
+  if(g){
+    scSel.innerHTML=g.sections.map(s=>`<option value="${s.id}"${ctx.sectionId===s.id?' selected':''}>${s.name}</option>`).join('');
+    if(!ctx.sectionId||!g.sections.find(s=>s.id===ctx.sectionId)) ctx.sectionId=g.sections[0]?.id||null;
+    if(ctx.sectionId) scSel.value=ctx.sectionId;
+  }
+  const sec=curSec();
+  $i('ctx-info').textContent=sec?`${sec.students.length} طالب`:'—';
+}
+function onCtxG(){ ctx.gradeId=Number($i('ctx-g').value); ctx.sectionId=null; updateCtx(); const v=document.querySelector('.ni.active')?.dataset.view; if(v) renderView(v); }
+function onCtxS(){ ctx.sectionId=Number($i('ctx-s').value); updateCtx(); const v=document.querySelector('.ni.active')?.dataset.view; if(v) renderView(v); }
+
+/* ════ DASHBOARD ════ */
+let chLv;
+function renderDash(){
+  let totStu=0,totSec=0;
+  const lvcnt={متميز:0,'جيد جدا':0,جيد:0,متوسط:0,'يحتاج رعاية':0};
+  const secList=[];
+  let lastObs=[],lastEvals=[];
+  db.grades.forEach(g=>g.sections.forEach(sec=>{
+    totSec++;totStu+=sec.students.length;
+    const totals=sec.students.map(s=>calcTotal(sec,s.id)).filter(t=>t!==null);
+    const avg=totals.length?(totals.reduce((a,b)=>a+b,0)/totals.length).toFixed(1):null;
+    totals.forEach(t=>{const lv=levelOf(t).l;if(lvcnt[lv]!==undefined)lvcnt[lv]++;});
+    secList.push({name:`${g.name} — ${sec.name}`,count:sec.students.length,avg});
+    (sec.observations||[]).forEach(o=>{ lastObs.push({...o,secName:sec.name,gName:g.name,sec}); });
+    (sec.evaluations||[]).forEach(e=>{ const st=sec.students.find(s=>s.id===e.studentId); lastEvals.push({...e,stName:st?.name||'—',secName:sec.name}); });
+  }));
+  lastObs.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+  lastEvals.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  $i('dash-stats').innerHTML=`
+    <div class="scard"><div class="si si-t">🏫</div><div><div class="sval">${db.grades.length}</div><div class="slbl">صفوف دراسية</div></div></div>
+    <div class="scard"><div class="si si-b">📚</div><div><div class="sval">${totSec}</div><div class="slbl">شعب دراسية</div></div></div>
+    <div class="scard"><div class="si si-g">👥</div><div><div class="sval">${totStu}</div><div class="slbl">إجمالي الطلاب</div></div></div>
+    <div class="scard"><div class="si si-gr">📋</div><div><div class="sval">${lastObs.length}</div><div class="slbl">ملاحظة مسجلة</div></div></div>
+  `;
+  const lvColors={متميز:'#1D9E75','جيد جدا':'#3572d4',جيد:'#e9a217',متوسط:'#e07820','يحتاج رعاية':'#dc4c4c'};
+  const lvD=Object.entries(lvcnt).filter(([,v])=>v>0);
+  $i('ch-lv-lg').innerHTML=lvD.map(([k,v])=>`<span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:${lvColors[k]};display:inline-block"></span>${k}—${v}</span>`).join('');
+  if(chLv)chLv.destroy();
+  chLv=new Chart($i('ch-lv'),{type:'doughnut',data:{labels:lvD.map(([k])=>k),datasets:[{data:lvD.map(([,v])=>v),backgroundColor:lvD.map(([k])=>lvColors[k]),borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
+  $i('dash-sec-list').innerHTML=secList.map(s=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><div><div style="font-weight:600;font-size:13px">${s.name}</div><div style="font-size:11px;color:var(--text3)">${s.count} طالب</div></div><div style="font-weight:700;color:var(--teal);font-size:15px">${s.avg||'—'}</div></div>`).join('')||'<div style="color:var(--text3);padding:10px 0;font-size:13px">لا توجد شعب</div>';
+  const cat=id=>db.observationCategories.find(c=>c.id===id);
+  $i('dash-obs').innerHTML=lastObs.slice(0,5).map(o=>{
+    const c=cat(o.categoryId); const stNames=(o.studentIds||[]).map(sid=>{const st=o.sec?.students.find(s=>s.id===sid);return st?.name||'';}).join('، ');
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-size:20px">${c?.icon||'📌'}</span><div style="flex:1"><div style="font-size:12.5px;font-weight:600">${stNames||'—'}</div><div style="font-size:11px;color:var(--text3)">${fmtDT(o.timestamp)} • ${o.secName}</div></div><span class="badge ${o.type==='positive'?'badge-pos':'badge-neg'}">${o.type==='positive'?'إيجابية':'سلبية'}</span></div>`;
+  }).join('')||'<div class="empty"><div class="empty-ico">📋</div><p>لا توجد ملاحظات بعد</p></div>';
+  $i('dash-evals').innerHTML=lastEvals.slice(0,5).map(e=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><div style="flex:1"><div style="font-size:12.5px;font-weight:600">${e.stName}</div><div style="font-size:11px;color:var(--text3)">${e.periodLabel} • ${e.secName}</div></div><span class="badge ${e.periodType==='weekly'?'eval-weekly':'eval-monthly'} eval-period-badge">${e.periodType==='weekly'?'أسبوعي':'شهري'}</span></div>`).join('')||'<div class="empty"><div class="empty-ico">🎯</div><p>لا توجد تقييمات بعد</p></div>';
+}
+
+/* ════ CLASSES ════ */
+function renderClasses(){
+  if(!db.grades.length){$i('grade-tree').innerHTML='';$i('no-grades').style.display='';return;}
+  $i('no-grades').style.display='none';
+  $i('grade-tree').innerHTML=db.grades.map(g=>`
+    <div class="grade-row">
+      <div class="grade-hdr">
+        <h3>📖 ${g.name}</h3>
+        <span class="ghc">${g.sections.length} شعبة</span>
+        <button class="btn btn-o btn-sm" style="border-color:rgba(255,255,255,.25);color:rgba(255,255,255,.75);background:transparent" onclick="openAddSec(${g.id})">+ شعبة</button>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);border:none" onclick="delGrade(${g.id})">🗑</button>
+      </div>
+      <div class="grade-body">
+        ${g.sections.map(s=>`<div class="sec-card">
+          <div><div class="sec-name">📗 ${s.name}</div>
+          <div class="sec-meta">${s.students.length} طالب | ${s.tools.map(t=>`${t.name}(${t.max})`).join('، ')} | ${s.contWeight}%+${s.finalWeight}%</div></div>
+          <button class="btn btn-o btn-sm" onclick="openEditSec(${g.id},${s.id})">✏ تعديل</button>
+          <button class="btn btn-d btn-sm" onclick="delSec(${g.id},${s.id})">🗑</button>
+        </div>`).join('')||'<div style="color:var(--text3);font-size:12.5px;padding:8px 0">لا توجد شعب</div>'}
+      </div>
+    </div>`).join('');
+}
+function openAddGrade(){$i('mg-t').textContent='إضافة صف';$i('mg-id').value='';$i('mg-n').value='';openM('m-grade');setTimeout(()=>$i('mg-n').focus(),100);}
+function saveGrade(){const n=$i('mg-n').value.trim();if(!n)return;const eid=$i('mg-id').value;if(eid){const g=getG(Number(eid));if(g)g.name=n;}else db.grades.push({id:Date.now(),name:n,sections:[]});save();closeM('m-grade');renderClasses();updateCtx();}
+function delGrade(gid){if(!confirm('حذف هذا الصف وجميع بياناته؟'))return;db.grades=db.grades.filter(g=>g.id!==gid);save();renderClasses();updateCtx();}
+let toolCnt=0;
+function addToolRow(t){const id=t?t.id:'tr_'+(toolCnt++);const d=document.createElement('div');d.className='tool-row';d.dataset.tid=id;d.innerHTML=`<span style="color:var(--text3);cursor:grab">⠿</span><input class="tool-row-name" placeholder="اسم الأداة" value="${t?t.name:''}"><span style="font-size:12px;color:var(--text2)">من:</span><input class="tool-row-max" type="number" min="1" max="100" value="${t?t.max:5}"><button class="btn btn-d btn-xs" onclick="this.closest('.tool-row').remove()">✕</button>`;$i('tools-ed').appendChild(d);}
+function openAddSec(gid){$i('ms-t').textContent='إضافة شعبة';$i('ms-gid').value=gid;$i('ms-id').value='';$i('ms-n').value='';$i('ms-y').value=db.teacher.year;$i('ms-cw').value=40;$i('ms-fw').value=60;$i('ms-fm').value=100;$i('tools-ed').innerHTML='';[{id:'t1',name:'الواجب المنزلي',max:5},{id:'t2',name:'الحوار الشفوي',max:5},{id:'t3',name:'الاختبار القصير',max:10},{id:'t4',name:'الاختبار العملي',max:10}].forEach(addToolRow);openM('m-sec');}
+function openEditSec(gid,sid){const s=getSec(gid,sid);if(!s)return;$i('ms-t').textContent='تعديل الشعبة';$i('ms-gid').value=gid;$i('ms-id').value=sid;$i('ms-n').value=s.name;$i('ms-y').value=s.year;$i('ms-cw').value=s.contWeight;$i('ms-fw').value=s.finalWeight;$i('ms-fm').value=s.finalMax;$i('tools-ed').innerHTML='';s.tools.forEach(addToolRow);openM('m-sec');}
+function saveSec(){const gid=Number($i('ms-gid').value),sid=$i('ms-id').value,n=$i('ms-n').value.trim();if(!n)return;const tools=Array.from(document.querySelectorAll('#tools-ed .tool-row')).map(r=>({id:r.dataset.tid,name:r.querySelector('.tool-row-name').value||'أداة',max:Number(r.querySelector('.tool-row-max').value)||5}));const sd={name:n,year:$i('ms-y').value,tools,contWeight:Number($i('ms-cw').value)||40,finalMax:Number($i('ms-fm').value)||100,finalWeight:Number($i('ms-fw').value)||60};const g=getG(gid);if(!g)return;if(sid){const s=g.sections.find(s=>s.id===Number(sid));if(s)Object.assign(s,sd);}else{sd.id=Date.now();sd.students=[];sd.gradeData={};sd.observations=[];sd.evaluations=[];g.sections.push(sd);}save();closeM('m-sec');renderClasses();updateCtx();}
+function delSec(gid,sid){if(!confirm('حذف هذه الشعبة؟'))return;const g=getG(gid);if(g)g.sections=g.sections.filter(s=>s.id!==sid);save();renderClasses();updateCtx();}
+
+/* ════ STUDENTS ════ */
+let dndSrcIdx=null;
+function renderStudents(){
+  const sec=curSec();
+  if(!sec){$i('stu-tb').innerHTML='<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text3)">اختر شعبة من الشريط أعلاه</td></tr>';return;}
+  const q=($i('stu-q')?.value||'').toLowerCase();
+  const stus=sec.students.filter(s=>!q||s.name.includes(q)||(s.parentPhone||'').includes(q)||(s.studentId||'').includes(q));
+  $i('stu-tb').innerHTML=stus.length?stus.map((st,i)=>{
+    const realIdx=sec.students.indexOf(st);
+    const t=calcTotal(sec,st.id);const lv=levelOf(t);
+    return `<tr draggable="true"
+      ondragstart="onDndStart(event,${realIdx})"
+      ondragover="onDndOver(event,${realIdx})"
+      ondrop="onDndDrop(event,${realIdx})"
+      ondragend="onDndEnd(event)"
+      data-idx="${realIdx}">
+      <td><span class="drag-handle" title="اسحب لإعادة الترتيب">⠿</span></td>
+      <td style="color:var(--text3);font-size:12px">${i+1}</td>
+      <td style="font-weight:600">${st.name}</td>
+      <td style="font-size:12px;color:var(--text2)">${st.studentId||'—'}</td>
+      <td style="font-size:12px">${st.nationality||'—'}</td>
+      <td><a href="tel:${st.parentPhone||''}" style="color:var(--blue);direction:ltr;display:inline-block;font-size:12px">${st.parentPhone||'—'}</a></td>
+      <td><span class="badge ${lv.c}">${lv.l}</span></td>
+      <td class="tc">${t??'—'}</td>
+      <td style="display:flex;gap:4px">
+        <button class="btn btn-o btn-xs" onclick="openEditStu(${st.id})">✏</button>
+        <button class="btn btn-wa btn-xs" onclick="sendWAStu(${st.id})">💬</button>
+        <button class="btn btn-d btn-xs" onclick="delStu(${st.id})">🗑</button>
+      </td>
+    </tr>`;}).join(''):'<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text3)">لا يوجد طلاب — اضغط "إضافة طالب" أو استورد قائمة</td></tr>';
+}
+function onDndStart(e,idx){dndSrcIdx=idx;setTimeout(()=>e.target.classList.add('dnd-dragging'),0);e.dataTransfer.effectAllowed='move';}
+function onDndOver(e,idx){e.preventDefault();e.dataTransfer.dropEffect='move';document.querySelectorAll('tr[data-idx]').forEach(r=>r.classList.remove('dnd-over'));e.currentTarget.classList.add('dnd-over');}
+function onDndDrop(e,idx){
+  e.preventDefault();
+  if(dndSrcIdx===null||dndSrcIdx===idx)return;
+  const sec=curSec();if(!sec)return;
+  const [moved]=sec.students.splice(dndSrcIdx,1);
+  sec.students.splice(idx,0,moved);
+  dndSrcIdx=null;save();renderStudents();showToast('✅ تم إعادة ترتيب القائمة');
+}
+function onDndEnd(e){dndSrcIdx=null;document.querySelectorAll('tr[data-idx]').forEach(r=>{r.classList.remove('dnd-dragging');r.classList.remove('dnd-over');});}
+function openAddStudent(){$i('mst-t').textContent='إضافة طالب';$i('mst-id').value='';$i('mst-n').value='';$i('mst-p').value='';$i('mst-sid').value='';$i('mst-nat').value='';openM('m-stu');setTimeout(()=>$i('mst-n').focus(),100);}
+function openEditStu(id){const sec=curSec();const st=sec?.students.find(s=>s.id===id);if(!st)return;$i('mst-t').textContent='تعديل بيانات الطالب';$i('mst-id').value=id;$i('mst-n').value=st.name;$i('mst-p').value=st.parentPhone||'';$i('mst-sid').value=st.studentId||'';$i('mst-nat').value=st.nationality||'';openM('m-stu');}
+function saveStu(){
+  const sec=curSec();if(!sec)return showToast('⚠️ اختر شعبة أولاً','warn');
+  const n=$i('mst-n').value.trim();if(!n)return showToast('⚠️ الاسم الكامل مطلوب','warn');
+  const p=$i('mst-p').value.trim();if(!p)return showToast('⚠️ رقم الهاتف مطلوب','warn');
+  const sid=$i('mst-sid').value.trim();const nat=$i('mst-nat').value;
+  const eid=$i('mst-id').value;
+  if(eid){const st=sec.students.find(s=>s.id===Number(eid));if(st){st.name=n;st.parentPhone=p;st.studentId=sid;st.nationality=nat;}}
+  else{const id=sec.students.length?Math.max(...sec.students.map(s=>s.id))+1:1;sec.students.push({id,name:n,parentPhone:p,studentId:sid,nationality:nat});}
+  save();closeM('m-stu');renderStudents();
+}
+function delStu(id){if(!confirm('حذف هذا الطالب؟'))return;const sec=curSec();if(!sec)return;sec.students=sec.students.filter(s=>s.id!==id);delete sec.gradeData[id];sec.observations=(sec.observations||[]).filter(o=>!(o.studentIds||[]).includes(id));sec.evaluations=(sec.evaluations||[]).filter(e=>e.studentId!==id);save();renderStudents();}
+function openImportStudents(){$i('imp-txt').value='';openM('m-imp');}
+function doImport(){
+  const sec=curSec();if(!sec)return showToast('⚠️ اختر شعبة أولاً','warn');
+  const lines=$i('imp-txt').value.split('\n').filter(l=>l.trim());
+  let mx=sec.students.length?Math.max(...sec.students.map(s=>s.id)):0;
+  let count=0;
+  lines.forEach(line=>{
+    const parts=line.split(',').map(s=>s.trim());
+    const n=parts[0];if(!n)return;
+    // Support 2-field (name,phone) or 4-field (name,id,nationality,phone)
+    let sid='',nat='',phone='';
+    if(parts.length>=4){sid=parts[1];nat=parts[2];phone=parts[3];}
+    else if(parts.length===2){phone=parts[1];}
+    else if(parts.length===3){sid=parts[1];phone=parts[2];}
+    mx++;sec.students.push({id:mx,name:n,parentPhone:phone,studentId:sid,nationality:nat});count++;
+  });
+  save();closeM('m-imp');renderStudents();showToast(`✅ تم استيراد ${count} طالب`);
+}
+
+/* ════ GRADES ════ */
+function renderGrades(){
+  const sec=curSec();
+  if(!sec){$i('gr-ch').innerHTML='<th>اختر شعبة</th>';$i('gr-cb').innerHTML='';$i('gr-fb').innerHTML='';return;}
+  const mx=sec.tools.reduce((a,t)=>a+t.max,0);
+  $i('gr-cm').textContent=`${sec.contWeight}% | مجموع: ${mx}`;
+  $i('gr-fm').textContent=`${sec.finalWeight}% | من: ${sec.finalMax}`;
+  $i('gr-fth').textContent=`الامتحان النهائي (/${sec.finalMax})`;
+  $i('gr-ch').innerHTML=`<th>#</th><th>اسم الطالب</th>${sec.tools.map(t=>`<th>${t.name}<br><small style="font-weight:400;color:var(--text3)">/${t.max}</small></th>`).join('')}<th>مجموع التقويم<br><small style="font-weight:400;color:var(--text3)">/${mx}</small></th>`;
+  $i('gr-cb').innerHTML=sec.students.map((st,i)=>{const gd=sec.gradeData[st.id]||{};const c=calcCont(sec,st.id);return `<tr><td style="color:var(--text3)">${i+1}</td><td style="font-weight:600;min-width:180px">${st.name}</td>${sec.tools.map(t=>`<td><input class="score-in" type="number" min="0" max="${t.max}" value="${gd[t.id]??''}" oninput="setG(${st.id},'${t.id}',this,${t.max})" placeholder="—"></td>`).join('')}<td class="tc" id="ct-${st.id}">${c!==null?c:'—'}</td></tr>`;}).join('');
+  $i('gr-fb').innerHTML=sec.students.map((st,i)=>{const gd=sec.gradeData[st.id]||{};const t=calcTotal(sec,st.id);const lv=levelOf(t);return `<tr><td style="color:var(--text3)">${i+1}</td><td style="font-weight:600">${st.name}</td><td><input class="score-in" type="number" min="0" max="${sec.finalMax}" value="${gd.finalExam??''}" oninput="setG(${st.id},'finalExam',this,${sec.finalMax})" placeholder="—" style="width:80px"></td><td class="tc" id="tot-${st.id}">${t??'—'}</td><td><span class="badge ${lv.c}" id="lv-${st.id}">${lv.l}</span></td></tr>`;}).join('');
+}
+function setG(sid,key,input,max){const v=input.value===''?null:Number(input.value);if(v!==null&&(v<0||v>max)){input.classList.add('err');return;}input.classList.remove('err');const sec=curSec();if(!sec)return;if(!sec.gradeData[sid])sec.gradeData[sid]={};sec.gradeData[sid][key]=v;save();const c=calcCont(sec,sid);const t=calcTotal(sec,sid);const lv=levelOf(t);const ctEl=$i('ct-'+sid);if(ctEl&&key!=='finalExam')ctEl.textContent=c!==null?c:'—';const tEl=$i('tot-'+sid);if(tEl)tEl.textContent=t??'—';const lvEl=$i('lv-'+sid);if(lvEl){lvEl.textContent=lv.l;lvEl.className=`badge ${lv.c}`;}}
+
+/* ════ BEHAVIORAL LOG ════ */
+function renderBehavioral(){
+  const sec=curSec();
+  // Build category chips
+  const cats=db.observationCategories.filter(c=>c.type===obsState.type);
+  $i('obs-cat-chips').innerHTML=cats.map(c=>`<button class="cat-chip${obsState.catId===c.id?' sel-chip':''}" style="${obsState.catId===c.id?`background:${c.color};border-color:${c.color};`:''}color:${obsState.catId===c.id?'#fff':c.color};border-color:${c.color}20" onclick="selectCat('${c.id}')">${c.icon} ${c.name}</button>`).join('');
+  // Student selector
+  $i('obs-stu-sel').innerHTML='<option value="__all__">— جميع الطلاب —</option>'+(sec?sec.students.map(s=>`<option value="${s.id}">${s.name}</option>`).join(''):'');
+  // Filter student
+  $i('obs-f-stu').innerHTML='<option value="">كل الطلاب</option>'+(sec?sec.students.map(s=>`<option value="${s.id}">${s.name}</option>`).join(''):'');
+  // Set time
+  $i('obs-ts').value=nowDTLocal();
+  // Render log
+  renderObsLog();
+}
+function setObsType(type){
+  obsState.type=type;obsState.catId=null;
+  $i('ott-pos').className=`ott-btn ott-pos${type==='positive'?' sel-pos':''}`;
+  $i('ott-neg').className=`ott-btn ott-neg${type==='negative'?' sel-neg':''}`;
+  renderBehavioral();
+}
+function selectCat(id){obsState.catId=id;renderBehavioral();}
+function quickAddObs(){
+  const sec=curSec();if(!sec)return alert('اختر شعبة أولاً');
+  if(!obsState.catId)return alert('اختر فئة الملاحظة');
+  const stuVal=$i('obs-stu-sel').value;
+  const studentIds=stuVal==='__all__'?sec.students.map(s=>s.id):[Number(stuVal)];
+  const obs={id:nid(),studentIds,categoryId:obsState.catId,type:obsState.type,note:$i('obs-note').value.trim(),timestamp:$i('obs-ts').value||new Date().toISOString(),edited:false,editedAt:null};
+  if(!sec.observations)sec.observations=[];
+  sec.observations.push(obs);
+  save();$i('obs-note').value='';$i('obs-ts').value=nowDTLocal();renderObsLog();
+}
+function renderObsLog(){
+  const sec=curSec();const cont=$i('obs-log-cont');
+  if(!sec){cont.innerHTML='<div class="alert a-warn">اختر شعبة من الشريط أعلاه</div>';return;}
+  let obs=[...(sec.observations||[])];
+  const q=($i('obs-q')?.value||'').toLowerCase();
+  const ft=$i('obs-f-type')?.value||'';
+  const fstu=$i('obs-f-stu')?.value||'';
+  if(ft)obs=obs.filter(o=>o.type===ft);
+  if(fstu)obs=obs.filter(o=>(o.studentIds||[]).includes(Number(fstu)));
+  if(q)obs=obs.filter(o=>{const cat=db.observationCategories.find(c=>c.id===o.categoryId);const names=(o.studentIds||[]).map(sid=>sec.students.find(s=>s.id===sid)?.name||'').join(' ');return names.includes(q)||cat?.name.includes(q)||(o.note||'').includes(q);});
+  obs.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+  if(!obs.length){cont.innerHTML='<div class="empty"><div class="empty-ico">📋</div><p>لا توجد ملاحظات مطابقة</p></div>';return;}
+  // Group by day
+  const groups={};
+  obs.forEach(o=>{const d=new Date(o.timestamp).toDateString();if(!groups[d])groups[d]=[];groups[d].push(o);});
+  cont.innerHTML=Object.entries(groups).map(([dayStr,entries])=>`
+    <div class="obs-day-group">
+      <div class="obs-day-label">${fmtDate(new Date(dayStr))}</div>
+      <div class="obs-log">${entries.map(o=>{
+        const cat=db.observationCategories.find(c=>c.id===o.categoryId)||{icon:'📌',name:'ملاحظة',color:'#888'};
+        const stNames=(o.studentIds||[]).map(sid=>sec.students.find(s=>s.id===sid)?.name||'').filter(Boolean);
+        const t=new Date(o.timestamp).toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'});
+        return `<div class="obs-entry ${o.type}">
+          <div class="obs-cat-ico" style="background:${cat.color}22">${cat.icon}</div>
+          <div class="obs-body">
+            <div class="obs-meta">
+              <span class="obs-cat-name" style="color:${cat.color}">${cat.name}</span>
+              <span class="badge ${o.type==='positive'?'badge-pos':'badge-neg'}">${o.type==='positive'?'إيجابية':'سلبية'}</span>
+              <span class="obs-time">⏰ ${t}</span>
+              ${o.edited?`<span class="edited-badge">(معدّل ${new Date(o.editedAt).toLocaleDateString('ar')})</span>`:''}
+            </div>
+            <div class="obs-students">👤 ${stNames.join('، ')||'—'}</div>
+            ${o.note?`<div class="obs-note">"${o.note}"</div>`:''}
+          </div>
+          <div class="obs-actions">
+            <button class="btn btn-o btn-xs" onclick="editObs('${o.id}')">✏</button>
+            <button class="btn btn-wa btn-xs" onclick="sendObsWA('${o.id}')">💬</button>
+            <button class="btn btn-d btn-xs" onclick="delObs('${o.id}')">🗑</button>
+          </div>
+        </div>`;}).join('')}
+      </div>
+    </div>`).join('');
+}
+function editObs(id){const sec=curSec();const o=(sec?.observations||[]).find(x=>x.id===id);if(!o)return;$i('mobs-id').value=id;$i('mobs-ts').value=o.timestamp?o.timestamp.substring(0,16):'';$i('mobs-note').value=o.note||'';openM('m-obs');}
+function saveObsEdit(){const sec=curSec();const id=$i('mobs-id').value;const o=(sec?.observations||[]).find(x=>x.id===id);if(!o)return;o.timestamp=$i('mobs-ts').value;o.note=$i('mobs-note').value.trim();o.edited=true;o.editedAt=new Date().toISOString();save();closeM('m-obs');renderObsLog();}
+function delObs(id){if(!confirm('حذف هذه الملاحظة؟'))return;const sec=curSec();if(!sec)return;sec.observations=(sec.observations||[]).filter(o=>o.id!==id);save();renderObsLog();}
+function sendObsWA(id){const sec=curSec();const o=(sec?.observations||[]).find(x=>x.id===id);if(!o)return;const cat=db.observationCategories.find(c=>c.id===o.categoryId)||{name:'ملاحظة'};(o.studentIds||[]).forEach(sid=>{const st=sec.students.find(s=>s.id===sid);if(!st?.parentPhone)return;const msg=(db.waObsTemplate||'').replace('{name}',st.name).replace('{date}',fmtDT(o.timestamp)).replace('{type}',o.type==='positive'?'إيجابية ✅':'سلبية ⚠️').replace('{category}',cat.name).replace('{note}',o.note||'').replace('{teacher}',db.teacher.name);window.open(`https://wa.me/${st.parentPhone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank');});
+}
+function sendObsToSelected(){renderObsLog();}
+
+/* ════ EVALUATIONS ════ */
+function renderEvaluations(){
+  const sec=curSec();
+  // Eval student list
+  const sl=$i('eval-stu-list');
+  if(sec){
+    sl.innerHTML=`<div class="stu-check-all"><input type="checkbox" id="eval-all-cb" onchange="toggleAllStudents()"><label for="eval-all-cb">تحديد الجميع</label></div>`+sec.students.map(st=>`<div class="stu-check-item"><input type="checkbox" class="eval-stu-cb" value="${st.id}" id="eval-st-${st.id}" onchange="onEvalToolChange();updateEvalPreview()"><label for="eval-st-${st.id}">${st.name}</label></div>`).join('');
+    // Populate tool selector
+    const toolSel=$i('eval-tool-sel');
+    if(toolSel){toolSel.innerHTML='<option value="">— بدون مؤشر درجة —</option>'+sec.tools.map(t=>`<option value="${t.id}" data-max="${t.max}" data-name="${t.name}">${t.name} (/${t.max})</option>`).join('');}
+  }else{sl.innerHTML='<div style="padding:12px;color:var(--text3);font-size:12.5px">اختر شعبة من الشريط أعلاه</div>';}
+  // Axes rater
+  buildAxesRater();
+  // Set date
+  $i('eval-date').value=new Date().toISOString().split('T')[0];
+  // Eval history filters
+  $i('evh-f-stu').innerHTML='<option value="">كل الطلاب</option>'+(sec?sec.students.map(s=>`<option value="${s.id}">${s.name}</option>`).join(''):'');
+  // Active tab
+  const activeEtab=document.querySelector('.eval-tab.active')?.dataset.etab;
+  if(activeEtab==='eval-history')renderEvalHistory();
+  else if(activeEtab==='axes-config')renderAxesConfig();
+  else if(activeEtab==='cat-config')renderCatsConfig();
+  // Tool sel — attach change handler once
+  const toolSelEl=$i('eval-tool-sel');
+  if(toolSelEl&&!toolSelEl._listenerAttached){
+    toolSelEl._listenerAttached=true;
+    toolSelEl.addEventListener('change', onEvalToolChange);
+  }
+  updateEvalPreview();
+}
+function setPeriodType(t){evalPeriodType=t;$i('pt-w').className='period-type-btn'+(t==='weekly'?' sel':'');$i('pt-m').className='period-type-btn'+(t==='monthly'?' sel':'');}
+function toggleAllStudents(){
+  const cb=$i('eval-all-cb');
+  document.querySelectorAll('.eval-stu-cb').forEach(c=>{c.checked=cb?.checked||false;});
+  onEvalToolChange(); // refresh tool scores on selection change
+  updateEvalPreview();
+}
+
+/* Auto-fetch tool scores from gradeData */
+function onEvalToolChange(){
+  const sec=curSec();
+  const toolSel=$i('eval-tool-sel');
+  const scoresDisplay=$i('eval-tool-scores-display');
+  const manualRow=$i('eval-tool-manual-row');
+  const maxEl=$i('eval-tool-max');
+
+  if(!toolSel?.value||!sec){
+    if(scoresDisplay)scoresDisplay.style.display='none';
+    if(manualRow)manualRow.style.display='none';
+    updateEvalPreview();return;
+  }
+
+  const opt=toolSel.selectedOptions[0];
+  const toolId=toolSel.value;
+  const toolName=opt?.dataset.name||'الأداة';
+  const toolMax=opt?.dataset.max||'';
+  if(maxEl)maxEl.textContent=toolMax?'/ '+toolMax:'';
+
+  // Get selected students
+  const selectedIds=Array.from(document.querySelectorAll('.eval-stu-cb:checked')).map(c=>Number(c.value));
+
+  if(!selectedIds.length){
+    if(scoresDisplay){
+      scoresDisplay.style.display='block';
+      scoresDisplay.innerHTML=`<div style="font-size:12px;color:var(--text3);padding:6px 8px;background:var(--surface);border-radius:var(--rs);border:1px solid var(--border)">⚠️ اختر طالباً أولاً لعرض درجته</div>`;
+    }
+    if(manualRow)manualRow.style.display='none';
+    updateEvalPreview();return;
+  }
+
+  // Fetch scores per student
+  const scoreItems=selectedIds.map(sid=>{
+    const st=sec.students.find(s=>s.id===sid);
+    const gd=sec.gradeData[sid]||{};
+    const score=gd[toolId];
+    return {name:st?.name||'—',score,sid};
+  });
+
+  const allHaveScores=scoreItems.every(x=>x.score!==null&&x.score!==undefined&&x.score!=='');
+  const anyHaveScore=scoreItems.some(x=>x.score!==null&&x.score!==undefined&&x.score!=='');
+
+  if(scoresDisplay){
+    scoresDisplay.style.display='block';
+    if(selectedIds.length===1){
+      // Single student — show their score prominently
+      const item=scoreItems[0];
+      const hasScore=item.score!==null&&item.score!==undefined&&item.score!=='';
+      const scoreStr=hasScore?`${item.score}${toolMax?'/'+toolMax:''}`:'لم تُدخَل بعد';
+      const colorCls=hasScore?'color:var(--teal)':'color:var(--text3)';
+      scoresDisplay.innerHTML=`
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);">
+          <span style="font-size:20px">${hasScore?'📊':'⚠️'}</span>
+          <div style="flex:1">
+            <div style="font-size:12px;color:var(--text2);margin-bottom:2px;">${item.name}</div>
+            <div style="font-size:16px;font-weight:700;${colorCls}">${scoreStr}</div>
+          </div>
+          ${hasScore?`<span style="font-size:11px;padding:2px 8px;background:var(--teal3);color:var(--teal);border-radius:20px;font-weight:600">تم جلب الدرجة تلقائياً ✓</span>`:`<span style="font-size:11px;padding:2px 8px;background:var(--goldf);color:#7a5200;border-radius:20px">لا توجد درجة مسجّلة</span>`}
+        </div>`;
+      // Auto-fill the manual field
+      if($i('eval-tool-score'))$i('eval-tool-score').value=hasScore?item.score:'';
+    }else{
+      // Multiple students — show a summary table
+      const rows=scoreItems.map(item=>{
+        const hasScore=item.score!==null&&item.score!==undefined&&item.score!=='';
+        return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);">
+          <span style="font-size:12px;flex:1;color:var(--text)">${item.name}</span>
+          <span style="font-size:13px;font-weight:700;${hasScore?'color:var(--teal)':'color:var(--text3)'}">${hasScore?item.score+(toolMax?'/'+toolMax:''):'—'}</span>
+          ${hasScore?'<span style="font-size:10px;color:var(--green)">✓</span>':'<span style="font-size:10px;color:var(--text3)">—</span>'}
+        </div>`;
+      }).join('');
+      const fetched=scoreItems.filter(x=>x.score!==null&&x.score!==undefined&&x.score!=='').length;
+      scoresDisplay.innerHTML=`
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:10px 12px;">
+          <div style="font-size:11.5px;font-weight:700;color:var(--text2);margin-bottom:8px;">درجات ${toolName} — تم جلب ${fetched}/${selectedIds.length} درجة تلقائياً</div>
+          ${rows}
+          ${fetched<selectedIds.length?'<div style="font-size:11px;color:var(--gold);margin-top:6px">⚠️ بعض الطلاب لا توجد لهم درجات مسجّلة في هذه الأداة</div>':''}
+        </div>`;
+      // Clear manual field for multi-student
+      if($i('eval-tool-score'))$i('eval-tool-score').value='';
+    }
+  }
+  if(manualRow)manualRow.style.display='block';
+  updateEvalPreview();
+}
+
+function clearToolScore(){
+  const toolSel=$i('eval-tool-sel');
+  if(toolSel)toolSel.value='';
+  if($i('eval-tool-score'))$i('eval-tool-score').value='';
+  if($i('eval-tool-max'))$i('eval-tool-max').textContent='';
+  const sd=$i('eval-tool-scores-display');if(sd)sd.style.display='none';
+  const mr=$i('eval-tool-manual-row');if(mr)mr.style.display='none';
+  updateEvalPreview();
+}
+
+function updateEvalPreview(){
+  const sec=curSec();
+  const parts=db.evaluationAxes.map(ax=>{
+    const r=evalState.ratings[ax.id];if(!r)return null;
+    const ind=ax.indicators.find(i=>i.r===r);return ind?.t||null;
+  }).filter(Boolean);
+
+  const note=$i('eval-general-note')?.value?.trim();
+  if(note)parts.push(note);
+
+  // Build tool score text — per student if multiple, single score if one
+  const toolSel=$i('eval-tool-sel');
+  if(toolSel?.value&&sec){
+    const opt=toolSel.selectedOptions[0];
+    const toolId=toolSel.value;
+    const toolName=opt?.dataset.name||'الأداة';
+    const toolMax=opt?.dataset.max||'';
+    const selectedIds=Array.from(document.querySelectorAll('.eval-stu-cb:checked')).map(c=>Number(c.value));
+
+    if(selectedIds.length===1){
+      // Single student: use their actual grade if available, else manual override
+      const gd=sec.gradeData[selectedIds[0]]||{};
+      const autoScore=gd[toolId];
+      const manualScore=$i('eval-tool-score')?.value;
+      const finalScore=manualScore!==''&&manualScore!=null?manualScore:(autoScore!==null&&autoScore!==undefined?autoScore:null);
+      if(finalScore!==null&&finalScore!=='')
+        parts.push(`وحصل على ${finalScore}${toolMax?'/'+toolMax:''} من ${toolName}`);
+    }else if(selectedIds.length>1){
+      // Multiple: use manual override if provided, else skip (per-student handled separately in save)
+      const manualScore=$i('eval-tool-score')?.value;
+      if(manualScore)parts.push(`وحصل على ${manualScore}${toolMax?'/'+toolMax:''} من ${toolName}`);
+    }
+  }
+
+  const prev=parts.join('، ')||'—';
+  $i('eval-preview-text').textContent=prev;
+}
+function buildAxesRater(){
+  const cont=$i('axes-rater');
+  evalState.ratings={};
+  cont.innerHTML=db.evaluationAxes.map(ax=>`
+    <div class="axis-card" id="axcard-${ax.id}">
+      <div class="axis-name">📌 ${ax.name}</div>
+      <div class="axis-ratings">${[5,4,3,2,1].map(n=>`<button class="ar-btn" id="ar-${ax.id}-${n}" onclick="setAxisRating('${ax.id}',${n})">${n}</button>`).join('')}</div>
+      <div class="axis-indicator" id="ai-${ax.id}">—</div>
+    </div>`).join('');
+}
+function setAxisRating(axId,rating){
+  evalState.ratings[axId]=rating;
+  [1,2,3,4,5].forEach(n=>{const btn=$i(`ar-${axId}-${n}`);if(btn)btn.classList.toggle('sel',n===rating);});
+  const ax=db.evaluationAxes.find(a=>a.id===axId);
+  const ind=ax?.indicators.find(i=>i.r===rating);
+  const el=$i('ai-'+axId);if(el)el.textContent=ind?.t||'—';
+  const card=$i('axcard-'+axId);if(card)card.classList.toggle('has-rating',true);
+  updateEvalPreview();
+}
+function updateEvalPreview(){
+  const parts=db.evaluationAxes.map(ax=>{const r=evalState.ratings[ax.id];if(!r)return null;const ind=ax.indicators.find(i=>i.r===r);return ind?.t||null;}).filter(Boolean);
+  const note=$i('eval-general-note')?.value?.trim();
+  if(note)parts.push(note);
+  // Add tool score indicator
+  const toolSel=$i('eval-tool-sel');const toolScore=$i('eval-tool-score')?.value;
+  if(toolSel?.value&&toolScore){
+    const opt=toolSel.selectedOptions[0];
+    const toolName=opt?.dataset.name||'الأداة';const toolMax=opt?.dataset.max||'';
+    parts.push(`وحصل على ${toolScore}${toolMax?'/'+toolMax:''} من ${toolName}`);
+  }
+  const prev=parts.join('، ')||'—';
+  $i('eval-preview-text').textContent=prev;
+}
+function copyEvalPreview(){
+  const text=$i('eval-preview-text')?.textContent||'';
+  if(text==='—'||!text)return showToast('⚠️ لا يوجد نص للنسخ','warn');
+  navigator.clipboard.writeText(text).then(()=>showToast('✅ تم نسخ العبارة الوصفية')).catch(()=>{
+    // Fallback
+    const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('✅ تم نسخ العبارة الوصفية');
+  });
+}
+function saveEvaluation(andSend=false){
+  const sec=curSec();if(!sec)return showToast('⚠️ اختر شعبة أولاً','warn');
+  const selectedIds=Array.from(document.querySelectorAll('.eval-stu-cb:checked')).map(c=>Number(c.value));
+  if(!selectedIds.length)return showToast('⚠️ اختر طالباً واحداً على الأقل','warn');
+  if(!Object.keys(evalState.ratings).length)return showToast('⚠️ قيّم على الأقل محوراً واحداً','warn');
+  const periodLabel=$i('eval-period-label').value.trim()||'—';
+  const date=$i('eval-date').value;
+  const genText=$i('eval-preview-text').textContent||'';
+  const note=$i('eval-general-note').value.trim();
+  // Tool score data — per student
+  const toolSel=$i('eval-tool-sel');
+  const manualScore=$i('eval-tool-score')?.value;
+  const toolOpt=toolSel?.selectedOptions[0];
+  const toolId=toolSel?.value||'';
+  const toolName=toolOpt?.dataset.name||'';
+  const toolMax=toolOpt?.dataset.max||'';
+  if(!sec.evaluations)sec.evaluations=[];
+  selectedIds.forEach(sid=>{
+    // Per-student: fetch their actual grade, fallback to manual
+    let toolScore=null;
+    if(toolId){
+      const autoScore=sec.gradeData[sid]?.[toolId];
+      toolScore=(autoScore!==null&&autoScore!==undefined&&autoScore!=='')?autoScore:(manualScore||null);
+    }
+    const toolData=toolId?{toolId,toolName,toolMax,toolScore}:null;
+    // Build per-student generated text (insert their specific score into the text)
+    let studentText=genText;
+    if(toolId&&toolScore!==null&&toolScore!==''){
+      // If text already has a generic score placeholder, replace; otherwise append
+      const scoreLine=`وحصل على ${toolScore}${toolMax?'/'+toolMax:''} من ${toolName}`;
+      if(!studentText.includes('وحصل على'))studentText=studentText+(studentText&&studentText!=='—'?'، ':'')+scoreLine;
+    }
+    sec.evaluations.push({id:nid(),studentId:sid,periodType:evalPeriodType,periodLabel,date,ratings:{...evalState.ratings},notes:note,generatedText:studentText,toolData,createdAt:new Date().toISOString()});
+    if(andSend){const st=sec.students.find(s=>s.id===sid);if(st?.parentPhone){const t=calcTotal(sec,sid);const lv=levelOf(t);const tmpl=db.templates?.evaluation?.[0];const body=tmpl?.body||'{student}\n{desc}';const msg=applyTmplVars(body,{student:st.name,teacher:db.teacher.fullname||db.teacher.name,school:db.teacher.school||'',subject:db.teacher.subject||'',date:new Date().toLocaleDateString('ar'),year:db.teacher.year||'',section:sec.name,score:t??'—',level:lv.l,desc:genText,period:periodLabel});setTimeout(()=>window.open(`https://wa.me/${st.parentPhone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank'),selectedIds.indexOf(sid)*1200);}}
+  });
+  save();showToast(`✅ تم حفظ التقييم لـ ${selectedIds.length} طالب`);
+  document.querySelectorAll('.eval-stu-cb').forEach(c=>c.checked=false);
+  buildAxesRater();$i('eval-preview-text').textContent='—';
+  $i('eval-general-note').value='';$i('eval-period-label').value='';
+  if($i('eval-tool-sel'))$i('eval-tool-sel').value='';if($i('eval-tool-score'))$i('eval-tool-score').value='';
+}
+function saveAndSendEval(){saveEvaluation(true);}
+function renderEvalHistory(){
+  const sec=curSec();const cont=$i('eval-history-cont');
+  if(!sec){cont.innerHTML='<div class="alert a-warn">اختر شعبة</div>';return;}
+  let evals=[...(sec.evaluations||[])];
+  const fs=$i('evh-f-stu')?.value||'';
+  const fp=$i('evh-f-period')?.value||'';
+  if(fs)evals=evals.filter(e=>e.studentId===Number(fs));
+  if(fp)evals=evals.filter(e=>e.periodType===fp);
+  evals.sort((a,b)=>new Date(b.createdAt||b.date)-new Date(a.createdAt||a.date));
+  if(!evals.length){cont.innerHTML='<div class="empty"><div class="empty-ico">🎯</div><p>لا توجد تقييمات</p></div>';return;}
+  cont.innerHTML=evals.map(e=>{
+    const st=sec.students.find(s=>s.id===e.studentId);
+    const rPills=Object.entries(e.ratings||{}).map(([axId,r])=>{const ax=db.evaluationAxes.find(a=>a.id===axId);return ax?`<span class="rating-pill"><span class="rating-dot">${r}</span>${ax.name}</span>`:''}).join('');
+    return `<div class="eval-hist-card">
+      <div class="eval-hist-header">
+        <span class="eval-hist-name">👤 ${st?.name||'—'}</span>
+        <span class="eval-period-badge ${e.periodType==='weekly'?'eval-weekly':'eval-monthly'}">${e.periodType==='weekly'?'أسبوعي':'شهري'}</span>
+        <span style="font-size:11.5px;color:var(--text3)">${e.periodLabel} • ${e.date}</span>
+        <div style="display:flex;gap:5px;margin-right:auto">
+          <button class="btn btn-wa btn-xs" onclick="sendEvalWA('${e.id}')">💬</button>
+          <button class="btn btn-d btn-xs" onclick="delEval('${e.id}')">🗑</button>
+        </div>
+      </div>
+      <div class="eval-hist-text">${e.generatedText||'—'}</div>
+      ${e.notes?`<div style="font-size:12px;color:var(--text3);margin-top:6px;font-style:italic">ملاحظة: ${e.notes}</div>`:''}
+      <div class="eval-hist-ratings">${rPills}</div>
+    </div>`;}).join('');
+}
+function delEval(id){if(!confirm('حذف هذا التقييم؟'))return;const sec=curSec();if(!sec)return;sec.evaluations=(sec.evaluations||[]).filter(e=>e.id!==id);save();renderEvalHistory();}
+function sendEvalWA(id){const sec=curSec();const e=(sec?.evaluations||[]).find(x=>x.id===id);if(!e)return;const st=sec.students.find(s=>s.id===e.studentId);if(!st?.parentPhone)return alert('لا يوجد رقم هاتف لهذا الطالب');const t=calcTotal(sec,e.studentId);const lv=levelOf(t);const msg=(db.waTemplate||'').replace('{name}',st.name).replace('{score}',t??'—').replace('{level}',lv.l).replace('{desc}',e.generatedText).replace('{teacher}',db.teacher.name);window.open(`https://wa.me/${st.parentPhone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank');}
+function sendAllEvals(){const sec=curSec();if(!sec)return;(sec.evaluations||[]).forEach((e,i)=>setTimeout(()=>sendEvalWA(e.id),i*1200));}
+
+/* ════ AXES CONFIG ════ */
+document.querySelectorAll('.eval-tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.eval-tab').forEach(t=>t.classList.remove('active'));tab.classList.add('active');document.querySelectorAll('.eval-tab-panel').forEach(p=>p.classList.remove('active'));$i('etab-'+tab.dataset.etab).classList.add('active');if(tab.dataset.etab==='eval-history')renderEvalHistory();else if(tab.dataset.etab==='axes-config')renderAxesConfig();else if(tab.dataset.etab==='cat-config')renderCatsConfig();});});
+function renderAxesConfig(){
+  $i('axes-config-list').innerHTML=db.evaluationAxes.map(ax=>`
+    <div class="axis-config-card">
+      <div class="axis-config-header">
+        <h4>📌 ${ax.name}</h4>
+        <button class="btn btn-o btn-xs" onclick="openEditAxis('${ax.id}')">✏ تعديل</button>
+        <button class="btn btn-d btn-xs" onclick="delAxis('${ax.id}')">🗑</button>
+      </div>
+      <div class="indicators-list">${ax.indicators.map(ind=>`<div class="indicator-row"><span class="ind-rating-badge ind-${ind.r}">${ind.r}</span><span style="font-size:12.5px">${ind.t}</span></div>`).join('')}</div>
+    </div>`).join('');
+}
+function addAxis(){openAxisModal({id:nid(),name:'',indicators:[{r:5,t:''},{r:4,t:''},{r:3,t:''},{r:2,t:''},{r:1,t:''}]},true);}
+function openEditAxis(id){const ax=db.evaluationAxes.find(a=>a.id===id);if(ax)openAxisModal(ax,false);}
+function openAxisModal(ax,isNew){$i('max-t').textContent=isNew?'إضافة محور جديد':'تعديل المحور';$i('max-id').value=ax.id;$i('max-n').value=ax.name;$i('indicators-ed').innerHTML=ax.indicators.map(ind=>`<div class="indicator-row" style="margin-bottom:9px"><span class="ind-rating-badge ind-${ind.r}">${ind.r}</span><input class="fi fi-sm" style="flex:1" data-r="${ind.r}" value="${ind.t}" placeholder="نص المؤشر للتقييم ${ind.r}..."></div>`).join('');openM('m-axis');}
+function saveAxis(){const id=$i('max-id').value;const n=$i('max-n').value.trim();if(!n)return;const inds=Array.from($i('indicators-ed').querySelectorAll('input')).map(inp=>({r:Number(inp.dataset.r),t:inp.value.trim()})).filter(i=>i.t);const existing=db.evaluationAxes.find(a=>a.id===id);if(existing){existing.name=n;existing.indicators=inds;}else db.evaluationAxes.push({id,name:n,indicators:inds});save();closeM('m-axis');renderAxesConfig();}
+function delAxis(id){if(!confirm('حذف هذا المحور؟'))return;db.evaluationAxes=db.evaluationAxes.filter(a=>a.id!==id);save();renderAxesConfig();}
+
+/* ════ CATEGORY CONFIG ════ */
+function renderCatsConfig(){
+  $i('cats-config-list').innerHTML=db.observationCategories.map((c,i)=>`
+    <div class="cat-config-row">
+      <span style="font-size:18px">${c.icon}</span>
+      <input class="fi fi-sm" style="flex:1" value="${c.name}" id="cc-n-${i}">
+      <select class="cat-type-sel" id="cc-t-${i}">
+        <option value="positive"${c.type==='positive'?' selected':''}>إيجابية ✅</option>
+        <option value="negative"${c.type==='negative'?' selected':''}>سلبية ⚠️</option>
+      </select>
+      <input class="fi fi-sm" style="width:90px" value="${c.color}" id="cc-c-${i}" type="color">
+      <button class="btn btn-d btn-xs" onclick="delCat(${i})">✕</button>
+    </div>`).join('');
+}
+function addCategory(){db.observationCategories.push({id:nid(),name:'فئة جديدة',type:'positive',icon:'📌',color:'#888888'});renderCatsConfig();}
+function delCat(i){db.observationCategories.splice(i,1);renderCatsConfig();}
+function saveCatsConfig(){db.observationCategories.forEach((c,i)=>{c.name=$i(`cc-n-${i}`)?.value||c.name;c.type=$i(`cc-t-${i}`)?.value||c.type;c.color=$i(`cc-c-${i}`)?.value||c.color;});save();renderCatsConfig();alert('تم حفظ الفئات ✓');}
+
+/* ════ REPORTS ════ */
+function renderReports(){
+  const sec=curSec();const t=$i('rep-type')?.value||'eval';const cont=$i('reports-cont');
+  selectedRepStudents=new Set();updateRepSelUI();
+  const allCb=$i('rep-sel-all');if(allCb)allCb.checked=false;
+  if(!sec){cont.innerHTML='<div class="alert a-warn">اختر شعبة من الشريط أعلاه</div>';return;}
+
+  if(t==='eval'){
+    const evals=sec.evaluations||[];
+    if(!evals.length){cont.innerHTML='<div class="empty"><div class="empty-ico">🎯</div><p>لا توجد تقييمات دورية بعد</p></div>';return;}
+    const byStudent={};
+    sec.students.forEach(st=>{byStudent[st.id]={st,evals:[]};});
+    evals.forEach(e=>{if(byStudent[e.studentId])byStudent[e.studentId].evals.push(e);});
+    cont.innerHTML=Object.values(byStudent).filter(x=>x.evals.length).map(({st,evals:se})=>{
+      const latest=se.sort((a,b)=>new Date(b.createdAt||b.date)-new Date(a.createdAt||a.date))[0];
+      const total=calcTotal(sec,st.id);const lv=levelOf(total);
+      const toolBadge=latest.toolData?.toolName?`<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;background:var(--bluef);color:var(--blue);border-radius:20px;font-size:11.5px;margin-top:6px;font-weight:500;">📊 ${latest.toolData.toolScore}${latest.toolData.toolMax?'/'+latest.toolData.toolMax:''} من ${latest.toolData.toolName}</span>`:'' ;
+      return `<div class="desc-card" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+          <input type="checkbox" class="rep-stu-cb" style="accent-color:var(--teal);width:16px;height:16px;cursor:pointer;flex-shrink:0" onchange="onRepCbChange(${st.id},this.checked)">
+          <div style="flex:1">
+            <div style="font-weight:700;font-size:14px">${st.name}</div>
+            ${st.studentId?`<div style="font-size:11px;color:var(--text3)">الرقم المدرسي: ${st.studentId}</div>`:''}
+          </div>
+          <span class="badge ${lv.c}">${lv.l}</span>
+          <span style="font-weight:700;color:var(--teal);font-size:14px">${total??'—'}/100</span>
+        </div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.8;border-right:3px solid var(--teal);padding-right:10px">${latest.generatedText||'—'}</div>
+        ${toolBadge}
+        <div style="display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+          <span style="font-size:11px;color:var(--text3)">📞 ${st.parentPhone||'لا يوجد رقم'}</span>
+          <span style="font-size:11px;color:var(--text3)">📅 ${latest.periodLabel}</span>
+          <div style="flex:1"></div>
+          <button class="btn btn-o btn-xs" onclick="copyText('${encodeURIComponent(latest.generatedText||'')}')" title="نسخ العبارة">📋</button>
+          <button class="btn btn-wa btn-xs" onclick="sendEvalWA('${latest.id}')">💬 إرسال</button>
+        </div>
+      </div>`;}).join('')||'<div class="empty"><div class="empty-ico">🎯</div><p>لا توجد تقييمات</p></div>';
+
+  }else if(t==='obs'){
+    const obs=sec.observations||[];
+    if(!obs.length){cont.innerHTML='<div class="empty"><div class="empty-ico">📋</div><p>لا توجد ملاحظات</p></div>';return;}
+    const byStudent={};
+    sec.students.forEach(st=>{byStudent[st.id]={st,pos:[],neg:[]};});
+    obs.forEach(o=>(o.studentIds||[]).forEach(sid=>{if(byStudent[sid])byStudent[sid][o.type==='positive'?'pos':'neg'].push(o);}));
+    cont.innerHTML=Object.values(byStudent).filter(x=>x.pos.length||x.neg.length).map(({st,pos,neg})=>`
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+          <input type="checkbox" class="rep-stu-cb" style="accent-color:var(--teal);width:16px;height:16px;cursor:pointer" onchange="onRepCbChange(${st.id},this.checked)">
+          <div style="font-weight:700;font-size:14px;flex:1">${st.name}</div>
+          <span style="font-size:12px;color:var(--text3)">${pos.length+neg.length} ملاحظة</span>
+        </div>
+        ${pos.length?`<div style="margin-bottom:6px"><span class="badge badge-pos">✅ إيجابية (${pos.length})</span><div style="font-size:12.5px;color:var(--text2);margin-top:5px">${pos.map(o=>{const c=db.observationCategories.find(x=>x.id===o.categoryId);return `${c?.icon||''} ${c?.name||''}${o.note?' — '+o.note:''}`;}).join(' • ')}</div></div>`:''}
+        ${neg.length?`<div><span class="badge badge-neg">⚠️ سلبية (${neg.length})</span><div style="font-size:12.5px;color:var(--text2);margin-top:5px">${neg.map(o=>{const c=db.observationCategories.find(x=>x.id===o.categoryId);return `${c?.icon||''} ${c?.name||''}${o.note?' — '+o.note:''}`;}).join(' • ')}</div></div>`:''}
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end">
+          <span style="font-size:11px;color:var(--text3);flex:1">📞 ${st.parentPhone||'لا يوجد رقم'}</span>
+          <button class="btn btn-wa btn-xs" onclick="sendObsSummaryWA(${st.id})">💬 إرسال ملخص</button>
+        </div>
+      </div>`).join('');
+  }else{
+    cont.innerHTML=`<div class="card"><div class="tw"><table class="dt"><thead><tr><th></th><th>#</th><th>اسم الطالب</th><th>الرقم المدرسي</th><th>التقويم</th><th>النهائي</th><th>الإجمالي</th><th>المستوى</th><th>إرسال</th></tr></thead><tbody>${sec.students.map((st,i)=>{const gd=sec.gradeData[st.id]||{};const c=calcCont(sec,st.id);const total=calcTotal(sec,st.id);const lv=levelOf(total);return `<tr><td><input type="checkbox" class="rep-stu-cb" style="accent-color:var(--teal);width:15px;height:15px" onchange="onRepCbChange(${st.id},this.checked)"></td><td style="color:var(--text3)">${i+1}</td><td style="font-weight:600">${st.name}</td><td style="font-size:12px;color:var(--text2)">${st.studentId||'—'}</td><td>${c??'—'}</td><td>${gd.finalExam??'—'}</td><td class="tc">${total??'—'}</td><td><span class="badge ${lv.c}">${lv.l}</span></td><td><button class="btn btn-wa btn-xs" onclick="sendWAStu(${st.id})">💬</button></td></tr>`;}).join('')}</tbody></table></div></div>`;
+  }
+}
+function copyText(encoded){
+  const text=decodeURIComponent(encoded);
+  navigator.clipboard.writeText(text).then(()=>showToast('✅ تم نسخ النص')).catch(()=>{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('✅ تم نسخ النص');});
+}
+function buildWAMsg(sec, st, tmplType){
+  const total=calcTotal(sec,st.id);const lv=levelOf(total);
+  const latest=(sec.evaluations||[]).filter(e=>e.studentId===st.id).sort((a,b)=>new Date(b.createdAt||b.date)-new Date(a.createdAt||a.date))[0];
+  const posObs=(sec.observations||[]).filter(o=>(o.studentIds||[]).includes(st.id)&&o.type==='positive');
+  const negObs=(sec.observations||[]).filter(o=>(o.studentIds||[]).includes(st.id)&&o.type==='negative');
+  const catName=id=>db.observationCategories.find(c=>c.id===id)?.name||'';
+  // Pick first template of the type, fallback to legacy
+  const tmpls=db.templates?.[tmplType||'grades']||[];
+  const body=tmpls[0]?.body||db.waTemplate||'{student} — {score}';
+  return applyTmplVars(body,{
+    student:st.name,parent:'ولي الأمر',teacher:db.teacher.fullname||db.teacher.name,
+    school:db.teacher.school||'',subject:db.teacher.subject||'',
+    date:new Date().toLocaleDateString('ar'),time:new Date().toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'}),
+    year:db.teacher.year||'',class:'الصف',section:sec.name,
+    score:total??'—',level:lv.l,desc:latest?.generatedText||'—',period:latest?.periodLabel||'—',
+    cont_score:calcCont(sec,st.id)??'—',final_score:sec.gradeData[st.id]?.finalExam??'—',
+    pos_list:posObs.map(o=>catName(o.categoryId)).join('، ')||'—',
+    neg_list:negObs.map(o=>catName(o.categoryId)).join('، ')||'—',
+    obs_count:(sec.observations||[]).length,pos_count:posObs.length,neg_count:negObs.length,
+  });
+}
+function sendWAStu(sid){
+  const sec=curSec();const st=sec?.students.find(s=>s.id===sid);
+  if(!st?.parentPhone)return showToast('⚠️ لا يوجد رقم هاتف لهذا الطالب','warn');
+  const msg=buildWAMsg(sec,st,'grades');
+  window.open(`https://wa.me/${st.parentPhone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+function sendAllWA(){
+  const sec=curSec();if(!sec)return;
+  const withPhone=sec.students.filter(st=>st.parentPhone);
+  if(!withPhone.length)return showToast('⚠️ لا يوجد طلاب بأرقام هواتف','warn');
+  withPhone.forEach((st,i)=>setTimeout(()=>{
+    const msg=buildWAMsg(sec,st,'evaluation');
+    window.open(`https://wa.me/${st.parentPhone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank');
+  },i*1300));
+}
+function sendObsSummaryWA(sid){
+  const sec=curSec();const st=sec?.students.find(s=>s.id===sid);
+  if(!st?.parentPhone)return showToast('⚠️ لا يوجد رقم هاتف','warn');
+  const msg=buildWAMsg(sec,st,'behavioral');
+  window.open(`https://wa.me/${st.parentPhone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+
+/* ════ WHATSAPP ════ */
+function renderWA(){}// placeholder - simulator handled inline
+function saveWATemplates(){save();}// keep for compatibility
+
+/* ════ TEMPLATES ════ */
+let activeTmplType='obs';
+let activeTmplTA=null; // currently focused textarea id
+
+const TMPL_META={
+  obs:  {title:'قوالب الملاحظات',icon:'📋'},
+  grades:{title:'قوالب الدرجات',icon:'📊'},
+  behavioral:{title:'قوالب السجل السلوكي',icon:'✅'},
+  evaluation:{title:'قوالب التقييم الدوري',icon:'🎯'}
+};
+const VARS_COMMON=[
+  {v:'{student}',l:'اسم الطالب'},{v:'{parent}',l:'ولي الأمر'},
+  {v:'{teacher}',l:'اسم المعلم'},{v:'{school}',l:'اسم المدرسة'},
+  {v:'{subject}',l:'المادة'},{v:'{date}',l:'التاريخ'},
+  {v:'{time}',l:'الوقت'},{v:'{year}',l:'العام الدراسي'},
+  {v:'{class}',l:'الصف'},{v:'{section}',l:'الشعبة'}
+];
+const VARS_SPECIFIC={
+  obs:[{v:'{category}',l:'فئة الملاحظة'},{v:'{obs_type}',l:'نوع الملاحظة'},{v:'{note}',l:'نص الملاحظة'}],
+  grades:[{v:'{score}',l:'الدرجة الإجمالية'},{v:'{level}',l:'المستوى'},{v:'{cont_score}',l:'درجة التقويم'},{v:'{final_score}',l:'درجة النهائي'}],
+  behavioral:[{v:'{pos_list}',l:'الإيجابيات'},{v:'{neg_list}',l:'السلبيات'},{v:'{obs_count}',l:'عدد الملاحظات'},{v:'{pos_count}',l:'عدد الإيجابي'},{v:'{neg_count}',l:'عدد السلبي'}],
+  evaluation:[{v:'{period}',l:'الفترة'},{v:'{desc}',l:'العبارة الوصفية'},{v:'{score}',l:'الدرجة'},{v:'{level}',l:'المستوى'},{v:'{axis1}',l:'المحور 1'},{v:'{axis2}',l:'المحور 2'},{v:'{axis3}',l:'المحور 3'},{v:'{axis4}',l:'المحور 4'},{v:'{axis5}',l:'المحور 5'}]
+};
+
+function switchTmplType(type,btn){
+  activeTmplType=type;
+  document.querySelectorAll('.tmpl-type-btn').forEach(b=>b.classList.remove('sel'));
+  if(btn)btn.classList.add('sel');
+  renderTmplTab();
+}
+function renderTmplTab(){
+  const meta=TMPL_META[activeTmplType];
+  $i('tmpl-type-title').textContent=meta.title;
+  // Var chips
+  $i('vars-common').innerHTML=VARS_COMMON.map(v=>`<span class="vchip" title="${v.l}" onclick="insertVar('${v.v}')">${v.v}</span>`).join('');
+  const specVars=VARS_SPECIFIC[activeTmplType]||[];
+  $i('vars-specific-label').textContent='متغيرات '+meta.title;
+  $i('vars-specific').innerHTML=specVars.map(v=>`<span class="vchip" title="${v.l}" onclick="insertVar('${v.v}')" style="background:#1a3060;color:#a8d8f8">${v.v}</span>`).join('');
+  // Template list
+  if(!db.templates)db.templates={obs:[],grades:[],behavioral:[],evaluation:[]};
+  const tmpls=db.templates[activeTmplType]||[];
+  $i('tmpl-list').innerHTML=tmpls.length?tmpls.map((t,i)=>`
+    <div class="tmpl-card" id="tmpl-card-${i}">
+      <div class="tmpl-card-head" onclick="toggleTmplCard(${i})">
+        <span style="font-size:16px">${meta.icon}</span>
+        <input class="tc-name" value="${t.name}" onclick="event.stopPropagation()" onchange="updateTmplName(${i},this.value)" style="flex:1;border:none;background:transparent;font-size:13px;font-weight:600;font-family:inherit;cursor:text;color:var(--text)">
+        <span class="tc-ico">›</span>
+        <button class="btn btn-d btn-xs" onclick="event.stopPropagation();delTemplate(${i})">🗑</button>
+      </div>
+      <div class="tmpl-card-body">
+        <textarea class="tmpl-ta" id="tmpl-ta-${i}"
+          onfocus="activeTmplTA='tmpl-ta-${i}'"
+          onblur="updateTmplBody(${i},this.value)"
+          rows="5">${t.body}</textarea>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button class="btn btn-p btn-sm" onclick="updateTmplBody(${i},$i('tmpl-ta-${i}').value);showToast('✅ تم الحفظ')">💾 حفظ</button>
+          <button class="btn btn-wa btn-sm" onclick="previewTmpl(${i})">👁 معاينة</button>
+        </div>
+      </div>
+    </div>`).join(''):`<div class="empty"><div class="empty-ico">${meta.icon}</div><p>لا توجد قوالب — اضغط "+ إضافة قالب"</p></div>`;
+}
+function toggleTmplCard(i){const card=$i('tmpl-card-'+i);if(card){card.classList.toggle('open');if(card.classList.contains('open')){activeTmplTA='tmpl-ta-'+i;const ta=$i('tmpl-ta-'+i);if(ta)ta.focus();}}}
+function insertVar(v){
+  if(!activeTmplTA)return showToast('⚠️ افتح قالباً أولاً وانقر داخله','warn');
+  const ta=$i(activeTmplTA);if(!ta)return;
+  const s=ta.selectionStart,e=ta.selectionEnd;
+  ta.value=ta.value.substring(0,s)+v+ta.value.substring(e);
+  ta.selectionStart=ta.selectionEnd=s+v.length;ta.focus();
+}
+function addTemplate(){
+  if(!db.templates)db.templates={obs:[],grades:[],behavioral:[],evaluation:[]};
+  const idx=(db.templates[activeTmplType]||[]).length;
+  const meta=TMPL_META[activeTmplType];
+  db.templates[activeTmplType].push({id:'t_'+nid(),name:`${meta.title} ${idx+1}`,body:''});
+  save();renderTmplTab();
+  setTimeout(()=>toggleTmplCard(idx),50);
+}
+function updateTmplName(i,name){if(db.templates[activeTmplType]?.[i])db.templates[activeTmplType][i].name=name;save();}
+function updateTmplBody(i,body){if(db.templates[activeTmplType]?.[i])db.templates[activeTmplType][i].body=body;save();}
+function delTemplate(i){if(!confirm('حذف هذا القالب؟'))return;db.templates[activeTmplType].splice(i,1);save();renderTmplTab();}
+function previewTmpl(i){
+  const tmpl=db.templates[activeTmplType]?.[i];if(!tmpl)return;
+  const sec=curSec();const st=sec?.students[0];
+  if(!st)return showToast('⚠️ لا يوجد طلاب في الشعبة الحالية','warn');
+  const t=calcTotal(sec,st.id);const lv=levelOf(t);
+  const latest=(sec.evaluations||[]).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt))[0];
+  const posObs=(sec.observations||[]).filter(o=>(o.studentIds||[]).includes(st.id)&&o.type==='positive');
+  const negObs=(sec.observations||[]).filter(o=>(o.studentIds||[]).includes(st.id)&&o.type==='negative');
+  const catName=id=>db.observationCategories.find(c=>c.id===id)?.name||id;
+  const preview=applyTmplVars(tmpl.body,{
+    student:st.name,parent:'ولي الأمر',teacher:db.teacher.fullname||db.teacher.name,
+    school:db.teacher.school||'المدرسة',subject:db.teacher.subject,
+    date:new Date().toLocaleDateString('ar'),time:new Date().toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'}),
+    year:db.teacher.year,class:'الصف',section:sec.name,
+    score:t??'—',level:lv.l,desc:latest?.generatedText||'—',period:latest?.periodLabel||'—',
+    cont_score:calcCont(sec,st.id)??'—',final_score:sec.gradeData[st.id]?.finalExam??'—',
+    category:'مشاركة صفية',obs_type:'إيجابية',note:'ملاحظة تجريبية',
+    pos_list:posObs.map(o=>catName(o.categoryId)).join('، ')||'—',
+    neg_list:negObs.map(o=>catName(o.categoryId)).join('، ')||'—',
+    obs_count:(sec.observations||[]).length,pos_count:posObs.length,neg_count:negObs.length,
+  });
+  // Show in a stylish modal preview
+  const previewModal=`<div class="overlay open" id="tmpl-preview-modal" onclick="if(event.target===this)this.remove()"><div class="modal"><h3>👁 معاينة القالب — ${tmpl.name}</h3><div class="chat-area" style="min-height:120px"><div class="chat-msg out">${preview.replace(/\n/g,'<br>')}<div class="chat-time">الآن ✓✓</div></div></div><div class="modal-footer"><button class="btn btn-p" onclick="document.getElementById('tmpl-preview-modal').remove()">إغلاق</button></div></div></div>`;
+  document.body.insertAdjacentHTML('beforeend',previewModal);
+}
+function applyTmplVars(body,vars){
+  let r=body;
+  Object.entries(vars).forEach(([k,v])=>{r=r.replaceAll('{'+k+'}',v??'—');});
+  return r;
+}
+
+/* ════ BOT CONFIG ════ */
+let botProvider='claude';
+function selectAIProv(p,btn){
+  botProvider=p;
+  document.querySelectorAll('.ai-prov-card').forEach(b=>b.classList.remove('sel'));
+  if(btn)btn.classList.add('sel');
+  $i('bot-endpoint-row').style.display=p==='custom'?'block':'none';
+}
+function renderBotTab(){
+  const b=db.bot||{};
+  botProvider=b.provider||'claude';
+  document.querySelectorAll('.ai-prov-card').forEach(btn=>{
+    const matches=btn.getAttribute('onclick')?.includes("'"+botProvider+"'");
+    btn.classList.toggle('sel',!!matches);
+  });
+  $i('bot-endpoint-row').style.display=botProvider==='custom'?'block':'none';
+  $i('bot-apikey').value=b.apiKey||'';
+  $i('bot-endpoint').value=b.endpoint||'';
+  $i('bot-model').value=b.model||'';
+  $i('bot-sysprompt').value=b.sysprompt||'';
+  $i('bot-wapid').value=b.waPhoneId||'';
+  $i('bot-wat').value=b.waToken||'';
+  $i('bot-verify').value=b.verifyToken||'';
+}
+function saveBotCfg(){
+  if(!db.bot)db.bot={};
+  db.bot.provider=botProvider;
+  db.bot.apiKey=$i('bot-apikey')?.value||'';
+  db.bot.endpoint=$i('bot-endpoint')?.value||'';
+  db.bot.model=$i('bot-model')?.value||'';
+  db.bot.sysprompt=$i('bot-sysprompt')?.value||'';
+  db.bot.waPhoneId=$i('bot-wapid')?.value||'';
+  db.bot.waToken=$i('bot-wat')?.value||'';
+  db.bot.verifyToken=$i('bot-verify')?.value||'';
+  save();showToast('✅ تم حفظ إعدادات البوت');
+}
+function simulateBot(){const phone=$i('bot-tp').value.trim();const msg=$i('bot-tm').value.trim();if(!phone||!msg)return;const chat=$i('bot-chat');const t=new Date().toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'});chat.innerHTML+=`<div class="chat-msg in">${msg}<div class="chat-time">${t}</div></div>`;let found=null;for(const g of db.grades)for(const sec of g.sections){const st=sec.students.find(s=>s.parentPhone?.replace(/\D/g,'')===phone.replace(/\D/g,''));if(st){found={sec,st};break;}if(found)break;}
+setTimeout(()=>{let reply;if(!found){reply='❌ لم يتم التعرف على رقمك. تواصل مع المعلم لتسجيل رقمك.';}else{const{sec,st}=found;const total=calcTotal(sec,st.id);const lv=levelOf(total);const latest=(sec.evaluations||[]).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt))[0];const desc=latest?.generatedText||'—';const posObs=(sec.observations||[]).filter(o=>(o.studentIds||[]).includes(st.id)&&o.type==='positive').length;const negObs=(sec.observations||[]).filter(o=>(o.studentIds||[]).includes(st.id)&&o.type==='negative').length;reply=`✅ مرحباً، تم التعرف عليك.\n👤 اسم الطالب: ${st.name}\n📊 الدرجة: ${total??'لم تُدخل'}/100\n🎯 المستوى: ${lv.l}\n\n📝 آخر تقييم:\n${desc}\n\n✋ ملاحظات إيجابية: ${posObs}\n⚠️ ملاحظات تحتاج متابعة: ${negObs}`;}chat.innerHTML+=`<div class="chat-msg out">${reply.replace(/\n/g,'<br>')}<div class="chat-time">${t} ✓✓</div></div>`;chat.scrollTop=chat.scrollHeight;},900);chat.scrollTop=chat.scrollHeight;}
+
+/* ════ SETTINGS & PROFILE ════ */
+function switchSetTab(t){
+  document.querySelectorAll('[data-stab]').forEach(el=>el.classList.toggle('active',el.dataset.stab===t));
+  document.querySelectorAll('#stab-profile,#stab-account,#stab-templates,#stab-bot,#stab-data').forEach(el=>el.classList.remove('active'));
+  $i('stab-'+t).classList.add('active');
+  if(t==='account')renderAccountTab();
+  else if(t==='templates')renderTmplTab();
+  else if(t==='bot')renderBotTab();
+}
+function renderSettings(){
+  const p=db.teacher;
+  $i('set-fullname').value=p.fullname||p.name||'';
+  $i('set-phone').value=p.phone||'';
+  $i('set-email').value=p.email||'';
+  $i('set-school').value=p.school||'';
+  $i('set-principal').value=p.principal||'';
+  $i('set-school-phone').value=p.schoolPhone||'';
+  $i('set-subject').value=p.subject||'';
+  $i('set-year').value=p.year||'';
+  $i('set-visitor-sup').value=p.visitorSup||'';
+  $i('set-edu-sup').value=p.eduSup||'';
+  updateProfileCard();
+}
+function saveProfile(){
+  db.teacher.fullname=$i('set-fullname').value.trim();
+  db.teacher.name=db.teacher.fullname;
+  db.teacher.phone=$i('set-phone').value.trim();
+  db.teacher.email=$i('set-email').value.trim();
+  db.teacher.school=$i('set-school').value.trim();
+  db.teacher.principal=$i('set-principal').value.trim();
+  db.teacher.schoolPhone=$i('set-school-phone').value.trim();
+  db.teacher.subject=$i('set-subject').value.trim();
+  db.teacher.year=$i('set-year').value.trim();
+  db.teacher.visitorSup=$i('set-visitor-sup').value.trim();
+  db.teacher.eduSup=$i('set-edu-sup').value.trim();
+  save();updateSB();updateProfileCard();updateLoginBranding();
+  showToast('✅ تم حفظ الملف الشخصي');
+}
+function saveSettings(){saveProfile();}// alias
+function updateSB(){
+  const n=db.teacher.fullname||db.teacher.name||'المعلم';
+  $i('sb-tn').textContent=n;$i('sb-ts').textContent=db.teacher.subject||'—';$i('sb-av').textContent=n.trim()[0]||'م';
+  updateLoginBranding();
+}
+function updateLoginBranding(){
+  const p=db.teacher;
+  if(p.school)$i('ls-school').textContent=p.school;
+  if(p.subject)$i('ls-sub').textContent='مادة '+p.subject+' — '+(p.year||'');
+  const n=p.fullname||p.name||'';
+  if(n)$i('ls-ico').textContent=n.trim()[0];
+}
+
+/* ════ ACCOUNT / AUTH ════ */
+function renderAccountTab(){
+  const auth=db.auth||{};
+  const hasAcc=!!(auth.username&&auth.passwordHash);
+  $i('acc-status-msg').textContent=hasAcc?`✅ الحساب نشط — المستخدم: ${auth.username}`:'⚠️ لم يتم إعداد حساب بعد — الدخول حالياً بدون كلمة مرور.';
+  $i('acc-status-msg').className=hasAcc?'alert a-success':'alert a-info';
+  $i('set-username').value=auth.username||'';
+  $i('set-rec-email').value=auth.recEmail||db.teacher.email||'';
+  $i('set-rec-phone').value=auth.recPhone||db.teacher.phone||'';
+  $i('set-pw1').value='';$i('set-pw2').value='';
+  // Session info
+  const sess=JSON.parse(sessionStorage.getItem('teacherSession')||'{}');
+  $i('session-info').innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;">
+      <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text3)">الحالة</span><span style="font-weight:600;color:${sess.loggedIn?'var(--green)':'var(--red)'}">${sess.loggedIn?'✅ متصل':'❌ غير متصل'}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text3)">المستخدم</span><span style="font-weight:600">${sess.username||'ضيف'}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:7px 0"><span style="color:var(--text3)">وقت الدخول</span><span style="font-weight:600">${sess.loginTime?new Date(sess.loginTime).toLocaleTimeString('ar'):'—'}</span></div>
+    </div>`;
+}
+function pwHash(str){let h=5381;for(let i=0;i<str.length;i++)h=((h<<5)+h)^str.charCodeAt(i);return(h>>>0).toString(36);}
+function pwEncode(str){try{return btoa(unescape(encodeURIComponent(str)));}catch(e){return btoa(str);}}
+function pwDecode(str){try{return decodeURIComponent(escape(atob(str)));}catch(e){return atob(str);}}
+function checkPwStrength(pw){
+  const s=$i('pw-strength');if(!pw){s.style.display='none';return 0;}
+  s.style.display='block';
+  let score=0;
+  if(pw.length>=8)score++;if(pw.length>=12)score++;
+  if(/[A-Z]/.test(pw)||/[a-z]/.test(pw))score++;
+  if(/[0-9]/.test(pw)||/[^a-zA-Z0-9]/.test(pw))score++;
+  const colors=['var(--red)','var(--gold)','var(--blue)','var(--green)'];
+  const labels=['ضعيفة','مقبولة','جيدة','قوية'];
+  [1,2,3,4].forEach(i=>{const el=$i('pws-'+i);if(el)el.style.background=i<=score?colors[score-1]:'var(--border)';});
+  const lbl=$i('pws-label');if(lbl){lbl.textContent='قوة كلمة المرور: '+labels[score-1];lbl.style.color=colors[score-1];}
+  return score;
+}
+$i('set-pw1')?.addEventListener('input',e=>checkPwStrength(e.target.value));
+async function saveAccount(){
+  const cur=$i('set-pw0')?.value;
+  const p1=$i('set-pw1').value;
+  const p2=$i('set-pw2').value;
+  if(!p1||!p2)return showToast('⚠️ أدخل كلمة المرور الجديدة','warn');
+  if(p1!==p2)return showToast('⚠️ كلمتا المرور غير متطابقتين','warn');
+  if(p1.length<6)return showToast('⚠️ كلمة المرور قصيرة (6 أحرف)','warn');
+  try{
+    const r=await fetch('/api/change-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({currentPassword:cur,newPassword:p1})});
+    const d=await r.json();
+    if(d.success)showToast('✅ تم تغيير كلمة المرور بنجاح');
+    else showToast('⚠️ '+d.error,'warn');
+  }catch(e){showToast('⚠️ فشل الاتصال بالسيرفر','warn');}
+  $i('set-pw0').value='';
+  $i('set-pw1').value='';
+  $i('set-pw2').value='';
+}
+function _oldSaveAccount_unused(){
+
+  const u=$i('set-username').value.trim();
+  const p1=$i('set-pw1').value;
+  const p2=$i('set-pw2').value;
+  const re=$i('set-rec-email').value.trim();
+  const rp=$i('set-rec-phone').value.trim();
+  if(!u)return showToast('⚠️ أدخل اسم المستخدم','warn');
+  if(p1!==p2)return showToast('⚠️ كلمتا المرور غير متطابقتين','warn');
+  if(p1&&p1.length<6)return showToast('⚠️ كلمة المرور قصيرة جداً (6 أحرف على الأقل)','warn');
+  if(!db.auth)db.auth={};
+  db.auth.username=u;
+  if(p1){db.auth.passwordHash=pwHash(p1);db.auth.passwordEncoded=pwEncode(p1);}
+  db.auth.recEmail=re;db.auth.recPhone=rp;
+  db.auth.setupDone=true;
+  save();renderAccountTab();showToast('✅ تم حفظ بيانات الحساب بنجاح');
+}}
+
+function togglePwVis(id,btn){const inp=$i(id);if(!inp)return;const isText=inp.type==='text';inp.type=isText?'password':'text';btn.textContent=isText?'👁':'🙈';}
+
+/* ════ RECOVERY ════ */
+function openRecovery(){$i('rec-step1').style.display='';$i('rec-step2').style.display='none';$i('rec-err').style.display='none';$i('rec-input').value='';openM('m-recovery');}
+function verifyRecovery(){
+  const input=$i('rec-input').value.trim().toLowerCase();
+  const auth=db.auth||{};
+  const recEmail=(auth.recEmail||db.teacher.email||'').toLowerCase();
+  const recPhone=(auth.recPhone||db.teacher.phone||'').replace(/\D/g,'');
+  const inputPhone=input.replace(/\D/g,'');
+  if(input===recEmail||(inputPhone&&inputPhone===recPhone)){
+    $i('rec-step1').style.display='none';$i('rec-step2').style.display='';
+  }else{$i('rec-err').style.display='block';}
+}
+function sendRecoveryWA(){
+  const auth=db.auth||{};const phone=(auth.recPhone||db.teacher.phone||'').replace(/\D/g,'');
+  if(!phone){showToast('⚠️ لا يوجد رقم هاتف مسجّل','warn');return;}
+  const pw=pwDecode(auth.passwordEncoded||'');
+  const msg=`نظام التقويم الذكي 🎓\n\nبيانات تسجيل الدخول:\nاسم المستخدم: ${auth.username}\nكلمة المرور: ${pw}\n\nيُرجى تغيير كلمة المرور بعد الدخول.`;
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+function showRecoveryOnScreen(){
+  const auth=db.auth||{};const pw=pwDecode(auth.passwordEncoded||'');
+  const el=$i('rec-reveal');const txt=$i('rec-reveal-text');
+  txt.innerHTML=`👤 اسم المستخدم: <span style="color:var(--teal)">${auth.username||'—'}</span><br>🔑 كلمة المرور: <span style="color:var(--teal)">${pw||'—'}</span>`;
+  el.style.display='';
+}
+function recoverViaWA(){const auth=db.auth||{};if(!auth.setupDone)return showToast('⚠️ لم يتم إعداد حساب بعد','warn');const p=auth.recPhone||db.teacher.phone;if(!p)return showToast('⚠️ لا يوجد رقم هاتف مسجّل','warn');const pw=pwDecode(auth.passwordEncoded||'');const msg=`نظام التقويم 🔑\nاسم المستخدم: ${auth.username}\nكلمة المرور: ${pw}`;window.open(`https://wa.me/${p.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank');}
+function recoverViaEmail(){const auth=db.auth||{};if(!auth.setupDone)return showToast('⚠️ لم يتم إعداد حساب بعد','warn');const e=auth.recEmail||db.teacher.email;if(!e)return showToast('⚠️ لا يوجد بريد إلكتروني مسجّل','warn');showToast(`📧 البريد المسجّل: ${e} — أرسل البيانات عبر واتساب أو اضغط على "عرض على الشاشة" بعد التحقق`,'info');}
+
+/* ════ TOAST ════ */
+function showToast(msg,type='success'){
+  let t=$i('toast-el');
+  if(!t){t=document.createElement('div');t.id='toast-el';t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:30px;font-size:13px;font-weight:500;z-index:9000;transition:opacity .3s;box-shadow:0 4px 20px rgba(0,0,0,.2);white-space:nowrap;';document.body.appendChild(t);}
+  const bg={success:'var(--teal)',warn:'var(--gold)',info:'var(--blue)',error:'var(--red)'}[type]||'var(--teal)';
+  t.style.background=bg;t.style.color='#fff';t.textContent=msg;t.style.opacity='1';
+  clearTimeout(t._to);t._to=setTimeout(()=>t.style.opacity='0',3000);
+}
+
+/* ════ EXPORT/IMPORT ════ */
+function exportData(){const b=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='نظام_التقويم_'+new Date().toLocaleDateString('ar')+'.json';a.click();}
+function importData(inp){const f=inp.files[0];if(!f)return;const fr=new FileReader();fr.onload=async(e)=>{try{const d=JSON.parse(e.target.result);if(d.grades){db=d;await fetch('/api/data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(db)});location.reload();}}catch{showToast('⚠️ خطأ في الملف','warn');}};fr.readAsText(f);}
+function clearAll(){if(!confirm('مسح جميع البيانات نهائياً؟'))return;fetch('/api/data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})}).then(()=>location.reload());}
+function doLogout(){if(!confirm('هل تريد تسجيل الخروج؟'))return;fetch('/api/logout',{method:'POST'}).then(()=>{window.location.href='/login.html';});}
+
+/* ════ BOT SIMULATOR ════ */
+function simulateBot(){
+  const phone=$i('bot-tp').value.trim();
+  const msg=$i('bot-tm').value.trim();
+  if(!phone||!msg)return showToast('⚠️ أدخل رقم الهاتف والرسالة','warn');
+  const chat=$i('bot-chat');
+  const t=new Date().toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'});
+  chat.innerHTML+=`<div class="chat-msg in">${msg}<div class="chat-time">${t}</div></div>`;
+  chat.scrollTop=chat.scrollHeight;
+  // Find student by parent phone
+  let found=null;
+  for(const g of db.grades) for(const sec of g.sections){
+    const st=sec.students.find(s=>s.parentPhone?.replace(/\D/g,'')===phone.replace(/\D/g,''));
+    if(st){found={sec,st};break;}
+    if(found)break;
+  }
+  setTimeout(()=>{
+    let reply;
+    if(!found){
+      reply='❌ عذراً، لم يتم التعرف على رقمك.\nتواصل مع المعلم لتسجيل رقمك في النظام.';
+    }else{
+      const{sec,st}=found;
+      const total=calcTotal(sec,st.id);const lv=levelOf(total);
+      const latest=(sec.evaluations||[]).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt))[0];
+      const posObs=(sec.observations||[]).filter(o=>(o.studentIds||[]).includes(st.id)&&o.type==='positive').length;
+      const negObs=(sec.observations||[]).filter(o=>(o.studentIds||[]).includes(st.id)&&o.type==='negative').length;
+      reply=`✅ مرحباً، تم التعرف عليك.\n👤 الطالب: ${st.name}\n📊 الدرجة: ${total??'لم تُدخل بعد'}/100\n🏆 المستوى: ${lv.l}\n\n📝 ${latest?.generatedText||'لا يوجد تقييم دوري بعد'}\n\n✋ ملاحظات إيجابية: ${posObs}\n⚠️ ملاحظات تحتاج متابعة: ${negObs}`;
+    }
+    chat.innerHTML+=`<div class="chat-msg out">${reply.replace(/\n/g,'<br>')}<div class="chat-time">${t} ✓✓</div></div>`;
+    chat.scrollTop=chat.scrollHeight;
+  },900);
+}
+
+/* ════ SEND EVAL / OBS VIA WA ════ */
+function sendEvalWA(id){
+  const sec=curSec();const e=(sec?.evaluations||[]).find(x=>x.id===id);if(!e)return;
+  const st=sec.students.find(s=>s.id===e.studentId);
+  if(!st?.parentPhone)return showToast('⚠️ لا يوجد رقم هاتف لهذا الطالب','warn');
+  const total=calcTotal(sec,e.studentId);const lv=levelOf(total);
+  const tmpl=db.templates?.evaluation?.[0];
+  const body=tmpl?.body||'{student}\n{desc}';
+  const msg=applyTmplVars(body,{
+    student:st.name,teacher:db.teacher.fullname||db.teacher.name,school:db.teacher.school||'',
+    subject:db.teacher.subject||'',date:new Date().toLocaleDateString('ar'),year:db.teacher.year||'',
+    section:sec.name,score:total??'—',level:lv.l,desc:e.generatedText||'—',period:e.periodLabel||'—'
+  });
+  window.open(`https://wa.me/${st.parentPhone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+function sendObsWA(id){
+  const sec=curSec();const o=(sec?.observations||[]).find(x=>x.id===id);if(!o)return;
+  const cat=db.observationCategories.find(c=>c.id===o.categoryId)||{name:'ملاحظة'};
+  const tmpl=db.templates?.obs?.[0];
+  const body=tmpl?.body||'{student}\n{category}\n{note}';
+  (o.studentIds||[]).forEach(sid=>{
+    const st=sec.students.find(s=>s.id===sid);if(!st?.parentPhone)return;
+    const msg=applyTmplVars(body,{
+      student:st.name,teacher:db.teacher.fullname||db.teacher.name,school:db.teacher.school||'',
+      subject:db.teacher.subject||'',date:fmtDT(o.timestamp),time:new Date(o.timestamp).toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'}),
+      year:db.teacher.year||'',section:sec.name,
+      category:cat.name,obs_type:o.type==='positive'?'إيجابية ✅':'سلبية ⚠️',note:o.note||''
+    });
+    window.open(`https://wa.me/${st.parentPhone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank');
+  });
+}
+function sendAllEvals(){
+  const sec=curSec();if(!sec)return;
+  (sec.evaluations||[]).forEach((e,i)=>setTimeout(()=>sendEvalWA(e.id),i*1300));
+}
+
+/* ════ REPORTS SELECTION ════ */
+let selectedRepStudents=new Set();
+function toggleAllRepSel(cb){
+  const sec=curSec();if(!sec)return;
+  selectedRepStudents=cb.checked?new Set(sec.students.map(s=>s.id)):new Set();
+  document.querySelectorAll('.rep-stu-cb').forEach(c=>c.checked=cb.checked);
+  updateRepSelUI();
+}
+function onRepCbChange(sid,checked){
+  if(checked)selectedRepStudents.add(Number(sid));else selectedRepStudents.delete(Number(sid));
+  const sec=curSec();const allCb=$i('rep-sel-all');
+  if(allCb)allCb.checked=!!(sec&&selectedRepStudents.size===sec.students.length);
+  updateRepSelUI();
+}
+function updateRepSelUI(){
+  const count=selectedRepStudents.size;
+  const btn=$i('rep-send-sel-btn');const countEl=$i('rep-sel-count');
+  if(btn)btn.style.display=count>0?'':'none';
+  if(countEl)countEl.textContent=count;
+}
+function sendSelectedReports(){
+  const sec=curSec();if(!sec||!selectedRepStudents.size)return;
+  const stus=sec.students.filter(s=>selectedRepStudents.has(s.id)&&s.parentPhone);
+  if(!stus.length)return showToast('⚠️ لا يوجد أرقام هواتف للطلاب المحددين','warn');
+  if(!confirm(`إرسال رسائل لـ ${stus.length} ولي أمر؟`))return;
+  stus.forEach((st,i)=>setTimeout(()=>{
+    const msg=buildWAMsg(sec,st,'evaluation');
+    window.open(`https://wa.me/${st.parentPhone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank');
+  },i*1300));
+}
+
+/* ════ PROFILE CARD ════ */
+function updateProfileCard(){
+  const p=db.teacher;
+  const n=p.fullname||p.name||'المعلم';
+  $i('set-avatar').textContent=n.trim()[0]||'م';
+  $i('set-av-name').textContent=n;
+  $i('set-av-sub').textContent=[p.subject,p.school,p.year].filter(Boolean).join(' • ')||'لم يتم إدخال البيانات بعد';
+}
+
+document.querySelectorAll('.overlay').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov)ov.classList.remove('open');}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.overlay.open').forEach(o=>o.classList.remove('open'));if(e.key==='Enter'&&$i('login-screen').style.display!=='none')doLogin();});
+$i('mst-n').addEventListener('keydown',e=>{if(e.key==='Enter')saveStu();});
+$i('mg-n').addEventListener('keydown',e=>{if(e.key==='Enter')saveGrade();});
+$i('obs-note').addEventListener('keydown',e=>{if(e.key==='Enter')quickAddObs();});
+const shakeCSS=document.createElement('style');shakeCSS.textContent='@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}';document.head.appendChild(shakeCSS);
+updateSB();updateCtx();
+// Load data from server then render
+initApp();
+async function initApp(){
+  try{
+    const r=await fetch('/api/session');
+    if(!r.ok){window.location.href='/login.html';return;}
+    await loadDataFromServer();
+    updateSB();updateCtx();renderDash();
+  }catch(e){console.error('Init error:',e);}
+}
+async function loadDataFromServer(){
+  const r=await fetch('/api/data');
+  if(r.ok){const d=await r.json();if(d&&Object.keys(d).length>0)Object.assign(db,d);}
+}
+</script>
+</body>
+</html>

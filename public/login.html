@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تسجيل الدخول — نظام التقويم</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'IBM Plex Sans Arabic',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#182038 0%,#1a3560 50%,#0c3d2e 100%);position:relative;overflow:hidden;}
+body::before{content:'';position:absolute;inset:0;opacity:.04;background-image:repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 0,transparent 50%);background-size:24px 24px;}
+.card{background:#fff;border-radius:20px;padding:40px 36px;width:440px;max-width:94vw;box-shadow:0 24px 64px rgba(0,0,0,.35);position:relative;z-index:1;animation:up .4s cubic-bezier(.34,1.56,.64,1);}
+@keyframes up{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:none}}
+.logo{text-align:center;margin-bottom:24px;}
+.logo-ico{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#0c9b87,#182038);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 12px;}
+.logo-name{font-size:16px;font-weight:700;color:#182038;}
+.logo-sub{font-size:12px;color:#9aa3b8;margin-top:2px;}
+.divider{height:1px;background:#e2e6ed;margin:20px 0;}
+.title{font-size:16px;font-weight:700;text-align:center;margin-bottom:18px;color:#182038;}
+.err{background:#fdf0f0;border:1px solid #f5c0c0;color:#dc4c4c;padding:10px 13px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none;}
+.field{margin-bottom:14px;position:relative;}
+.field label{display:block;font-size:12px;font-weight:600;color:#4f5d7e;margin-bottom:5px;}
+.field input{width:100%;border:1.5px solid #e2e6ed;border-radius:10px;padding:11px 14px 11px 42px;font-family:inherit;font-size:14px;background:#f8f9fb;color:#182038;transition:all .2s;}
+.field input:focus{outline:none;border-color:#0c9b87;background:#fff;box-shadow:0 0 0 3px rgba(12,155,135,.1);}
+.field .ico{position:absolute;left:13px;bottom:12px;font-size:16px;color:#9aa3b8;}
+.eye{position:absolute;left:13px;bottom:12px;cursor:pointer;font-size:16px;color:#9aa3b8;user-select:none;}
+.btn{width:100%;padding:13px;border-radius:10px;border:none;background:linear-gradient(135deg,#0c9b87,#182038);color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:4px;}
+.btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(12,155,135,.4);}
+.btn:active{transform:none;}
+.btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.hint{text-align:center;margin-top:14px;font-size:12.5px;color:#9aa3b8;}
+/* Setup form */
+.setup-extra{display:none;margin-top:12px;}
+.setup-extra.show{display:block;}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <div class="logo-ico" id="logo-ico">📚</div>
+    <div class="logo-name" id="logo-name">نظام التقويم الذكي</div>
+    <div class="logo-sub" id="logo-sub">إدارة الدرجات والمتابعة</div>
+  </div>
+  <div class="divider"></div>
+
+  <!-- رسالة خطأ -->
+  <div class="err" id="err-msg"></div>
+
+  <!-- نموذج تسجيل الدخول -->
+  <div id="login-form">
+    <div class="title">تسجيل الدخول</div>
+    <div class="field">
+      <label>اسم المستخدم</label>
+      <input type="text" id="inp-user" placeholder="أدخل اسم المستخدم" autocomplete="username">
+      <span class="ico">👤</span>
+    </div>
+    <div class="field">
+      <label>كلمة المرور</label>
+      <input type="password" id="inp-pass" placeholder="أدخل كلمة المرور" autocomplete="current-password">
+      <span class="eye" onclick="toggleEye('inp-pass',this)">👁</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+      <input type="checkbox" id="remember" style="accent-color:#0c9b87;width:15px;height:15px;">
+      <label for="remember" style="font-size:12.5px;color:#4f5d7e;cursor:pointer;">تذكرني</label>
+    </div>
+    <button class="btn" id="login-btn" onclick="doLogin()">دخول</button>
+  </div>
+
+  <!-- نموذج الإعداد الأول -->
+  <div id="setup-form" style="display:none;">
+    <div class="title">إعداد الحساب (أول مرة)</div>
+    <div class="field">
+      <label>اسم المعلم الكامل</label>
+      <input type="text" id="inp-teacher" placeholder="أدخل اسم المعلم">
+      <span class="ico">🧑‍🏫</span>
+    </div>
+    <div class="field">
+      <label>اسم المستخدم *</label>
+      <input type="text" id="inp-setup-user" placeholder="اختر اسم مستخدم" autocomplete="username">
+      <span class="ico">👤</span>
+    </div>
+    <div class="field">
+      <label>كلمة المرور * (6 أحرف على الأقل)</label>
+      <input type="password" id="inp-setup-pass" placeholder="اختر كلمة مرور قوية">
+      <span class="eye" onclick="toggleEye('inp-setup-pass',this)">👁</span>
+    </div>
+    <div class="field">
+      <label>تأكيد كلمة المرور *</label>
+      <input type="password" id="inp-setup-pass2" placeholder="أعد كتابة كلمة المرور">
+      <span class="eye" onclick="toggleEye('inp-setup-pass2',this)">👁</span>
+    </div>
+    <button class="btn" id="setup-btn" onclick="doSetup()">إنشاء الحساب والدخول</button>
+  </div>
+
+  <div class="hint" id="login-hint"></div>
+</div>
+
+<script>
+function toggleEye(id,btn){const inp=document.getElementById(id);inp.type=inp.type==='text'?'password':'text';btn.textContent=inp.type==='text'?'🙈':'👁';}
+function showErr(msg){const el=document.getElementById('err-msg');el.textContent=msg;el.style.display=msg?'block':'none';}
+function setLoading(id,loading){const btn=document.getElementById(id);if(btn){btn.disabled=loading;btn.textContent=loading?'جاري...':(id==='login-btn'?'دخول':'إنشاء الحساب والدخول');}}
+
+async function checkSetup(){
+  try{
+    const r=await fetch('/api/setup-status');
+    const d=await r.json();
+    if(!d.setupDone){
+      document.getElementById('login-form').style.display='none';
+      document.getElementById('setup-form').style.display='block';
+      document.getElementById('login-hint').textContent='أول مرة — أنشئ حسابك للبدء';
+    }
+  }catch(e){console.error(e);}
+}
+
+async function doLogin(){
+  const user=document.getElementById('inp-user').value.trim();
+  const pass=document.getElementById('inp-pass').value;
+  if(!user||!pass)return showErr('أدخل اسم المستخدم وكلمة المرور');
+  showErr('');setLoading('login-btn',true);
+  try{
+    const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:user,password:pass})});
+    const d=await r.json();
+    if(d.success){window.location.href='/';}
+    else showErr(d.error||'خطأ في تسجيل الدخول');
+  }catch(e){showErr('تعذّر الاتصال بالسيرفر');}
+  finally{setLoading('login-btn',false);}
+}
+
+async function doSetup(){
+  const teacher=document.getElementById('inp-teacher').value.trim();
+  const user=document.getElementById('inp-setup-user').value.trim();
+  const pass=document.getElementById('inp-setup-pass').value;
+  const pass2=document.getElementById('inp-setup-pass2').value;
+  if(!user||!pass)return showErr('اسم المستخدم وكلمة المرور مطلوبان');
+  if(pass!==pass2)return showErr('كلمتا المرور غير متطابقتين');
+  if(pass.length<6)return showErr('كلمة المرور قصيرة (6 أحرف على الأقل)');
+  showErr('');setLoading('setup-btn',true);
+  try{
+    const r=await fetch('/api/setup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:user,password:pass,teacherName:teacher})});
+    const d=await r.json();
+    if(d.success){window.location.href='/';}
+    else showErr(d.error||'خطأ في الإعداد');
+  }catch(e){showErr('تعذّر الاتصال بالسيرفر');}
+  finally{setLoading('setup-btn',false);}
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    if(document.getElementById('setup-form').style.display!=='none')doSetup();
+    else doLogin();
+  }
+});
+
+checkSetup();
+</script>
+</body>
+</html>
