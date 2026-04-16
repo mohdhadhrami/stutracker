@@ -1,0 +1,34 @@
+services:
+  stutracker:
+    build: .
+    container_name: stutracker
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - DATA_DIR=/data
+      - SESSION_SECRET=${SESSION_SECRET}
+      - PORT=3000
+    volumes:
+      - stutracker_data:/data
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.stutracker.rule=Host(`stutracker.com`) || Host(`www.stutracker.com`)"
+      - "traefik.http.routers.stutracker.entrypoints=websecure"
+      - "traefik.http.routers.stutracker.tls=true"
+      - "traefik.http.routers.stutracker.tls.certresolver=letsencrypt"
+      - "traefik.http.services.stutracker.loadbalancer.server.port=3000"
+      # إعادة توجيه HTTP إلى HTTPS
+      - "traefik.http.routers.stutracker-http.rule=Host(`stutracker.com`) || Host(`www.stutracker.com`)"
+      - "traefik.http.routers.stutracker-http.entrypoints=web"
+      - "traefik.http.routers.stutracker-http.middlewares=redirect-to-https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+
+volumes:
+  stutracker_data:
+
+networks:
+  traefik:
+    external: true
+    name: traefik_default
