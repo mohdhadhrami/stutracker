@@ -70,23 +70,14 @@ const requireAuth = (req, res, next) => {
 };
 
 // ══════════════════════════════════════
-//  الملفات الثابتة
+//  الملفات الثابتة - login.html فقط (متاح بدون تسجيل دخول)
 // ══════════════════════════════════════
-// login.html متاح بدون تسجيل دخول
 app.get('/login.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
-// باقي الملفات تحتاج تسجيل دخول
-app.use(requireAuth, express.static(path.join(__dirname, 'public')));
-
-// الصفحة الرئيسية
-app.get('/', requireAuth, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
 // ══════════════════════════════════════
-//  API - الإعداد الأول
+//  API - الإعداد الأول (بدون auth)
 // ══════════════════════════════════════
 app.get('/api/setup-status', (req, res) => {
   const result = sqlite.prepare('SELECT COUNT(*) as count FROM users').get();
@@ -138,7 +129,7 @@ app.post('/api/setup', (req, res) => {
 });
 
 // ══════════════════════════════════════
-//  API - تسجيل الدخول والخروج
+//  API - تسجيل الدخول والخروج (بدون auth)
 // ══════════════════════════════════════
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
@@ -176,6 +167,16 @@ app.get('/api/session', (req, res) => {
   } else {
     res.status(401).json({ loggedIn: false });
   }
+});
+
+// ══════════════════════════════════════
+//  باقي الملفات والـ routes تحتاج تسجيل دخول
+// ══════════════════════════════════════
+app.use(requireAuth, express.static(path.join(__dirname, 'public')));
+
+// الصفحة الرئيسية
+app.get('/', requireAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // ══════════════════════════════════════
