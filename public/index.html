@@ -327,7 +327,6 @@ table.dt tbody tr:last-child td{border-bottom:none;}
 .rec-option-ico{font-size:26px;flex-shrink:0;}
 .rec-option-text h4{font-size:13.5px;font-weight:700;margin-bottom:2px;}
 .rec-option-text p{font-size:12px;color:var(--text3);}
-</style>
 /* ══ DRAG & DROP ══ */
 tr.dnd-dragging{opacity:.35;background:var(--teal3)!important;}
 tr.dnd-over{outline:2px dashed var(--teal);outline-offset:-2px;background:#f0fdf9!important;}
@@ -348,13 +347,13 @@ tr.dnd-over{outline:2px dashed var(--teal);outline-offset:-2px;background:#f0fdf
 .tmpl-card.open .tmpl-card-body{display:block;}
 .var-section{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;}
 .var-section-label{font-size:11.5px;font-weight:700;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
-.var-chips-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:8px;}
-.vchip{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:var(--rs);background:var(--surface);border:1.5px solid var(--border);cursor:pointer;transition:all .18s;user-select:none;text-align:right;}
-.vchip:hover{border-color:var(--teal);background:var(--navy);transform:translateY(-1px);box-shadow:0 2px 8px rgba(12,155,135,.15);}
-.vchip-ico{font-size:18px;flex-shrink:0;line-height:1;}
-.vchip-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
-.vchip-label{font-size:12px;font-weight:600;color:var(--text);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.vchip-code{font-size:10.5px;color:var(--text3);font-family:'Courier New',monospace;direction:ltr;text-align:right;}
+.var-chips-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;}
+.vchip{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:10px 8px;border-radius:var(--rs);background:var(--surface);border:1.5px solid var(--border);cursor:pointer;transition:all .18s;user-select:none;text-align:center;min-height:78px;}
+.vchip:hover{border-color:var(--teal);background:var(--navy);transform:translateY(-2px);box-shadow:0 4px 12px rgba(12,155,135,.2);}
+.vchip-ico{font-size:22px;line-height:1;}
+.vchip-body{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;}
+.vchip-label{font-size:11.5px;font-weight:600;color:var(--text);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+.vchip-code{font-size:9.5px;color:var(--text3);font-family:'Courier New',monospace;direction:ltr;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
 .vchip:hover .vchip-label{color:#fff;}
 .vchip:hover .vchip-code{color:#a8d8cc;}
 .vchip.specific{border-color:rgba(26,48,96,.3);}
@@ -370,6 +369,7 @@ tr.dnd-over{outline:2px dashed var(--teal);outline-offset:-2px;background:#f0fdf
 .ai-prov-card .ap-ico{font-size:24px;display:block;margin-bottom:5px;}
 .ai-prov-card .ap-name{font-size:11px;font-weight:700;color:var(--text);}
 .ai-prov-card.sel .ap-name{color:var(--teal);}
+</style>
 </head>
 
 <!-- ════════ SIDEBAR ════════ -->
