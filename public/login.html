@@ -58,9 +58,12 @@ body::before{content:'';position:absolute;inset:0;opacity:.04;background-image:r
       <input type="password" id="inp-pass" placeholder="أدخل كلمة المرور" autocomplete="current-password">
       <span class="eye" onclick="toggleEye('inp-pass',this)">👁</span>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-      <input type="checkbox" id="remember" style="accent-color:#0c9b87;width:15px;height:15px;">
-      <label for="remember" style="font-size:12.5px;color:#4f5d7e;cursor:pointer;">تذكرني</label>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <input type="checkbox" id="remember" style="accent-color:#0c9b87;width:15px;height:15px;">
+        <label for="remember" style="font-size:12.5px;color:#4f5d7e;cursor:pointer;">تذكرني</label>
+      </div>
+      <a href="#" onclick="showRecovery();return false;" style="font-size:12.5px;color:#0c9b87;text-decoration:none;font-weight:600;">نسيت كلمة المرور؟</a>
     </div>
     <button class="btn" id="login-btn" onclick="doLogin()">دخول</button>
   </div>
@@ -88,7 +91,69 @@ body::before{content:'';position:absolute;inset:0;opacity:.04;background-image:r
       <input type="password" id="inp-setup-pass2" placeholder="أعد كتابة كلمة المرور">
       <span class="eye" onclick="toggleEye('inp-setup-pass2',this)">👁</span>
     </div>
+    <div style="background:#f0f7f5;border:1px solid #c8e6d8;border-radius:10px;padding:10px 12px;margin-top:12px;margin-bottom:8px;">
+      <div style="font-size:12px;font-weight:700;color:#0c5f4f;margin-bottom:4px;">🔐 سؤال استرجاع الحساب</div>
+      <div style="font-size:11.5px;color:#4f5d7e;">سيُستخدم لإعادة تعيين كلمة المرور إذا نسيتها. احفظ الإجابة في مكان آمن.</div>
+    </div>
+    <div class="field">
+      <label>السؤال السري *</label>
+      <select id="inp-setup-question" style="width:100%;border:1.5px solid #e2e6ed;border-radius:10px;padding:11px 14px;font-family:inherit;font-size:14px;background:#f8f9fb;color:#182038;">
+        <option value="">— اختر سؤالاً —</option>
+        <option value="ما اسم مدرستك الابتدائية؟">ما اسم مدرستك الابتدائية؟</option>
+        <option value="ما اسم أول معلم لك؟">ما اسم أول معلم لك؟</option>
+        <option value="ما اسم المدينة التي ولدت فيها؟">ما اسم المدينة التي ولدت فيها؟</option>
+        <option value="ما اسم والدتك قبل الزواج؟">ما اسم والدتك قبل الزواج؟</option>
+        <option value="ما اسم أول حيوان أليف كان لك؟">ما اسم أول حيوان أليف كان لك؟</option>
+        <option value="ما اسم أفضل صديق في طفولتك؟">ما اسم أفضل صديق في طفولتك؟</option>
+        <option value="ما هو طعامك المفضل؟">ما هو طعامك المفضل؟</option>
+        <option value="ما اسم الشارع الذي نشأت فيه؟">ما اسم الشارع الذي نشأت فيه؟</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>الإجابة *</label>
+      <input type="text" id="inp-setup-answer" placeholder="أدخل الإجابة (ستُقارن دون حساسية لحالة الأحرف)">
+      <span class="ico">🔑</span>
+    </div>
     <button class="btn" id="setup-btn" onclick="doSetup()">إنشاء الحساب والدخول</button>
+  </div>
+
+  <!-- نموذج استرجاع كلمة المرور -->
+  <div id="recovery-form" style="display:none;">
+    <div class="title">🔄 استرجاع كلمة المرور</div>
+    <div id="rec-step1">
+      <p style="font-size:13px;color:#4f5d7e;margin-bottom:14px;">أدخل اسم المستخدم للمتابعة</p>
+      <div class="field">
+        <label>اسم المستخدم</label>
+        <input type="text" id="inp-rec-user" placeholder="أدخل اسم المستخدم">
+        <span class="ico">👤</span>
+      </div>
+      <button class="btn" id="rec-step1-btn" onclick="recoveryFetchQuestion()">التالي</button>
+    </div>
+    <div id="rec-step2" style="display:none;">
+      <div style="background:#f0f7f5;border:1px solid #c8e6d8;border-radius:10px;padding:12px;margin-bottom:14px;">
+        <div style="font-size:12px;color:#4f5d7e;margin-bottom:4px;">السؤال السري:</div>
+        <div id="rec-question-text" style="font-size:14px;font-weight:700;color:#0c5f4f;"></div>
+      </div>
+      <div class="field">
+        <label>الإجابة</label>
+        <input type="text" id="inp-rec-answer" placeholder="أدخل الإجابة">
+        <span class="ico">🔑</span>
+      </div>
+      <div class="field">
+        <label>كلمة المرور الجديدة * (6 أحرف على الأقل)</label>
+        <input type="password" id="inp-rec-newpass" placeholder="اختر كلمة مرور جديدة">
+        <span class="eye" onclick="toggleEye('inp-rec-newpass',this)">👁</span>
+      </div>
+      <div class="field">
+        <label>تأكيد كلمة المرور الجديدة *</label>
+        <input type="password" id="inp-rec-newpass2" placeholder="أعد كتابة كلمة المرور الجديدة">
+        <span class="eye" onclick="toggleEye('inp-rec-newpass2',this)">👁</span>
+      </div>
+      <button class="btn" id="rec-step2-btn" onclick="recoveryResetPassword()">إعادة تعيين كلمة المرور</button>
+    </div>
+    <div style="text-align:center;margin-top:14px;">
+      <a href="#" onclick="backToLogin();return false;" style="font-size:12.5px;color:#0c9b87;text-decoration:none;font-weight:600;">← العودة لتسجيل الدخول</a>
+    </div>
   </div>
 
   <div class="hint" id="login-hint"></div>
@@ -97,7 +162,24 @@ body::before{content:'';position:absolute;inset:0;opacity:.04;background-image:r
 <script>
 function toggleEye(id,btn){const inp=document.getElementById(id);inp.type=inp.type==='text'?'password':'text';btn.textContent=inp.type==='text'?'🙈':'👁';}
 function showErr(msg){const el=document.getElementById('err-msg');el.textContent=msg;el.style.display=msg?'block':'none';}
-function setLoading(id,loading){const btn=document.getElementById(id);if(btn){btn.disabled=loading;btn.textContent=loading?'جاري...':(id==='login-btn'?'دخول':'إنشاء الحساب والدخول');}}
+function setLoading(id,loading){const btn=document.getElementById(id);if(btn){btn.disabled=loading;const labels={'login-btn':'دخول','setup-btn':'إنشاء الحساب والدخول','rec-step1-btn':'التالي','rec-step2-btn':'إعادة تعيين كلمة المرور'};btn.textContent=loading?'جاري...':(labels[id]||btn.textContent);}}
+
+function showRecovery(){
+  showErr('');
+  document.getElementById('login-form').style.display='none';
+  document.getElementById('recovery-form').style.display='block';
+  document.getElementById('rec-step1').style.display='block';
+  document.getElementById('rec-step2').style.display='none';
+  document.getElementById('inp-rec-user').value='';
+  document.getElementById('login-hint').textContent='';
+  setTimeout(()=>document.getElementById('inp-rec-user').focus(),100);
+}
+function backToLogin(){
+  showErr('');
+  document.getElementById('recovery-form').style.display='none';
+  document.getElementById('login-form').style.display='block';
+  document.getElementById('login-hint').textContent='';
+}
 
 async function checkSetup(){
   try{
@@ -130,12 +212,16 @@ async function doSetup(){
   const user=document.getElementById('inp-setup-user').value.trim();
   const pass=document.getElementById('inp-setup-pass').value;
   const pass2=document.getElementById('inp-setup-pass2').value;
+  const question=document.getElementById('inp-setup-question').value;
+  const answer=document.getElementById('inp-setup-answer').value.trim();
   if(!user||!pass)return showErr('اسم المستخدم وكلمة المرور مطلوبان');
   if(pass!==pass2)return showErr('كلمتا المرور غير متطابقتين');
   if(pass.length<6)return showErr('كلمة المرور قصيرة (6 أحرف على الأقل)');
+  if(!question)return showErr('اختر سؤالاً سرياً لاسترجاع الحساب');
+  if(!answer||answer.length<2)return showErr('أدخل إجابة السؤال السري');
   showErr('');setLoading('setup-btn',true);
   try{
-    const r=await fetch('/api/setup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:user,password:pass,teacherName:teacher})});
+    const r=await fetch('/api/setup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:user,password:pass,teacherName:teacher,recoveryQuestion:question,recoveryAnswer:answer})});
     const d=await r.json();
     if(d.success){window.location.href='/';}
     else showErr(d.error||'خطأ في الإعداد');
@@ -143,9 +229,55 @@ async function doSetup(){
   finally{setLoading('setup-btn',false);}
 }
 
+async function recoveryFetchQuestion(){
+  const user=document.getElementById('inp-rec-user').value.trim();
+  if(!user)return showErr('أدخل اسم المستخدم');
+  showErr('');setLoading('rec-step1-btn',true);
+  try{
+    const r=await fetch('/api/recovery-question',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:user})});
+    const d=await r.json();
+    if(d.success){
+      document.getElementById('rec-question-text').textContent=d.question;
+      document.getElementById('rec-step1').style.display='none';
+      document.getElementById('rec-step2').style.display='block';
+      document.getElementById('inp-rec-answer').value='';
+      document.getElementById('inp-rec-newpass').value='';
+      document.getElementById('inp-rec-newpass2').value='';
+      setTimeout(()=>document.getElementById('inp-rec-answer').focus(),100);
+    }else{showErr(d.error||'تعذّر جلب السؤال السري');}
+  }catch(e){showErr('تعذّر الاتصال بالسيرفر');}
+  finally{setLoading('rec-step1-btn',false);}
+}
+
+async function recoveryResetPassword(){
+  const user=document.getElementById('inp-rec-user').value.trim();
+  const answer=document.getElementById('inp-rec-answer').value.trim();
+  const newPass=document.getElementById('inp-rec-newpass').value;
+  const newPass2=document.getElementById('inp-rec-newpass2').value;
+  if(!answer)return showErr('أدخل الإجابة');
+  if(!newPass||newPass.length<6)return showErr('كلمة المرور الجديدة قصيرة (6 أحرف على الأقل)');
+  if(newPass!==newPass2)return showErr('كلمتا المرور الجديدتان غير متطابقتين');
+  showErr('');setLoading('rec-step2-btn',true);
+  try{
+    const r=await fetch('/api/recovery-reset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:user,answer:answer,newPassword:newPass})});
+    const d=await r.json();
+    if(d.success){
+      alert('✅ تم إعادة تعيين كلمة المرور بنجاح!\nسيتم توجيهك لتسجيل الدخول بكلمة المرور الجديدة.');
+      backToLogin();
+      document.getElementById('inp-user').value=user;
+      document.getElementById('inp-pass').focus();
+    }else{showErr(d.error||'خطأ في إعادة التعيين');}
+  }catch(e){showErr('تعذّر الاتصال بالسيرفر');}
+  finally{setLoading('rec-step2-btn',false);}
+}
+
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter'){
-    if(document.getElementById('setup-form').style.display!=='none')doSetup();
+    if(document.getElementById('recovery-form').style.display!=='none'){
+      if(document.getElementById('rec-step2').style.display!=='none')recoveryResetPassword();
+      else recoveryFetchQuestion();
+    }
+    else if(document.getElementById('setup-form').style.display!=='none')doSetup();
     else doLogin();
   }
 });
