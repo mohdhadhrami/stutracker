@@ -41,6 +41,22 @@ sqlite.exec(`
   );
 `);
 
+// Schema migration: add recovery columns if they don't exist
+try {
+  const cols = sqlite.prepare("PRAGMA table_info(users)").all();
+  const colNames = cols.map(c => c.name);
+  if (!colNames.includes('recovery_question')) {
+    sqlite.exec("ALTER TABLE users ADD COLUMN recovery_question TEXT DEFAULT ''");
+    console.log('✅ Added recovery_question column');
+  }
+  if (!colNames.includes('recovery_answer_hash')) {
+    sqlite.exec("ALTER TABLE users ADD COLUMN recovery_answer_hash TEXT DEFAULT ''");
+    console.log('✅ Added recovery_answer_hash column');
+  }
+} catch (err) {
+  console.error('Migration warning:', err.message);
+}
+
 // ══════════════════════════════════════
 //  Middleware
 // ══════════════════════════════════════
@@ -85,10 +101,16 @@ app.get('/api/setup-status', (req, res) => {
 });
 
 app.post('/api/setup', (req, res) => {
-  const { username, password, teacherName } = req.body;
+  const { username, password, teacherName, recoveryQuestion, recoveryAnswer } = req.body;
 
   if (!username || !password) {
     return res.status(400).json({ error: 'اسم المستخدم وكلمة المرور مطلوبان' });
+  }
+  if (!recoveryQuestion || !recoveryAnswer) {
+    return res.status(400).json({ error: 'سؤال الاسترجاع وإجابته مطلوبان' });
+  }
+  if (recoveryAnswer.trim().length < 2) {
+    return res.status(400).json({ error: 'إجابة السؤال قصيرة جداً' });
   }
 
   const existing = sqlite.prepare('SELECT COUNT(*) as count FROM users').get();
@@ -98,6 +120,7 @@ app.post('/api/setup', (req, res) => {
 
   try {
     const hash = bcrypt.hashSync(password, 12);
+    const answerHash = bcrypt.hashSync(recoveryAnswer.trim().toLowerCase(), 12);
     const defaultData = JSON.stringify({
       teacher: {
         name: teacherName || username,
@@ -112,8 +135,8 @@ app.post('/api/setup', (req, res) => {
     });
 
     const result = sqlite.prepare(
-      'INSERT INTO users (username, password_hash, app_data) VALUES (?, ?, ?)'
-    ).run(username, hash, defaultData);
+      'INSERT INTO users (username, password_hash, app_data, recovery_question, recovery_answer_hash) VALUES (?, ?, ?, ?, ?)'
+    ).run(username, hash, defaultData, recoveryQuestion, answerHash);
 
     req.session.userId = result.lastInsertRowid;
     req.session.username = username;
@@ -167,6 +190,60 @@ app.get('/api/session', (req, res) => {
   } else {
     res.status(401).json({ loggedIn: false });
   }
+});
+
+// ══════════════════════════════════════
+//  API - استرجاع كلمة المرور (بدون auth)
+// ══════════════════════════════════════
+
+// خطوة 1: جلب السؤال السري للمستخدم
+app.post('/api/recovery-question', (req, res) => {
+  const { username } = req.body;
+  if (!username) {
+    return res.status(400).json({ error: 'اسم المستخدم مطلوب' });
+  }
+
+  const user = sqlite.prepare('SELECT recovery_question FROM users WHERE username = ?').get(username);
+  if (!user) {
+    // رسالة عامة لمنع كشف وجود/عدم وجود المستخدم
+    return res.status(404).json({ error: 'اسم المستخدم غير موجود' });
+  }
+
+  if (!user.recovery_question) {
+    return res.status(400).json({ error: 'هذا الحساب لا يحتوي على سؤال استرجاع مسجّل' });
+  }
+
+  res.json({ success: true, question: user.recovery_question });
+});
+
+// خطوة 2: التحقق من الإجابة وإعادة تعيين كلمة المرور
+app.post('/api/recovery-reset', (req, res) => {
+  const { username, answer, newPassword } = req.body;
+  if (!username || !answer || !newPassword) {
+    return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
+  }
+  if (newPassword.length < 6) {
+    return res.status(400).json({ error: 'كلمة المرور الجديدة قصيرة (6 أحرف على الأقل)' });
+  }
+
+  const user = sqlite.prepare('SELECT id, recovery_answer_hash FROM users WHERE username = ?').get(username);
+  if (!user || !user.recovery_answer_hash) {
+    return res.status(401).json({ error: 'بيانات الاسترجاع غير صحيحة' });
+  }
+
+  // مقارنة الإجابة (case-insensitive + trim)
+  const answerCheck = bcrypt.compareSync(answer.trim().toLowerCase(), user.recovery_answer_hash);
+  if (!answerCheck) {
+    sqlite.prepare('INSERT INTO logs (user_id, action) VALUES (?, ?)').run(user.id, 'recovery_failed');
+    return res.status(401).json({ error: 'إجابة السؤال السري غير صحيحة' });
+  }
+
+  // إعادة تعيين كلمة المرور
+  const newHash = bcrypt.hashSync(newPassword, 12);
+  sqlite.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(newHash, user.id);
+  sqlite.prepare('INSERT INTO logs (user_id, action) VALUES (?, ?)').run(user.id, 'recovery_reset');
+
+  res.json({ success: true });
 });
 
 // ══════════════════════════════════════
