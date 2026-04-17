@@ -865,6 +865,20 @@ tr.dnd-over{outline:2px dashed var(--teal);outline-offset:-2px;background:#f0fdf
   <div class="modal"><h3 id="mg-t">إضافة صف دراسي</h3>
     <input type="hidden" id="mg-id">
     <div class="fr"><label class="fl">اسم الصف *</label><input class="fi" id="mg-n" placeholder="مثال: الحادي عشر"></div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:14px 0;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;">
+      <strong style="font-size:12.5px;">أدوات التقويم المستمر (مشتركة لجميع شعب هذا الصف)</strong>
+      <button class="btn btn-o btn-xs" onclick="addGradeToolRow()">+ أداة</button>
+    </div>
+    <div id="grade-tools-ed"></div>
+    <div class="fr2" style="margin-top:11px;">
+      <div><label class="fl">نسبة التقويم المستمر %</label><input class="fi" id="mg-cw" type="number" value="40" min="1" max="99"></div>
+      <div><label class="fl">نسبة الامتحان النهائي %</label><input class="fi" id="mg-fw" type="number" value="60" min="1" max="99"></div>
+    </div>
+    <div class="fr2">
+      <div><label class="fl">الدرجة القصوى للامتحان النهائي</label><input class="fi" id="mg-fm" type="number" value="100" min="1"></div>
+      <div></div>
+    </div>
     <div class="modal-footer"><button class="btn btn-o" onclick="closeM('m-grade')">إلغاء</button><button class="btn btn-p" onclick="saveGrade()">حفظ</button></div>
   </div>
 </div>
@@ -876,19 +890,8 @@ tr.dnd-over{outline:2px dashed var(--teal);outline-offset:-2px;background:#f0fdf
       <div class="fr" style="margin-bottom:0"><label class="fl">اسم الشعبة *</label><input class="fi" id="ms-n" placeholder="مثال: 11/1"></div>
       <div class="fr" style="margin-bottom:0"><label class="fl">العام الدراسي</label><input class="fi" id="ms-y" placeholder="2024 / 2025"></div>
     </div>
-    <hr style="border:none;border-top:1px solid var(--border);margin:14px 0;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;">
-      <strong style="font-size:12.5px;">أدوات التقويم المستمر</strong>
-      <button class="btn btn-o btn-xs" onclick="addToolRow()">+ أداة</button>
-    </div>
-    <div id="tools-ed"></div>
-    <div class="fr2" style="margin-top:11px;">
-      <div><label class="fl">نسبة التقويم المستمر %</label><input class="fi" id="ms-cw" type="number" value="40" min="1" max="99"></div>
-      <div><label class="fl">نسبة الامتحان النهائي %</label><input class="fi" id="ms-fw" type="number" value="60" min="1" max="99"></div>
-    </div>
-    <div class="fr2">
-      <div><label class="fl">الدرجة القصوى للامتحان النهائي</label><input class="fi" id="ms-fm" type="number" value="100" min="1"></div>
-      <div></div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:10px 12px;margin-top:14px;font-size:12px;color:var(--text3);">
+      ℹ️ أدوات التقويم المستمر ونسب الدرجات تُضبط على مستوى <strong>الصف</strong> وتُطبّق تلقائياً على جميع شعبه.
     </div>
     <div class="modal-footer"><button class="btn btn-o" onclick="closeM('m-sec')">إلغاء</button><button class="btn btn-p" onclick="saveSec()">حفظ</button></div>
   </div>
@@ -1086,16 +1089,18 @@ function getSec(gid,sid) { const g=getG(gid); return g?.sections.find(s=>s.id===
 function curSec() { return getSec(ctx.gradeId, ctx.sectionId); }
 function calcCont(sec, sid) {
   const gd = sec.gradeData[sid] || {};
-  const vals = sec.tools.map(t => Number(gd[t.id]||0));
+  const {tools} = getTools(sec);
+  const vals = tools.map(t => Number(gd[t.id]||0));
   if (vals.every(v=>v===0) && !gd.finalExam) return null;
   return vals.reduce((a,b)=>a+b, 0);
 }
 function calcTotal(sec, sid) {
   const gd = sec.gradeData[sid] || {};
-  const mx = sec.tools.reduce((a,t)=>a+t.max,0);
+  const {tools, contWeight, finalMax, finalWeight} = getTools(sec);
+  const mx = tools.reduce((a,t)=>a+t.max,0);
   const cont = calcCont(sec, sid);
   if (cont===null && !gd.finalExam) return null;
-  return Math.round(((cont||0)/mx*sec.contWeight + (gd.finalExam||0)/sec.finalMax*sec.finalWeight)*10)/10;
+  return Math.round(((cont||0)/mx*contWeight + (gd.finalExam||0)/finalMax*finalWeight)*10)/10;
 }
 function levelOf(t) {
   if (t===null||t===undefined) return {l:'—',c:'bN'};
@@ -1217,32 +1222,38 @@ function renderDash(){
 function renderClasses(){
   if(!db.grades.length){$i('grade-tree').innerHTML='';$i('no-grades').style.display='';return;}
   $i('no-grades').style.display='none';
-  $i('grade-tree').innerHTML=db.grades.map(g=>`
+  $i('grade-tree').innerHTML=db.grades.map(g=>{ensureGradeDefaults(g);const gMx=g.tools.reduce((a,t)=>a+t.max,0);return `
     <div class="grade-row">
       <div class="grade-hdr">
         <h3>📖 ${g.name}</h3>
-        <span class="ghc">${g.sections.length} شعبة</span>
+        <span class="ghc">${g.sections.length} شعبة | ${g.tools.length} أداة (مجموع /${gMx}) | ${g.contWeight}%+${g.finalWeight}%</span>
+        <button class="btn btn-o btn-sm" style="border-color:rgba(255,255,255,.25);color:rgba(255,255,255,.75);background:transparent" onclick="openEditGrade(${g.id})">✏ تعديل الصف</button>
         <button class="btn btn-o btn-sm" style="border-color:rgba(255,255,255,.25);color:rgba(255,255,255,.75);background:transparent" onclick="openAddSec(${g.id})">+ شعبة</button>
         <button class="btn btn-sm" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);border:none" onclick="delGrade(${g.id})">🗑</button>
       </div>
       <div class="grade-body">
         ${g.sections.map(s=>`<div class="sec-card">
           <div><div class="sec-name">📗 ${s.name}</div>
-          <div class="sec-meta">${s.students.length} طالب | ${s.tools.map(t=>`${t.name}(${t.max})`).join('، ')} | ${s.contWeight}%+${s.finalWeight}%</div></div>
+          <div class="sec-meta">${s.students.length} طالب${s.year?' | '+s.year:''}</div></div>
           <button class="btn btn-o btn-sm" onclick="openEditSec(${g.id},${s.id})">✏ تعديل</button>
           <button class="btn btn-d btn-sm" onclick="delSec(${g.id},${s.id})">🗑</button>
         </div>`).join('')||'<div style="color:var(--text3);font-size:12.5px;padding:8px 0">لا توجد شعب</div>'}
       </div>
-    </div>`).join('');
+    </div>`;}).join('');
 }
-function openAddGrade(){$i('mg-t').textContent='إضافة صف';$i('mg-id').value='';$i('mg-n').value='';openM('m-grade');setTimeout(()=>$i('mg-n').focus(),100);}
-function saveGrade(){const n=$i('mg-n').value.trim();if(!n)return;const eid=$i('mg-id').value;if(eid){const g=getG(Number(eid));if(g)g.name=n;}else db.grades.push({id:Date.now(),name:n,sections:[]});save();closeM('m-grade');renderClasses();updateCtx();}
+function openAddGrade(){$i('mg-t').textContent='إضافة صف';$i('mg-id').value='';$i('mg-n').value='';$i('mg-cw').value=40;$i('mg-fw').value=60;$i('mg-fm').value=100;$i('grade-tools-ed').innerHTML='';[{id:'t1',name:'الواجب المنزلي',max:5},{id:'t2',name:'الحوار الشفوي',max:5},{id:'t3',name:'الاختبار القصير',max:10},{id:'t4',name:'الاختبار العملي',max:10}].forEach(addGradeToolRow);openM('m-grade');setTimeout(()=>$i('mg-n').focus(),100);}
+function openEditGrade(gid){const g=getG(gid);if(!g)return;ensureGradeDefaults(g);$i('mg-t').textContent='تعديل الصف';$i('mg-id').value=gid;$i('mg-n').value=g.name;$i('mg-cw').value=g.contWeight;$i('mg-fw').value=g.finalWeight;$i('mg-fm').value=g.finalMax;$i('grade-tools-ed').innerHTML='';g.tools.forEach(addGradeToolRow);openM('m-grade');}
+function saveGrade(){const n=$i('mg-n').value.trim();if(!n)return;const eid=$i('mg-id').value;const tools=Array.from(document.querySelectorAll('#grade-tools-ed .tool-row')).map(r=>({id:r.dataset.tid,name:r.querySelector('.tool-row-name').value||'أداة',max:Number(r.querySelector('.tool-row-max').value)||5}));const gd={name:n,tools,contWeight:Number($i('mg-cw').value)||40,finalMax:Number($i('mg-fm').value)||100,finalWeight:Number($i('mg-fw').value)||60};if(eid){const g=getG(Number(eid));if(g)Object.assign(g,gd);}else{gd.id=Date.now();gd.sections=[];db.grades.push(gd);}save();closeM('m-grade');renderClasses();updateCtx();}
 function delGrade(gid){if(!confirm('حذف هذا الصف وجميع بياناته؟'))return;db.grades=db.grades.filter(g=>g.id!==gid);save();renderClasses();updateCtx();}
 let toolCnt=0;
-function addToolRow(t){const id=t?t.id:'tr_'+(toolCnt++);const d=document.createElement('div');d.className='tool-row';d.dataset.tid=id;d.innerHTML=`<span style="color:var(--text3);cursor:grab">⠿</span><input class="tool-row-name" placeholder="اسم الأداة" value="${t?t.name:''}"><span style="font-size:12px;color:var(--text2)">من:</span><input class="tool-row-max" type="number" min="1" max="100" value="${t?t.max:5}"><button class="btn btn-d btn-xs" onclick="this.closest('.tool-row').remove()">✕</button>`;$i('tools-ed').appendChild(d);}
-function openAddSec(gid){$i('ms-t').textContent='إضافة شعبة';$i('ms-gid').value=gid;$i('ms-id').value='';$i('ms-n').value='';$i('ms-y').value=db.teacher.year;$i('ms-cw').value=40;$i('ms-fw').value=60;$i('ms-fm').value=100;$i('tools-ed').innerHTML='';[{id:'t1',name:'الواجب المنزلي',max:5},{id:'t2',name:'الحوار الشفوي',max:5},{id:'t3',name:'الاختبار القصير',max:10},{id:'t4',name:'الاختبار العملي',max:10}].forEach(addToolRow);openM('m-sec');}
-function openEditSec(gid,sid){const s=getSec(gid,sid);if(!s)return;$i('ms-t').textContent='تعديل الشعبة';$i('ms-gid').value=gid;$i('ms-id').value=sid;$i('ms-n').value=s.name;$i('ms-y').value=s.year;$i('ms-cw').value=s.contWeight;$i('ms-fw').value=s.finalWeight;$i('ms-fm').value=s.finalMax;$i('tools-ed').innerHTML='';s.tools.forEach(addToolRow);openM('m-sec');}
-function saveSec(){const gid=Number($i('ms-gid').value),sid=$i('ms-id').value,n=$i('ms-n').value.trim();if(!n)return;const tools=Array.from(document.querySelectorAll('#tools-ed .tool-row')).map(r=>({id:r.dataset.tid,name:r.querySelector('.tool-row-name').value||'أداة',max:Number(r.querySelector('.tool-row-max').value)||5}));const sd={name:n,year:$i('ms-y').value,tools,contWeight:Number($i('ms-cw').value)||40,finalMax:Number($i('ms-fm').value)||100,finalWeight:Number($i('ms-fw').value)||60};const g=getG(gid);if(!g)return;if(sid){const s=g.sections.find(s=>s.id===Number(sid));if(s)Object.assign(s,sd);}else{sd.id=Date.now();sd.students=[];sd.gradeData={};sd.observations=[];sd.evaluations=[];g.sections.push(sd);}save();closeM('m-sec');renderClasses();updateCtx();}
+function addGradeToolRow(t){const id=t?t.id:'tr_'+(toolCnt++);const d=document.createElement('div');d.className='tool-row';d.dataset.tid=id;d.innerHTML=`<span style="color:var(--text3);cursor:grab">⠿</span><input class="tool-row-name" placeholder="اسم الأداة" value="${t?t.name:''}"><span style="font-size:12px;color:var(--text2)">من:</span><input class="tool-row-max" type="number" min="1" max="100" value="${t?t.max:5}"><button class="btn btn-d btn-xs" onclick="this.closest('.tool-row').remove()">✕</button>`;$i('grade-tools-ed').appendChild(d);}
+/* ensure a grade has tools/contWeight/finalMax/finalWeight — migrates from first section if needed */
+function ensureGradeDefaults(g){if(g.tools&&g.contWeight!=null)return;const firstSec=(g.sections||[]).find(s=>s.tools);if(firstSec){g.tools=firstSec.tools;g.contWeight=firstSec.contWeight;g.finalMax=firstSec.finalMax;g.finalWeight=firstSec.finalWeight;}else{g.tools=[{id:'t1',name:'الواجب المنزلي',max:5},{id:'t2',name:'الحوار الشفوي',max:5},{id:'t3',name:'الاختبار القصير',max:10},{id:'t4',name:'الاختبار العملي',max:10}];g.contWeight=40;g.finalMax=100;g.finalWeight=60;}}
+/* helper: get grade-level tools from a section (looks up parent grade) */
+function getTools(sec){const g=db.grades.find(gr=>(gr.sections||[]).some(s=>s.id===sec.id));if(g){ensureGradeDefaults(g);return{tools:g.tools,contWeight:g.contWeight,finalMax:g.finalMax,finalWeight:g.finalWeight};}return{tools:sec.tools||[],contWeight:sec.contWeight||40,finalMax:sec.finalMax||100,finalWeight:sec.finalWeight||60};}
+function openAddSec(gid){$i('ms-t').textContent='إضافة شعبة';$i('ms-gid').value=gid;$i('ms-id').value='';$i('ms-n').value='';$i('ms-y').value=db.teacher.year;openM('m-sec');}
+function openEditSec(gid,sid){const s=getSec(gid,sid);if(!s)return;$i('ms-t').textContent='تعديل الشعبة';$i('ms-gid').value=gid;$i('ms-id').value=sid;$i('ms-n').value=s.name;$i('ms-y').value=s.year||'';openM('m-sec');}
+function saveSec(){const gid=Number($i('ms-gid').value),sid=$i('ms-id').value,n=$i('ms-n').value.trim();if(!n)return;const sd={name:n,year:$i('ms-y').value};const g=getG(gid);if(!g)return;if(sid){const s=g.sections.find(s=>s.id===Number(sid));if(s)Object.assign(s,sd);}else{sd.id=Date.now();sd.students=[];sd.gradeData={};sd.observations=[];sd.evaluations=[];g.sections.push(sd);}save();closeM('m-sec');renderClasses();updateCtx();}
 function delSec(gid,sid){if(!confirm('حذف هذه الشعبة؟'))return;const g=getG(gid);if(g)g.sections=g.sections.filter(s=>s.id!==sid);save();renderClasses();updateCtx();}
 
 /* ════ STUDENTS ════ */
@@ -1323,13 +1334,14 @@ function doImport(){
 function renderGrades(){
   const sec=curSec();
   if(!sec){$i('gr-ch').innerHTML='<th>اختر شعبة</th>';$i('gr-cb').innerHTML='';$i('gr-fb').innerHTML='';return;}
-  const mx=sec.tools.reduce((a,t)=>a+t.max,0);
-  $i('gr-cm').textContent=`${sec.contWeight}% | مجموع: ${mx}`;
-  $i('gr-fm').textContent=`${sec.finalWeight}% | من: ${sec.finalMax}`;
-  $i('gr-fth').textContent=`الامتحان النهائي (/${sec.finalMax})`;
-  $i('gr-ch').innerHTML=`<th>#</th><th>اسم الطالب</th>${sec.tools.map(t=>`<th>${t.name}<br><small style="font-weight:400;color:var(--text3)">/${t.max}</small></th>`).join('')}<th>مجموع التقويم<br><small style="font-weight:400;color:var(--text3)">/${mx}</small></th>`;
-  $i('gr-cb').innerHTML=sec.students.map((st,i)=>{const gd=sec.gradeData[st.id]||{};const c=calcCont(sec,st.id);return `<tr><td style="color:var(--text3)">${i+1}</td><td style="font-weight:600;min-width:180px">${st.name}</td>${sec.tools.map(t=>`<td><input class="score-in" type="number" min="0" max="${t.max}" value="${gd[t.id]??''}" oninput="setG(${st.id},'${t.id}',this,${t.max})" placeholder="—"></td>`).join('')}<td class="tc" id="ct-${st.id}">${c!==null?c:'—'}</td></tr>`;}).join('');
-  $i('gr-fb').innerHTML=sec.students.map((st,i)=>{const gd=sec.gradeData[st.id]||{};const t=calcTotal(sec,st.id);const lv=levelOf(t);return `<tr><td style="color:var(--text3)">${i+1}</td><td style="font-weight:600">${st.name}</td><td><input class="score-in" type="number" min="0" max="${sec.finalMax}" value="${gd.finalExam??''}" oninput="setG(${st.id},'finalExam',this,${sec.finalMax})" placeholder="—" style="width:80px"></td><td class="tc" id="tot-${st.id}">${t??'—'}</td><td><span class="badge ${lv.c}" id="lv-${st.id}">${lv.l}</span></td></tr>`;}).join('');
+  const {tools,contWeight,finalMax,finalWeight}=getTools(sec);
+  const mx=tools.reduce((a,t)=>a+t.max,0);
+  $i('gr-cm').textContent=`${contWeight}% | مجموع: ${mx}`;
+  $i('gr-fm').textContent=`${finalWeight}% | من: ${finalMax}`;
+  $i('gr-fth').textContent=`الامتحان النهائي (/${finalMax})`;
+  $i('gr-ch').innerHTML=`<th>#</th><th>اسم الطالب</th>${tools.map(t=>`<th>${t.name}<br><small style="font-weight:400;color:var(--text3)">/${t.max}</small></th>`).join('')}<th>مجموع التقويم<br><small style="font-weight:400;color:var(--text3)">/${mx}</small></th>`;
+  $i('gr-cb').innerHTML=sec.students.map((st,i)=>{const gd=sec.gradeData[st.id]||{};const c=calcCont(sec,st.id);return `<tr><td style="color:var(--text3)">${i+1}</td><td style="font-weight:600;min-width:180px">${st.name}</td>${tools.map(t=>`<td><input class="score-in" type="number" min="0" max="${t.max}" value="${gd[t.id]??''}" oninput="setG(${st.id},'${t.id}',this,${t.max})" placeholder="—"></td>`).join('')}<td class="tc" id="ct-${st.id}">${c!==null?c:'—'}</td></tr>`;}).join('');
+  $i('gr-fb').innerHTML=sec.students.map((st,i)=>{const gd=sec.gradeData[st.id]||{};const t=calcTotal(sec,st.id);const lv=levelOf(t);return `<tr><td style="color:var(--text3)">${i+1}</td><td style="font-weight:600">${st.name}</td><td><input class="score-in" type="number" min="0" max="${finalMax}" value="${gd.finalExam??''}" oninput="setG(${st.id},'finalExam',this,${finalMax})" placeholder="—" style="width:80px"></td><td class="tc" id="tot-${st.id}">${t??'—'}</td><td><span class="badge ${lv.c}" id="lv-${st.id}">${lv.l}</span></td></tr>`;}).join('');
 }
 function setG(sid,key,input,max){const v=input.value===''?null:Number(input.value);if(v!==null&&(v<0||v>max)){input.classList.add('err');return;}input.classList.remove('err');const sec=curSec();if(!sec)return;if(!sec.gradeData[sid])sec.gradeData[sid]={};sec.gradeData[sid][key]=v;save();const c=calcCont(sec,sid);const t=calcTotal(sec,sid);const lv=levelOf(t);const ctEl=$i('ct-'+sid);if(ctEl&&key!=='finalExam')ctEl.textContent=c!==null?c:'—';const tEl=$i('tot-'+sid);if(tEl)tEl.textContent=t??'—';const lvEl=$i('lv-'+sid);if(lvEl){lvEl.textContent=lv.l;lvEl.className=`badge ${lv.c}`;}}
 
@@ -1424,7 +1436,7 @@ function renderEvaluations(){
     sl.innerHTML=`<div class="stu-check-all"><input type="checkbox" id="eval-all-cb" onchange="toggleAllStudents()"><label for="eval-all-cb">تحديد الجميع</label></div>`+sec.students.map(st=>`<div class="stu-check-item"><input type="checkbox" class="eval-stu-cb" value="${st.id}" id="eval-st-${st.id}" onchange="onEvalToolChange();updateEvalPreview()"><label for="eval-st-${st.id}">${st.name}</label></div>`).join('');
     // Populate tool selector
     const toolSel=$i('eval-tool-sel');
-    if(toolSel){toolSel.innerHTML='<option value="">— بدون مؤشر درجة —</option>'+sec.tools.map(t=>`<option value="${t.id}" data-max="${t.max}" data-name="${t.name}">${t.name} (/${t.max})</option>`).join('');}
+    if(toolSel){toolSel.innerHTML='<option value="">— بدون مؤشر درجة —</option>'+getTools(sec).tools.map(t=>`<option value="${t.id}" data-max="${t.max}" data-name="${t.name}">${t.name} (/${t.max})</option>`).join('');}
   }else{sl.innerHTML='<div style="padding:12px;color:var(--text3);font-size:12.5px">اختر شعبة من الشريط أعلاه</div>';}
   // Axes rater
   buildAxesRater();
@@ -1703,7 +1715,7 @@ function sendEvalWA(id){const sec=curSec();const e=(sec?.evaluations||[]).find(x
 function sendAllEvals(){const sec=curSec();if(!sec)return;(sec.evaluations||[]).forEach((e,i)=>setTimeout(()=>sendEvalWA(e.id),i*1200));}
 
 /* ════ AXES CONFIG ════ */
-document.querySelectorAll('.eval-tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.eval-tab').forEach(t=>t.classList.remove('active'));tab.classList.add('active');document.querySelectorAll('.eval-tab-panel').forEach(p=>p.classList.remove('active'));$i('etab-'+tab.dataset.etab).classList.add('active');if(tab.dataset.etab==='eval-history')renderEvalHistory();else if(tab.dataset.etab==='axes-config')renderAxesConfig();else if(tab.dataset.etab==='cat-config')renderCatsConfig();});});
+document.querySelectorAll('.eval-tab[data-etab]').forEach(tab=>{tab.addEventListener('click',()=>{const panel=$i('etab-'+tab.dataset.etab);if(!panel)return;document.querySelectorAll('.eval-tab[data-etab]').forEach(t=>t.classList.remove('active'));tab.classList.add('active');document.querySelectorAll('.eval-tab-panel[id^="etab-"]').forEach(p=>p.classList.remove('active'));panel.classList.add('active');if(tab.dataset.etab==='eval-history')renderEvalHistory();else if(tab.dataset.etab==='axes-config')renderAxesConfig();else if(tab.dataset.etab==='cat-config')renderCatsConfig();});});
 function renderAxesConfig(){
   $i('axes-config-list').innerHTML=db.evaluationAxes.map(ax=>`
     <div class="axis-config-card">
@@ -2048,10 +2060,10 @@ function updateSB(){
 }
 function updateLoginBranding(){
   const p=db.teacher;
-  if(p.school)$i('ls-school').textContent=p.school;
-  if(p.subject)$i('ls-sub').textContent='مادة '+p.subject+' — '+(p.year||'');
+  const schoolEl=$i('ls-school');if(schoolEl&&p.school)schoolEl.textContent=p.school;
+  const subEl=$i('ls-sub');if(subEl&&p.subject)subEl.textContent='مادة '+p.subject+' — '+(p.year||'');
   const n=p.fullname||p.name||'';
-  if(n)$i('ls-ico').textContent=n.trim()[0];
+  const icoEl=$i('ls-ico');if(icoEl&&n)icoEl.textContent=n.trim()[0];
 }
 
 /* ════ ACCOUNT / AUTH ════ */
@@ -2123,7 +2135,7 @@ function _oldSaveAccount_unused(){
   db.auth.recEmail=re;db.auth.recPhone=rp;
   db.auth.setupDone=true;
   save();renderAccountTab();showToast('✅ تم حفظ بيانات الحساب بنجاح');
-}}
+}
 
 function togglePwVis(id,btn){const inp=$i(id);if(!inp)return;const isText=inp.type==='text';inp.type=isText?'password':'text';btn.textContent=isText?'👁':'🙈';}
 
