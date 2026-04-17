@@ -346,12 +346,20 @@ tr.dnd-over{outline:2px dashed var(--teal);outline-offset:-2px;background:#f0fdf
 .tmpl-card.open .tc-ico{transform:rotate(90deg);}
 .tmpl-card-body{padding:14px 16px;display:none;}
 .tmpl-card.open .tmpl-card-body{display:block;}
-.var-section{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:10px 12px;margin-bottom:10px;}
-.var-section-label{font-size:10.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px;}
-.var-chips-row{display:flex;gap:5px;flex-wrap:wrap;}
-.vchip{padding:3px 10px;border-radius:20px;background:var(--navy);color:#8ab4e8;font-size:11px;font-family:monospace;cursor:pointer;border:1px solid rgba(255,255,255,.08);transition:all .15s;user-select:none;}
-.vchip:hover{background:var(--teal);color:#fff;transform:scale(1.05);}
-.vchip-desc{font-size:10px;color:var(--text3);display:inline;margin-right:3px;}
+.var-section{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;}
+.var-section-label{font-size:11.5px;font-weight:700;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.var-chips-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:8px;}
+.vchip{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:var(--rs);background:var(--surface);border:1.5px solid var(--border);cursor:pointer;transition:all .18s;user-select:none;text-align:right;}
+.vchip:hover{border-color:var(--teal);background:var(--navy);transform:translateY(-1px);box-shadow:0 2px 8px rgba(12,155,135,.15);}
+.vchip-ico{font-size:18px;flex-shrink:0;line-height:1;}
+.vchip-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+.vchip-label{font-size:12px;font-weight:600;color:var(--text);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.vchip-code{font-size:10.5px;color:var(--text3);font-family:'Courier New',monospace;direction:ltr;text-align:right;}
+.vchip:hover .vchip-label{color:#fff;}
+.vchip:hover .vchip-code{color:#a8d8cc;}
+.vchip.specific{border-color:rgba(26,48,96,.3);}
+.vchip.specific:hover{border-color:#3b82f6;background:#1a3060;}
+.vchip.specific .vchip-code{color:#8ab4e8;}
 .tmpl-ta{width:100%;border:1.5px solid var(--border);border-radius:var(--rs);padding:10px 12px;font-family:inherit;font-size:13px;background:var(--surface);color:var(--text);resize:vertical;min-height:110px;transition:border-color .18s;line-height:1.7;}
 .tmpl-ta:focus{outline:none;border-color:var(--teal);}
 /* ══ AI BOT SETTINGS ══ */
@@ -782,11 +790,11 @@ tr.dnd-over{outline:2px dashed var(--teal);outline-offset:-2px;background:#f0fdf
         <div class="card" style="margin-bottom:14px;">
           <div class="card-header" style="margin-bottom:10px;"><span class="card-title">📌 المتغيرات المتاحة — اضغط لإدراجها في القالب النشط</span></div>
           <div class="var-section">
-            <div class="var-section-label">متغيرات مشتركة</div>
+            <div class="var-section-label"><span>🌐</span><span>متغيرات مشتركة (تعمل في كل القوالب)</span></div>
             <div class="var-chips-row" id="vars-common"></div>
           </div>
           <div class="var-section" id="vars-specific-wrap">
-            <div class="var-section-label" id="vars-specific-label">متغيرات خاصة بالنوع</div>
+            <div class="var-section-label"><span>🎯</span><span id="vars-specific-label">متغيرات خاصة بالنوع</span></div>
             <div class="var-chips-row" id="vars-specific"></div>
           </div>
         </div>
@@ -1985,17 +1993,17 @@ const TMPL_META={
   evaluation:{title:'قوالب التقييم الدوري',icon:'🎯'}
 };
 const VARS_COMMON=[
-  {v:'[الطالب]',l:'اسم الطالب'},{v:'[ولي_الأمر]',l:'ولي الأمر'},
-  {v:'[المعلم]',l:'اسم المعلم'},{v:'[المدرسة]',l:'اسم المدرسة'},
-  {v:'[المادة]',l:'المادة'},{v:'[التاريخ]',l:'التاريخ'},
-  {v:'[الوقت]',l:'الوقت'},{v:'[العام_الدراسي]',l:'العام الدراسي'},
-  {v:'[الصف]',l:'الصف'},{v:'[الشعبة]',l:'الشعبة'}
+  {v:'[الطالب]',l:'اسم الطالب',i:'👤'},{v:'[ولي_الأمر]',l:'ولي الأمر',i:'👨‍👩‍👧'},
+  {v:'[المعلم]',l:'اسم المعلم',i:'🧑‍🏫'},{v:'[المدرسة]',l:'اسم المدرسة',i:'🏫'},
+  {v:'[المادة]',l:'المادة',i:'📚'},{v:'[التاريخ]',l:'التاريخ',i:'📅'},
+  {v:'[الوقت]',l:'الوقت',i:'⏰'},{v:'[العام_الدراسي]',l:'العام الدراسي',i:'🗓️'},
+  {v:'[الصف]',l:'الصف',i:'🎓'},{v:'[الشعبة]',l:'الشعبة',i:'📖'}
 ];
 const VARS_SPECIFIC={
-  obs:[{v:'[فئة_الملاحظة]',l:'فئة الملاحظة'},{v:'[نوع_الملاحظة]',l:'نوع الملاحظة'},{v:'[نص_الملاحظة]',l:'نص الملاحظة'}],
-  grades:[{v:'[الدرجة_الإجمالية]',l:'الدرجة الإجمالية'},{v:'[المستوى]',l:'المستوى'},{v:'[درجة_التقويم]',l:'درجة التقويم المستمر'},{v:'[درجة_النهائي]',l:'درجة الامتحان النهائي'}],
-  behavioral:[{v:'[الإيجابيات]',l:'قائمة الإيجابيات'},{v:'[السلبيات]',l:'قائمة السلبيات'},{v:'[عدد_الملاحظات]',l:'عدد الملاحظات'},{v:'[عدد_الإيجابي]',l:'عدد الإيجابيات'},{v:'[عدد_السلبي]',l:'عدد السلبيات'}],
-  evaluation:[{v:'[الفترة]',l:'الفترة'},{v:'[العبارة_الوصفية]',l:'العبارة الوصفية'},{v:'[الدرجة_الإجمالية]',l:'الدرجة الإجمالية'},{v:'[المستوى]',l:'المستوى'},{v:'[المحور_1]',l:'المحور 1'},{v:'[المحور_2]',l:'المحور 2'},{v:'[المحور_3]',l:'المحور 3'},{v:'[المحور_4]',l:'المحور 4'},{v:'[المحور_5]',l:'المحور 5'}]
+  obs:[{v:'[فئة_الملاحظة]',l:'فئة الملاحظة',i:'🏷️'},{v:'[نوع_الملاحظة]',l:'نوع الملاحظة',i:'🔖'},{v:'[نص_الملاحظة]',l:'نص الملاحظة',i:'📝'}],
+  grades:[{v:'[الدرجة_الإجمالية]',l:'الدرجة الإجمالية',i:'📊'},{v:'[المستوى]',l:'المستوى',i:'🏆'},{v:'[درجة_التقويم]',l:'درجة التقويم المستمر',i:'📈'},{v:'[درجة_النهائي]',l:'درجة الامتحان النهائي',i:'📉'}],
+  behavioral:[{v:'[الإيجابيات]',l:'قائمة الإيجابيات',i:'✅'},{v:'[السلبيات]',l:'قائمة السلبيات',i:'⚠️'},{v:'[عدد_الملاحظات]',l:'عدد الملاحظات',i:'🔢'},{v:'[عدد_الإيجابي]',l:'عدد الإيجابيات',i:'➕'},{v:'[عدد_السلبي]',l:'عدد السلبيات',i:'➖'}],
+  evaluation:[{v:'[الفترة]',l:'الفترة',i:'📆'},{v:'[العبارة_الوصفية]',l:'العبارة الوصفية',i:'💬'},{v:'[الدرجة_الإجمالية]',l:'الدرجة الإجمالية',i:'📊'},{v:'[المستوى]',l:'المستوى',i:'🏆'},{v:'[المحور_1]',l:'المحور 1',i:'1️⃣'},{v:'[المحور_2]',l:'المحور 2',i:'2️⃣'},{v:'[المحور_3]',l:'المحور 3',i:'3️⃣'},{v:'[المحور_4]',l:'المحور 4',i:'4️⃣'},{v:'[المحور_5]',l:'المحور 5',i:'5️⃣'}]
 };
 
 function switchTmplType(type,btn){
@@ -2007,11 +2015,11 @@ function switchTmplType(type,btn){
 function renderTmplTab(){
   const meta=TMPL_META[activeTmplType];
   $i('tmpl-type-title').textContent=meta.title;
-  // Var chips
-  $i('vars-common').innerHTML=VARS_COMMON.map(v=>`<span class="vchip" title="${v.l}" onclick="insertVar('${v.v}')">${v.v}</span>`).join('');
+  // Var chips — تصميم بطاقات مع أيقونات
+  $i('vars-common').innerHTML=VARS_COMMON.map(v=>`<div class="vchip" title="${v.l} — ${v.v}" onclick="insertVar('${v.v}')"><span class="vchip-ico">${v.i||'🔹'}</span><div class="vchip-body"><span class="vchip-label">${v.l}</span><span class="vchip-code">${v.v}</span></div></div>`).join('');
   const specVars=VARS_SPECIFIC[activeTmplType]||[];
   $i('vars-specific-label').textContent='متغيرات '+meta.title;
-  $i('vars-specific').innerHTML=specVars.map(v=>`<span class="vchip" title="${v.l}" onclick="insertVar('${v.v}')" style="background:#1a3060;color:#a8d8f8">${v.v}</span>`).join('');
+  $i('vars-specific').innerHTML=specVars.map(v=>`<div class="vchip specific" title="${v.l} — ${v.v}" onclick="insertVar('${v.v}')"><span class="vchip-ico">${v.i||'🔸'}</span><div class="vchip-body"><span class="vchip-label">${v.l}</span><span class="vchip-code">${v.v}</span></div></div>`).join('');
   // Template list
   if(!db.templates)db.templates={obs:[],grades:[],behavioral:[],evaluation:[]};
   const tmpls=db.templates[activeTmplType]||[];
