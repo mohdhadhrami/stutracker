@@ -825,41 +825,121 @@ tr.dnd-over{outline:2px dashed var(--teal);outline-offset:-2px;background:#f0fdf
 
       <!-- BOT TAB -->
       <div id="stab-bot" class="eval-tab-panel">
+        <!-- خطوات الإعداد المرئية -->
+        <div class="alert a-info" style="font-size:12.5px;margin-bottom:14px;padding:12px 14px;">
+          <strong>🚀 إعداد البوت الذكي في 4 خطوات:</strong>
+          <div style="margin-top:8px;font-size:12px;line-height:1.8;">
+            <strong>1️⃣</strong> ضبط Twilio (رقم الواتساب) &nbsp;&nbsp; <strong>2️⃣</strong> ضبط AI (ذكاء اصطناعي للردود) <br>
+            <strong>3️⃣</strong> نسخ Webhook URL إلى Twilio &nbsp;&nbsp; <strong>4️⃣</strong> الاختبار النهائي
+          </div>
+        </div>
+
         <div class="grid2">
+          <!-- ===== 1️⃣ إعدادات Twilio WhatsApp ===== -->
           <div class="card">
-            <div class="set-section">🤖 مزوّد الذكاء الاصطناعي</div>
+            <div class="set-section">📱 <span style="color:var(--teal);">1️⃣</span> Twilio WhatsApp</div>
+            <div class="alert a-info" style="font-size:12px;margin-bottom:12px;">يربط النظام بخدمة Twilio لإرسال واستقبال رسائل الواتساب تلقائياً</div>
+            <div class="fr"><label class="fl">Account SID <span style="color:var(--red)">*</span></label>
+              <input class="fi" id="bot-twilio-sid" placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" dir="ltr">
+              <div style="font-size:10.5px;color:var(--text3);margin-top:3px;">ابحث عنه في Twilio Console → Account Info</div>
+            </div>
+            <div class="fr"><label class="fl">Auth Token <span style="color:var(--red)">*</span></label>
+              <div style="position:relative"><input class="fi" type="password" id="bot-twilio-token" placeholder="الرمز السري من Twilio" dir="ltr"><span class="pw-toggle" style="bottom:9px" onclick="togglePwVis('bot-twilio-token',this)">👁</span></div>
+              <div style="font-size:10.5px;color:var(--text3);margin-top:3px;">اضغط "Show" في Twilio Console بجانب Auth Token</div>
+            </div>
+            <div class="fr"><label class="fl">رقم المرسل <span style="color:var(--red)">*</span></label>
+              <input class="fi" id="bot-twilio-from" placeholder="+14155238886" dir="ltr">
+              <div style="font-size:10.5px;color:var(--text3);margin-top:3px;">💡 لـ Sandbox: <code style="background:var(--surface);padding:1px 5px;border-radius:3px;font-family:monospace;">+14155238886</code></div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+              <button class="btn btn-o btn-sm" onclick="testTwilioConnection()">🧪 اختبار الاتصال</button>
+              <button class="btn btn-p btn-sm" onclick="saveBotCfg()">💾 حفظ</button>
+            </div>
+            <div id="twilio-test-result" style="margin-top:10px;display:none;"></div>
+            <div class="alert a-warn" style="font-size:11.5px;margin-top:14px;">
+              <strong>⚠️ Sandbox:</strong> قبل إرسال أي رسالة، يجب على المستقبِل إرسال كلمة الانضمام (مثل <code style="background:var(--surface);padding:1px 4px;border-radius:3px;font-family:monospace;">join acres-language</code>) لرقم Sandbox.
+            </div>
+          </div>
+
+          <!-- ===== 2️⃣ إعدادات الذكاء الاصطناعي ===== -->
+          <div class="card">
+            <div class="set-section">🤖 <span style="color:var(--teal);">2️⃣</span> الذكاء الاصطناعي</div>
+            <div class="alert a-info" style="font-size:12px;margin-bottom:12px;">يُستخدم للرد تلقائياً على أسئلة أولياء الأمور عبر واتساب</div>
+            <label class="fl">اختر المزوّد</label>
             <div class="ai-prov-grid" id="ai-prov-grid">
-              <button class="ai-prov-card sel" onclick="selectAIProv('claude',this)"><span class="ap-ico">🟣</span><span class="ap-name">Claude</span></button>
-              <button class="ai-prov-card" onclick="selectAIProv('openai',this)"><span class="ap-ico">🟢</span><span class="ap-name">OpenAI</span></button>
+              <button class="ai-prov-card sel" onclick="selectAIProv('openai',this)"><span class="ap-ico">🟢</span><span class="ap-name">OpenAI</span></button>
+              <button class="ai-prov-card" onclick="selectAIProv('claude',this)"><span class="ap-ico">🟣</span><span class="ap-name">Claude</span></button>
               <button class="ai-prov-card" onclick="selectAIProv('gemini',this)"><span class="ap-ico">🔵</span><span class="ap-name">Gemini</span></button>
               <button class="ai-prov-card" onclick="selectAIProv('custom',this)"><span class="ap-ico">⚙️</span><span class="ap-name">مخصص</span></button>
             </div>
-            <div class="fr"><label class="fl">مفتاح الـ API *</label>
-              <div style="position:relative"><input class="fi" type="password" id="bot-apikey" placeholder="أدخل مفتاح API هنا"><span class="pw-toggle" style="bottom:9px" onclick="togglePwVis('bot-apikey',this)">👁</span></div>
+            <div class="fr"><label class="fl">مفتاح API <span style="color:var(--red)">*</span></label>
+              <div style="position:relative"><input class="fi" type="password" id="bot-apikey" placeholder="sk-..." dir="ltr"><span class="pw-toggle" style="bottom:9px" onclick="togglePwVis('bot-apikey',this)">👁</span></div>
+              <div style="font-size:10.5px;color:var(--text3);margin-top:3px;" id="apikey-help">احصل عليه من platform.openai.com/api-keys</div>
             </div>
-            <div class="fr" id="bot-endpoint-row">
+            <div class="fr" id="bot-endpoint-row" style="display:none;">
               <label class="fl">رابط الـ API (للمزود المخصص)</label>
               <input class="fi" id="bot-endpoint" placeholder="https://api.example.com/v1/chat" dir="ltr">
             </div>
-            <div class="fr"><label class="fl">النموذج (Model)</label><input class="fi" id="bot-model" placeholder="claude-sonnet-4-5 / gpt-4o / gemini-pro"></div>
+            <div class="fr"><label class="fl">النموذج (Model)</label>
+              <input class="fi" id="bot-model" placeholder="gpt-4o-mini" dir="ltr">
+              <div style="font-size:10.5px;color:var(--text3);margin-top:3px;" id="model-help">💡 موصى: <code style="background:var(--surface);padding:1px 4px;border-radius:3px;font-family:monospace;">gpt-4o-mini</code> (رخيص وسريع)</div>
+            </div>
             <div class="fr"><label class="fl">رسالة النظام (System Prompt)</label>
-              <textarea class="fi" id="bot-sysprompt" rows="3" placeholder="أنت مساعد تعليمي. تُجيب على أسئلة أولياء الأمور عن درجات أبنائهم وملاحظات المعلم..."></textarea>
+              <textarea class="fi" id="bot-sysprompt" rows="4" placeholder="اتركه فارغاً لاستخدام الرسالة الافتراضية المُعدّة للمعلمين"></textarea>
+              <div style="font-size:10.5px;color:var(--text3);margin-top:3px;">اتركه فارغاً ليستخدم النظام القالب الافتراضي (موصى به)</div>
             </div>
-            <button class="btn btn-p" onclick="saveBotCfg()">💾 حفظ إعدادات الذكاء الاصطناعي</button>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+              <button class="btn btn-o btn-sm" onclick="testAIConnection()">🧪 اختبار AI</button>
+              <button class="btn btn-p btn-sm" onclick="saveBotCfg()">💾 حفظ</button>
+            </div>
+            <div id="ai-test-result" style="margin-top:10px;display:none;"></div>
           </div>
-          <div class="card">
-            <div class="set-section">📱 واتساب Business API</div>
-            <div class="alert a-warn" style="font-size:12px;">يتطلب حساباً في Meta Business مُفعّلاً</div>
-            <div class="fr"><label class="fl">Phone Number ID</label><input class="fi" id="bot-wapid" placeholder="رقم معرّف الهاتف من Meta"></div>
-            <div class="fr"><label class="fl">Access Token</label>
-              <div style="position:relative"><input class="fi" type="password" id="bot-wat" placeholder="EAAxxxxx..."><span class="pw-toggle" style="bottom:9px" onclick="togglePwVis('bot-wat',this)">👁</span></div>
+        </div>
+
+        <!-- ===== 3️⃣ Webhook URL للنسخ ===== -->
+        <div class="card" style="margin-top:14px;">
+          <div class="set-section">🔗 <span style="color:var(--teal);">3️⃣</span> Webhook URL — رابط مهم</div>
+          <div class="alert a-warn" style="font-size:12px;margin-bottom:12px;">
+            <strong>انسخ هذا الرابط وضعه في Twilio Console:</strong><br>
+            Messaging → Try it out → Send a WhatsApp message → <strong>Sandbox settings</strong> → <strong>"When a message comes in"</strong>
+          </div>
+          <div style="display:flex;gap:8px;align-items:stretch;">
+            <input class="fi" id="webhook-url-input" value="https://stutracker.com/api/webhook/twilio" readonly dir="ltr" style="font-family:monospace;font-size:12.5px;background:var(--surface2);font-weight:600;">
+            <button class="btn btn-p btn-sm" onclick="copyWebhookURL()" style="flex-shrink:0;">📋 نسخ</button>
+          </div>
+          <div style="font-size:11.5px;color:var(--text3);margin-top:10px;">
+            💡 بعد وضع الرابط في Twilio وحفظه، سيرسل Twilio جميع الرسائل الواردة إلى سيرفرك تلقائياً
+          </div>
+        </div>
+
+        <!-- ===== 4️⃣ اختبار البوت ===== -->
+        <div class="card" style="margin-top:14px;">
+          <div class="set-section">🧪 <span style="color:var(--teal);">4️⃣</span> اختبار الإرسال المباشر</div>
+          <div class="alert a-info" style="font-size:12px;margin-bottom:12px;">
+            أرسل رسالة اختبارية إلى رقم واتساب محدد للتأكد من عمل Twilio بشكل صحيح
+          </div>
+          <div class="fr2">
+            <div>
+              <label class="fl">رقم المستقبل (مع رمز الدولة)</label>
+              <input class="fi" id="test-send-phone" placeholder="+96891234567" dir="ltr">
             </div>
-            <div class="fr"><label class="fl">Webhook Verify Token</label><input class="fi" id="bot-verify" placeholder="رمز التحقق الخاص بك"></div>
-            <button class="btn btn-p" onclick="saveBotCfg()">💾 حفظ إعدادات واتساب</button>
-            <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
-              <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;">🔗 رابط الـ Webhook</div>
-              <div style="background:var(--navy);color:#a8d8a8;border-radius:var(--rs);padding:10px 12px;font-size:12px;font-family:monospace;word-break:break-all;" id="webhook-url-display">https://your-server.com/webhook</div>
+            <div>
+              <label class="fl">رسالة الاختبار</label>
+              <input class="fi" id="test-send-msg" value="مرحباً! هذه رسالة اختبارية من نظام التقويم الذكي 🎓">
             </div>
+          </div>
+          <button class="btn btn-p btn-sm" onclick="testSendWhatsApp()" style="margin-top:10px;">📤 إرسال رسالة اختبارية</button>
+          <div id="test-send-result" style="margin-top:10px;display:none;"></div>
+        </div>
+
+        <!-- ===== 💬 سجل المحادثات ===== -->
+        <div class="card" style="margin-top:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div class="set-section" style="margin:0;">💬 سجل المحادثات (آخر 50)</div>
+            <button class="btn btn-o btn-xs" onclick="loadBotConversations()">🔄 تحديث</button>
+          </div>
+          <div id="bot-conversations-list" style="max-height:400px;overflow-y:auto;">
+            <div style="text-align:center;color:var(--text3);padding:20px;font-size:12px;">اضغط "تحديث" لعرض المحادثات</div>
           </div>
         </div>
       </div>
@@ -1662,7 +1742,7 @@ function renderObsLog(){
 function editObs(id){const sec=curSec();const o=(sec?.observations||[]).find(x=>x.id===id);if(!o)return;$i('mobs-id').value=id;$i('mobs-ts').value=o.timestamp?o.timestamp.substring(0,16):'';$i('mobs-note').value=o.note||'';openM('m-obs');}
 function saveObsEdit(){const sec=curSec();const id=$i('mobs-id').value;const o=(sec?.observations||[]).find(x=>x.id===id);if(!o)return;o.timestamp=$i('mobs-ts').value;o.note=$i('mobs-note').value.trim();o.edited=true;o.editedAt=new Date().toISOString();save();closeM('m-obs');renderObsLog();}
 function delObs(id){if(!confirm('حذف هذه الملاحظة؟'))return;const sec=curSec();if(!sec)return;sec.observations=(sec.observations||[]).filter(o=>o.id!==id);save();renderObsLog();}
-function sendObsWA(id){const sec=curSec();const o=(sec?.observations||[]).find(x=>x.id===id);if(!o)return;const cat=db.observationCategories.find(c=>c.id===o.categoryId)||{name:'ملاحظة'};(o.studentIds||[]).forEach(sid=>{const st=sec.students.find(s=>s.id===sid);if(!st?.parentPhone)return;const msg=applyTmplVars(db.waObsTemplate||'',{الطالب:st.name,ولي_الأمر:st.parentPhone,المعلم:db.teacher.fullname||db.teacher.name,المدرسة:db.teacher.school||'',المادة:db.teacher.subject||'',التاريخ:fmtDT(o.timestamp),الوقت:new Date(o.timestamp).toLocaleTimeString('ar'),العام_الدراسي:db.teacher.year||'',الصف:getGradeBySec(sec)?.name||'',الشعبة:sec.name,نوع_الملاحظة:o.type==='positive'?'إيجابية ✅':'سلبية ⚠️',فئة_الملاحظة:cat.name,نص_الملاحظة:o.note||''});window.open(`https://wa.me/${st.parentPhone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank');});
+function sendObsWA(id){const sec=curSec();const o=(sec?.observations||[]).find(x=>x.id===id);if(!o)return;const cat=db.observationCategories.find(c=>c.id===o.categoryId)||{name:'ملاحظة'};(o.studentIds||[]).forEach(sid=>{const st=sec.students.find(s=>s.id===sid);if(!st?.parentPhone)return;const msg=applyTmplVars(db.waObsTemplate||'',{الطالب:st.name,ولي_الأمر:st.parentPhone,المعلم:db.teacher.fullname||db.teacher.name,المدرسة:db.teacher.school||'',المادة:db.teacher.subject||'',التاريخ:fmtDT(o.timestamp),الوقت:new Date(o.timestamp).toLocaleTimeString('ar'),العام_الدراسي:db.teacher.year||'',الصف:getGradeBySec(sec)?.name||'',الشعبة:sec.name,نوع_الملاحظة:o.type==='positive'?'إيجابية ✅':'سلبية ⚠️',فئة_الملاحظة:cat.name,نص_الملاحظة:o.note||''});sendWAOrFallback(st.parentPhone,msg,{successMsg:`✅ تم إرسال الملاحظة لـ ${st.name}`});});
 }
 function sendObsToSelected(){renderObsLog();}
 
@@ -1950,7 +2030,7 @@ function renderEvalHistory(){
     </div>`;}).join('');
 }
 function delEval(id){if(!confirm('حذف هذا التقييم؟'))return;const sec=curSec();if(!sec)return;sec.evaluations=(sec.evaluations||[]).filter(e=>e.id!==id);save();renderEvalHistory();}
-function sendEvalWA(id){const sec=curSec();const e=(sec?.evaluations||[]).find(x=>x.id===id);if(!e)return;const st=sec.students.find(s=>s.id===e.studentId);if(!st?.parentPhone)return alert('لا يوجد رقم هاتف لهذا الطالب');const t=calcTotal(sec,e.studentId);const lv=levelOf(t);const msg=applyTmplVars(db.waTemplate||'',{الطالب:st.name,ولي_الأمر:st.parentPhone,المعلم:db.teacher.fullname||db.teacher.name,المدرسة:db.teacher.school||'',المادة:db.teacher.subject||'',التاريخ:new Date().toLocaleDateString('ar'),الوقت:new Date().toLocaleTimeString('ar'),العام_الدراسي:db.teacher.year||'',الصف:getGradeBySec(sec)?.name||'',الشعبة:sec.name,الدرجة_الإجمالية:t??'—',المستوى:lv.l,العبارة_الوصفية:e.generatedText,الفترة:e.period||''});window.open(`https://wa.me/${st.parentPhone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank');}
+function sendEvalWA(id){const sec=curSec();const e=(sec?.evaluations||[]).find(x=>x.id===id);if(!e)return;const st=sec.students.find(s=>s.id===e.studentId);if(!st?.parentPhone)return alert('لا يوجد رقم هاتف لهذا الطالب');const t=calcTotal(sec,e.studentId);const lv=levelOf(t);const msg=applyTmplVars(db.waTemplate||'',{الطالب:st.name,ولي_الأمر:st.parentPhone,المعلم:db.teacher.fullname||db.teacher.name,المدرسة:db.teacher.school||'',المادة:db.teacher.subject||'',التاريخ:new Date().toLocaleDateString('ar'),الوقت:new Date().toLocaleTimeString('ar'),العام_الدراسي:db.teacher.year||'',الصف:getGradeBySec(sec)?.name||'',الشعبة:sec.name,الدرجة_الإجمالية:t??'—',المستوى:lv.l,العبارة_الوصفية:e.generatedText,الفترة:e.period||''});sendWAOrFallback(st.parentPhone,msg,{successMsg:`✅ تم إرسال التقييم لـ ${st.name}`});}
 function sendAllEvals(){const sec=curSec();if(!sec)return;(sec.evaluations||[]).forEach((e,i)=>setTimeout(()=>sendEvalWA(e.id),i*1200));}
 
 /* ════ AXES CONFIG ════ */
@@ -2081,22 +2161,24 @@ function sendWAStu(sid){
   const sec=curSec();const st=sec?.students.find(s=>s.id===sid);
   if(!st?.parentPhone)return showToast('⚠️ لا يوجد رقم هاتف لهذا الطالب','warn');
   const msg=buildWAMsg(sec,st,'grades');
-  window.open(`https://wa.me/${st.parentPhone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank');
+  sendWAOrFallback(st.parentPhone,msg,{successMsg:`✅ تم إرسال الدرجات لـ ${st.name}`});
 }
 function sendAllWA(){
   const sec=curSec();if(!sec)return;
   const withPhone=sec.students.filter(st=>st.parentPhone);
   if(!withPhone.length)return showToast('⚠️ لا يوجد طلاب بأرقام هواتف','warn');
+  const useTwilio=isTwilioConfigured();
+  showToast(`⏳ جاري إرسال ${withPhone.length} رسالة...`,3000);
   withPhone.forEach((st,i)=>setTimeout(()=>{
     const msg=buildWAMsg(sec,st,'evaluation');
-    window.open(`https://wa.me/${st.parentPhone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank');
-  },i*1300));
+    sendWAOrFallback(st.parentPhone,msg,{successMsg:`📤 ${st.name}`});
+  },i*(useTwilio?800:1300)));
 }
 function sendObsSummaryWA(sid){
   const sec=curSec();const st=sec?.students.find(s=>s.id===sid);
   if(!st?.parentPhone)return showToast('⚠️ لا يوجد رقم هاتف','warn');
   const msg=buildWAMsg(sec,st,'behavioral');
-  window.open(`https://wa.me/${st.parentPhone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank');
+  sendWAOrFallback(st.parentPhone,msg,{successMsg:`✅ تم إرسال ملخص الملاحظات`});
 }
 
 /* ════ WHATSAPP ════ */
@@ -2259,40 +2341,256 @@ function applyTmplVars(body,vars){
 }
 
 /* ════ BOT CONFIG ════ */
-let botProvider='claude';
+let botProvider='openai';
+const AI_PROVIDER_HINTS={
+  openai:{key:'احصل عليه من platform.openai.com/api-keys',model:'💡 موصى: <code style="background:var(--surface);padding:1px 4px;border-radius:3px;font-family:monospace;">gpt-4o-mini</code> (رخيص وسريع)',defaultModel:'gpt-4o-mini'},
+  claude:{key:'احصل عليه من console.anthropic.com',model:'💡 موصى: <code style="background:var(--surface);padding:1px 4px;border-radius:3px;font-family:monospace;">claude-sonnet-4-5</code>',defaultModel:'claude-sonnet-4-5'},
+  gemini:{key:'احصل عليه من aistudio.google.com (مجاني)',model:'💡 موصى: <code style="background:var(--surface);padding:1px 4px;border-radius:3px;font-family:monospace;">gemini-pro</code>',defaultModel:'gemini-pro'},
+  custom:{key:'مفتاح API الخاص بخدمتك المخصصة',model:'اسم النموذج حسب خدمتك',defaultModel:''}
+};
 function selectAIProv(p,btn){
   botProvider=p;
   document.querySelectorAll('.ai-prov-card').forEach(b=>b.classList.remove('sel'));
   if(btn)btn.classList.add('sel');
   $i('bot-endpoint-row').style.display=p==='custom'?'block':'none';
+  /* تحديث التلميحات */
+  const hint=AI_PROVIDER_HINTS[p];
+  if(hint){
+    const keyHelp=$i('apikey-help');if(keyHelp)keyHelp.textContent=hint.key;
+    const modelHelp=$i('model-help');if(modelHelp)modelHelp.innerHTML=hint.model;
+    /* ضبط model افتراضي إذا فارغ */
+    const modelInput=$i('bot-model');
+    if(modelInput&&!modelInput.value&&hint.defaultModel)modelInput.value=hint.defaultModel;
+  }
 }
 function renderBotTab(){
   const b=db.bot||{};
-  botProvider=b.provider||'claude';
+  botProvider=b.provider||'openai';
   document.querySelectorAll('.ai-prov-card').forEach(btn=>{
     const matches=btn.getAttribute('onclick')?.includes("'"+botProvider+"'");
     btn.classList.toggle('sel',!!matches);
   });
-  $i('bot-endpoint-row').style.display=botProvider==='custom'?'block':'none';
-  $i('bot-apikey').value=b.apiKey||'';
-  $i('bot-endpoint').value=b.endpoint||'';
-  $i('bot-model').value=b.model||'';
-  $i('bot-sysprompt').value=b.sysprompt||'';
-  $i('bot-wapid').value=b.waPhoneId||'';
-  $i('bot-wat').value=b.waToken||'';
-  $i('bot-verify').value=b.verifyToken||'';
+  const endpointRow=$i('bot-endpoint-row');if(endpointRow)endpointRow.style.display=botProvider==='custom'?'block':'none';
+  const set=(id,v)=>{const el=$i(id);if(el)el.value=v||'';};
+  set('bot-apikey',b.apiKey);
+  set('bot-endpoint',b.endpoint);
+  set('bot-model',b.model);
+  set('bot-sysprompt',b.systemPrompt);
+  /* إعدادات Twilio */
+  set('bot-twilio-sid',b.twilioSid);
+  set('bot-twilio-token',b.twilioToken);
+  set('bot-twilio-from',b.twilioFrom);
+  /* تحديث تلميحات AI */
+  const hint=AI_PROVIDER_HINTS[botProvider];
+  if(hint){
+    const keyHelp=$i('apikey-help');if(keyHelp)keyHelp.textContent=hint.key;
+    const modelHelp=$i('model-help');if(modelHelp)modelHelp.innerHTML=hint.model;
+  }
 }
 function saveBotCfg(){
   if(!db.bot)db.bot={};
   db.bot.provider=botProvider;
-  db.bot.apiKey=$i('bot-apikey')?.value||'';
-  db.bot.endpoint=$i('bot-endpoint')?.value||'';
-  db.bot.model=$i('bot-model')?.value||'';
-  db.bot.sysprompt=$i('bot-sysprompt')?.value||'';
-  db.bot.waPhoneId=$i('bot-wapid')?.value||'';
-  db.bot.waToken=$i('bot-wat')?.value||'';
-  db.bot.verifyToken=$i('bot-verify')?.value||'';
+  const get=(id)=>$i(id)?.value||'';
+  db.bot.apiKey=get('bot-apikey').trim();
+  db.bot.endpoint=get('bot-endpoint').trim();
+  db.bot.model=get('bot-model').trim();
+  db.bot.systemPrompt=get('bot-sysprompt');
+  /* إعدادات Twilio */
+  db.bot.twilioSid=get('bot-twilio-sid').trim();
+  db.bot.twilioToken=get('bot-twilio-token').trim();
+  db.bot.twilioFrom=get('bot-twilio-from').trim();
   save();showToast('✅ تم حفظ إعدادات البوت');
+}
+
+/* نسخ Webhook URL */
+function copyWebhookURL(){
+  const inp=$i('webhook-url-input');
+  if(!inp)return;
+  inp.select();
+  inp.setSelectionRange(0,99999);
+  try{
+    navigator.clipboard.writeText(inp.value);
+    showToast('✅ تم نسخ الرابط! ضعه في Twilio Sandbox Settings','success');
+  }catch(e){
+    document.execCommand('copy');
+    showToast('✅ تم نسخ الرابط','success');
+  }
+}
+
+/* اختبار AI */
+async function testAIConnection(){
+  const apiKey=$i('bot-apikey')?.value.trim();
+  const model=$i('bot-model')?.value.trim();
+  const resDiv=$i('ai-test-result');
+  if(!apiKey){
+    resDiv.style.display='block';
+    resDiv.innerHTML='<div class="alert a-warn" style="font-size:12px;">⚠️ أدخل مفتاح API أولاً</div>';
+    return;
+  }
+  resDiv.style.display='block';
+  resDiv.innerHTML='<div class="alert a-info" style="font-size:12px;">⏳ جاري الاختبار... (قد يستغرق 5-10 ثوانٍ)</div>';
+  try{
+    const r=await fetch('/api/bot/test-ai',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        provider:botProvider,
+        apiKey:apiKey,
+        model:model,
+        testMessage:'قل "مرحباً" بالعربية فقط، رد من كلمة واحدة'
+      })
+    });
+    const data=await r.json();
+    if(data.success){
+      resDiv.innerHTML=`<div class="alert a-success" style="font-size:12px;">✅ الاتصال ناجح! رد الـ AI:<br><strong style="color:var(--text);">${data.reply}</strong></div>`;
+    }else{
+      resDiv.innerHTML=`<div class="alert a-danger" style="font-size:12px;">❌ فشل الاتصال: ${data.error||'خطأ غير معروف'}</div>`;
+    }
+  }catch(err){
+    resDiv.innerHTML=`<div class="alert a-danger" style="font-size:12px;">❌ خطأ في الشبكة: ${err.message}</div>`;
+  }
+}
+
+/* اختبار الإرسال المباشر */
+async function testSendWhatsApp(){
+  const phone=$i('test-send-phone')?.value.trim();
+  const msg=$i('test-send-msg')?.value.trim();
+  const resDiv=$i('test-send-result');
+  if(!phone||!msg){
+    resDiv.style.display='block';
+    resDiv.innerHTML='<div class="alert a-warn" style="font-size:12px;">⚠️ أدخل رقم المستقبل ورسالة الاختبار</div>';
+    return;
+  }
+  if(!isTwilioConfigured()){
+    resDiv.style.display='block';
+    resDiv.innerHTML='<div class="alert a-danger" style="font-size:12px;">❌ احفظ إعدادات Twilio أولاً</div>';
+    return;
+  }
+  resDiv.style.display='block';
+  resDiv.innerHTML='<div class="alert a-info" style="font-size:12px;">⏳ جاري الإرسال...</div>';
+  const result=await sendWAviaTwilio(phone,msg);
+  if(result.success){
+    resDiv.innerHTML=`<div class="alert a-success" style="font-size:12px;">✅ تم الإرسال بنجاح!<br>Message SID: <code style="font-family:monospace;font-size:11px;">${result.messageSid||'—'}</code><br>الحالة: ${result.status||'queued'}</div>`;
+  }else{
+    resDiv.innerHTML=`<div class="alert a-danger" style="font-size:12px;">❌ فشل الإرسال: ${result.error||'خطأ غير معروف'}</div>`;
+  }
+}
+
+/* تحميل سجل المحادثات */
+async function loadBotConversations(){
+  const listDiv=$i('bot-conversations-list');
+  if(!listDiv)return;
+  listDiv.innerHTML='<div style="text-align:center;color:var(--text3);padding:20px;font-size:12px;">⏳ جاري التحميل...</div>';
+  try{
+    const r=await fetch('/api/bot/conversations');
+    const data=await r.json();
+    const convs=data.conversations||[];
+    if(convs.length===0){
+      listDiv.innerHTML='<div style="text-align:center;color:var(--text3);padding:20px;font-size:12px;">📭 لا توجد محادثات بعد.<br>ستظهر المحادثات هنا عند استقبال/إرسال رسائل واتساب.</div>';
+      return;
+    }
+    const html=convs.map(c=>{
+      const t=new Date(c.created_at).toLocaleString('ar',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'});
+      const icon=c.direction==='incoming'?'📥':'📤';
+      const color=c.direction==='incoming'?'var(--navy)':'var(--teal3)';
+      return `<div style="border:1px solid var(--border);border-radius:var(--rs);padding:10px 12px;margin-bottom:8px;background:${color};">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:var(--text2);margin-bottom:6px;">
+          <span>${icon} <strong>${c.from_phone||'—'}</strong></span>
+          <span>${t}</span>
+        </div>
+        <div style="font-size:12.5px;color:var(--text);margin-bottom:${c.reply?'6px':'0'};"><strong>الرسالة:</strong> ${escapeHtml(c.message||'')}</div>
+        ${c.reply?`<div style="font-size:12.5px;color:var(--text);padding-top:6px;border-top:1px dashed var(--border);"><strong>الرد:</strong> ${escapeHtml(c.reply)}</div>`:''}
+      </div>`;
+    }).join('');
+    listDiv.innerHTML=html;
+  }catch(err){
+    listDiv.innerHTML=`<div class="alert a-danger" style="font-size:12px;">❌ خطأ في التحميل: ${err.message}</div>`;
+  }
+}
+
+/* Helper: escape HTML */
+function escapeHtml(str){
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+/* اختبار اتصال Twilio */
+async function testTwilioConnection(){
+  const sid=$i('bot-twilio-sid')?.value.trim();
+  const token=$i('bot-twilio-token')?.value.trim();
+  const resDiv=$i('twilio-test-result');
+  if(!sid||!token){
+    resDiv.style.display='block';
+    resDiv.innerHTML='<div class="alert a-warn" style="font-size:12px;">⚠️ أدخل Account SID و Auth Token أولاً</div>';
+    return;
+  }
+  resDiv.style.display='block';
+  resDiv.innerHTML='<div class="alert a-info" style="font-size:12px;">⏳ جاري الاختبار...</div>';
+  try{
+    const r=await fetch('/api/bot/test-twilio',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({twilioSid:sid,twilioToken:token})
+    });
+    const data=await r.json();
+    if(data.success){
+      resDiv.innerHTML=`<div class="alert a-success" style="font-size:12px;">✅ الاتصال ناجح!<br>الحساب: ${data.accountName}<br>الحالة: ${data.accountStatus} | النوع: ${data.accountType}</div>`;
+    }else{
+      resDiv.innerHTML=`<div class="alert a-danger" style="font-size:12px;">❌ فشل الاتصال: ${data.error||'خطأ غير معروف'}</div>`;
+    }
+  }catch(err){
+    resDiv.innerHTML=`<div class="alert a-danger" style="font-size:12px;">❌ خطأ: ${err.message}</div>`;
+  }
+}
+
+/* دالة موحدة لإرسال رسالة واتساب عبر Twilio */
+async function sendWAviaTwilio(phone,message){
+  if(!phone||!message)return{success:false,error:'رقم أو رسالة مفقودة'};
+  /* تحقق من إعدادات Twilio */
+  const b=db.bot||{};
+  if(!b.twilioSid||!b.twilioToken||!b.twilioFrom){
+    return{success:false,error:'إعدادات Twilio غير مكتملة. اذهب للإعدادات → البوت الذكي'};
+  }
+  try{
+    const r=await fetch('/api/bot/send-whatsapp',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({to:phone,message:message})
+    });
+    const data=await r.json();
+    return data;
+  }catch(err){
+    return{success:false,error:'خطأ في الشبكة: '+err.message};
+  }
+}
+
+/* مساعد: هل Twilio مُهيّأ؟ */
+function isTwilioConfigured(){
+  const b=db.bot||{};
+  return !!(b.twilioSid&&b.twilioToken&&b.twilioFrom);
+}
+
+/* دالة إرسال موحدة: Twilio إذا مهيّأ، وإلا fallback لـ wa.me */
+async function sendWAOrFallback(phone,message,opts){
+  opts=opts||{};
+  if(!phone||!message)return;
+  /* إذا Twilio مُهيّأ، نرسل عبر API */
+  if(isTwilioConfigured()){
+    const result=await sendWAviaTwilio(phone,message);
+    if(result.success){
+      showToast(opts.successMsg||'✅ تم الإرسال عبر Twilio','success');
+      return result;
+    }else{
+      /* في حال فشل Twilio، نعرض الخطأ ونسأل هل نفتح wa.me كبديل */
+      showToast('⚠️ '+(result.error||'فشل Twilio')+' — سيتم فتح واتساب الويب',5000);
+      const u=`https://wa.me/${String(phone).replace(/\D/g,'')}?text=${encodeURIComponent(message)}`;
+      window.open(u,'_blank');
+      return result;
+    }
+  }
+  /* لا يوجد Twilio → الطريقة القديمة */
+  const u=`https://wa.me/${String(phone).replace(/\D/g,'')}?text=${encodeURIComponent(message)}`;
+  window.open(u,'_blank');
+  return{success:true,fallback:true};
 }
 function simulateBot(){const phone=$i('bot-tp').value.trim();const msg=$i('bot-tm').value.trim();if(!phone||!msg)return;const chat=$i('bot-chat');const t=new Date().toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'});chat.innerHTML+=`<div class="chat-msg in">${msg}<div class="chat-time">${t}</div></div>`;let found=null;for(const g of db.grades)for(const sec of g.sections){const st=sec.students.find(s=>s.parentPhone?.replace(/\D/g,'')===phone.replace(/\D/g,''));if(st){found={sec,st};break;}if(found)break;}
 setTimeout(()=>{let reply;if(!found){reply='❌ لم يتم التعرف على رقمك. تواصل مع المعلم لتسجيل رقمك.';}else{const{sec,st}=found;const total=calcTotal(sec,st.id);const lv=levelOf(total);const latest=(sec.evaluations||[]).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt))[0];const desc=latest?.generatedText||'—';const posObs=(sec.observations||[]).filter(o=>(o.studentIds||[]).includes(st.id)&&o.type==='positive').length;const negObs=(sec.observations||[]).filter(o=>(o.studentIds||[]).includes(st.id)&&o.type==='negative').length;reply=`✅ مرحباً، تم التعرف عليك.\n👤 اسم الطالب: ${st.name}\n📊 الدرجة: ${total??'لم تُدخل'}/100\n🎯 المستوى: ${lv.l}\n\n📝 آخر تقييم:\n${desc}\n\n✋ ملاحظات إيجابية: ${posObs}\n⚠️ ملاحظات تحتاج متابعة: ${negObs}`;}chat.innerHTML+=`<div class="chat-msg out">${reply.replace(/\n/g,'<br>')}<div class="chat-time">${t} ✓✓</div></div>`;chat.scrollTop=chat.scrollHeight;},900);chat.scrollTop=chat.scrollHeight;}
@@ -2511,7 +2809,7 @@ function sendEvalWA(id){
     المادة:db.teacher.subject||'',التاريخ:new Date().toLocaleDateString('ar'),الوقت:new Date().toLocaleTimeString('ar'),العام_الدراسي:db.teacher.year||'',
     الصف:getGradeBySec(sec)?.name||'',الشعبة:sec.name,الدرجة_الإجمالية:total??'—',المستوى:lv.l,العبارة_الوصفية:e.generatedText||'—',الفترة:e.periodLabel||'—'
   });
-  window.open(`https://wa.me/${st.parentPhone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank');
+  sendWAOrFallback(st.parentPhone,msg,{successMsg:`✅ تم إرسال التقييم لـ ${st.name}`});
 }
 function sendObsWA(id){
   const sec=curSec();const o=(sec?.observations||[]).find(x=>x.id===id);if(!o)return;
@@ -2526,12 +2824,13 @@ function sendObsWA(id){
       العام_الدراسي:db.teacher.year||'',الصف:getGradeBySec(sec)?.name||'',الشعبة:sec.name,
       فئة_الملاحظة:cat.name,نوع_الملاحظة:o.type==='positive'?'إيجابية ✅':'سلبية ⚠️',نص_الملاحظة:o.note||''
     });
-    window.open(`https://wa.me/${st.parentPhone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank');
+    sendWAOrFallback(st.parentPhone,msg,{successMsg:`✅ ${st.name}`});
   });
 }
 function sendAllEvals(){
   const sec=curSec();if(!sec)return;
-  (sec.evaluations||[]).forEach((e,i)=>setTimeout(()=>sendEvalWA(e.id),i*1300));
+  const useTwilio=isTwilioConfigured();
+  (sec.evaluations||[]).forEach((e,i)=>setTimeout(()=>sendEvalWA(e.id),i*(useTwilio?800:1300)));
 }
 
 /* ════ REPORTS SELECTION ════ */
