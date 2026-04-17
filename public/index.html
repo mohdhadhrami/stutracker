@@ -1072,23 +1072,23 @@ let db = {
   bot:{ provider:'claude', apiKey:'', endpoint:'', model:'', sysprompt:'أنت مساعد تعليمي. تُجيب على أسئلة أولياء الأمور عن درجات أبنائهم وملاحظات المعلم باختصار ووضوح.', waPhoneId:'', waToken:'', verifyToken:'' },
   templates:{
     obs:[
-      {id:'obs1',name:'ملاحظة عامة',body:'عزيزي ولي أمر الطالب {student} 📋\n\nتم تسجيل ملاحظة {obs_type} بتاريخ {date}:\n🏷 {category}\n{note}\n\nالمعلم: {teacher}\n{school}'},
-      {id:'obs2',name:'نسيان الكتاب/الأدوات',body:'عزيزي ولي أمر الطالب {student} 📚\n\nلم يحضر ابنكم {category} في حصة {subject} بتاريخ {date}.\n\nنرجو المتابعة والتوجيه.\nالمعلم: {teacher}'},
-      {id:'obs3',name:'درس أونلاين',body:'عزيزي ولي أمر الطالب {student} 💻\n\nتذكير: يوجد درس أونلاين في مادة {subject}\nالتاريخ: {date}\n\nيُرجى تهيئة الطالب للدرس عبر الرابط المرسل.\nالمعلم: {teacher}'}
+      {id:'obs1',name:'ملاحظة عامة',body:'عزيزي ولي أمر الطالب [الطالب] 📋\n\nتم تسجيل ملاحظة [نوع_الملاحظة] بتاريخ [التاريخ]:\n🏷 [فئة_الملاحظة]\n[نص_الملاحظة]\n\nالمعلم: [المعلم]\n[المدرسة]'},
+      {id:'obs2',name:'نسيان الكتاب/الأدوات',body:'عزيزي ولي أمر الطالب [الطالب] 📚\n\nلم يحضر ابنكم [فئة_الملاحظة] في حصة [المادة] بتاريخ [التاريخ].\n\nنرجو المتابعة والتوجيه.\nالمعلم: [المعلم]'},
+      {id:'obs3',name:'درس أونلاين',body:'عزيزي ولي أمر الطالب [الطالب] 💻\n\nتذكير: يوجد درس أونلاين في مادة [المادة]\nالتاريخ: [التاريخ]\n\nيُرجى تهيئة الطالب للدرس عبر الرابط المرسل.\nالمعلم: [المعلم]'}
     ],
     grades:[
-      {id:'gr1',name:'كشف الدرجات',body:'عزيزي ولي أمر الطالب {student} 🎓\n\nدرجة ابنكم في {subject}:\n📊 الدرجة الإجمالية: {score}/100\n🏆 المستوى: {level}\n\n{teacher} — {school}\nالعام الدراسي: {year}'},
-      {id:'gr2',name:'درجة الاختبار القصير',body:'عزيزي ولي أمر الطالب {student}\n\nأُعلمكم بدرجة الاختبار القصير في {subject}:\nالدرجة: {score}\nبتاريخ: {date}\n\nالمعلم: {teacher}'}
+      {id:'gr1',name:'كشف الدرجات',body:'عزيزي ولي أمر الطالب [الطالب] 🎓\n\nدرجة ابنكم في [المادة]:\n📊 الدرجة الإجمالية: [الدرجة_الإجمالية]/100\n🏆 المستوى: [المستوى]\n\n[المعلم] — [المدرسة]\nالعام الدراسي: [العام_الدراسي]'},
+      {id:'gr2',name:'درجة الاختبار القصير',body:'عزيزي ولي أمر الطالب [الطالب]\n\nأُعلمكم بدرجة الاختبار القصير في [المادة]:\nالدرجة: [الدرجة_الإجمالية]\nبتاريخ: [التاريخ]\n\nالمعلم: [المعلم]'}
     ],
     behavioral:[
-      {id:'beh1',name:'ملخص السجل السلوكي',body:'عزيزي ولي أمر الطالب {student} 📋\n\nملخص الملاحظات السلوكية:\n✅ إيجابية: {pos_list}\n⚠️ تحتاج متابعة: {neg_list}\n\nعدد الملاحظات: {obs_count}\n\nالمعلم: {teacher}'}
+      {id:'beh1',name:'ملخص السجل السلوكي',body:'عزيزي ولي أمر الطالب [الطالب] 📋\n\nملخص الملاحظات السلوكية:\n✅ إيجابية: [الإيجابيات]\n⚠️ تحتاج متابعة: [السلبيات]\n\nعدد الملاحظات: [عدد_الملاحظات]\n\nالمعلم: [المعلم]'}
     ],
     evaluation:[
-      {id:'eval1',name:'التقييم الدوري',body:'عزيزي ولي أمر الطالب {student} 🎯\n\nالتقييم الدوري — {period}\n\n{desc}\n\nالدرجة الإجمالية: {score}/100 — المستوى: {level}\n\nالمعلم: {teacher}\n{school} — {year}'}
+      {id:'eval1',name:'التقييم الدوري',body:'عزيزي ولي أمر الطالب [الطالب] 🎯\n\nالتقييم الدوري — [الفترة]\n\n[العبارة_الوصفية]\n\nالدرجة الإجمالية: [الدرجة_الإجمالية]/100 — المستوى: [المستوى]\n\nالمعلم: [المعلم]\n[المدرسة] — [العام_الدراسي]'}
     ]
   },
-  waTemplate:'عزيزي ولي أمر الطالب {student} 🎓\n\nالدرجة الإجمالية: {score}/100\nالمستوى: {level}\n\n{desc}\n\nالمعلم: {teacher}',
-  waObsTemplate:'عزيزي ولي أمر الطالب {student} 📋\n\nتم تسجيل ملاحظة بتاريخ {date}:\n{obs_type}: {category}\n{note}\n\nالمعلم: {teacher}'
+  waTemplate:'عزيزي ولي أمر الطالب [الطالب] 🎓\n\nالدرجة الإجمالية: [الدرجة_الإجمالية]/100\nالمستوى: [المستوى]\n\n[العبارة_الوصفية]\n\nالمعلم: [المعلم]',
+  waObsTemplate:'عزيزي ولي أمر الطالب [الطالب] 📋\n\nتم تسجيل ملاحظة بتاريخ [التاريخ]:\n[نوع_الملاحظة]: [فئة_الملاحظة]\n[نص_الملاحظة]\n\nالمعلم: [المعلم]'
 };
 let ctx = { gradeId: db.grades[0]?.id || null, sectionId: db.grades[0]?.sections[0]?.id || null };
 let obsState = { type: 'positive', catId: null };
@@ -1276,6 +1276,7 @@ function addGradeToolRow(t){const id=t?t.id:'tr_'+(toolCnt++);const d=document.c
 function ensureGradeDefaults(g){if(g.tools&&g.contWeight!=null)return;const firstSec=(g.sections||[]).find(s=>s.tools);if(firstSec){g.tools=firstSec.tools;g.contWeight=firstSec.contWeight;g.finalMax=firstSec.finalMax;g.finalWeight=firstSec.finalWeight;}else{g.tools=[{id:'t1',name:'الواجب المنزلي',max:5},{id:'t2',name:'الحوار الشفوي',max:5},{id:'t3',name:'الاختبار القصير',max:10},{id:'t4',name:'الاختبار العملي',max:10}];g.contWeight=40;g.finalMax=100;g.finalWeight=60;}}
 /* helper: get grade-level tools from a section (looks up parent grade) */
 function getTools(sec){const g=db.grades.find(gr=>(gr.sections||[]).some(s=>s.id===sec.id));if(g){ensureGradeDefaults(g);return{tools:g.tools,contWeight:g.contWeight,finalMax:g.finalMax,finalWeight:g.finalWeight};}return{tools:sec.tools||[],contWeight:sec.contWeight||40,finalMax:sec.finalMax||100,finalWeight:sec.finalWeight||60};}
+function getGradeBySec(sec){return db.grades.find(gr=>(gr.sections||[]).some(s=>s.id===sec.id));}
 function openAddSec(gid){$i('ms-t').textContent='إضافة شعبة';$i('ms-gid').value=gid;$i('ms-id').value='';$i('ms-n').value='';$i('ms-y').value=db.teacher.year;openM('m-sec');}
 function openEditSec(gid,sid){const s=getSec(gid,sid);if(!s)return;$i('ms-t').textContent='تعديل الشعبة';$i('ms-gid').value=gid;$i('ms-id').value=sid;$i('ms-n').value=s.name;$i('ms-y').value=s.year||'';openM('m-sec');}
 function saveSec(){const gid=Number($i('ms-gid').value),sid=$i('ms-id').value,n=$i('ms-n').value.trim();if(!n)return;const sd={name:n,year:$i('ms-y').value};const g=getG(gid);if(!g)return;if(sid){const s=g.sections.find(s=>s.id===Number(sid));if(s)Object.assign(s,sd);}else{sd.id=Date.now();sd.students=[];sd.gradeData={};sd.observations=[];sd.evaluations=[];g.sections.push(sd);}save();closeM('m-sec');renderClasses();updateCtx();}
@@ -1532,7 +1533,7 @@ function renderObsLog(){
 function editObs(id){const sec=curSec();const o=(sec?.observations||[]).find(x=>x.id===id);if(!o)return;$i('mobs-id').value=id;$i('mobs-ts').value=o.timestamp?o.timestamp.substring(0,16):'';$i('mobs-note').value=o.note||'';openM('m-obs');}
 function saveObsEdit(){const sec=curSec();const id=$i('mobs-id').value;const o=(sec?.observations||[]).find(x=>x.id===id);if(!o)return;o.timestamp=$i('mobs-ts').value;o.note=$i('mobs-note').value.trim();o.edited=true;o.editedAt=new Date().toISOString();save();closeM('m-obs');renderObsLog();}
 function delObs(id){if(!confirm('حذف هذه الملاحظة؟'))return;const sec=curSec();if(!sec)return;sec.observations=(sec.observations||[]).filter(o=>o.id!==id);save();renderObsLog();}
-function sendObsWA(id){const sec=curSec();const o=(sec?.observations||[]).find(x=>x.id===id);if(!o)return;const cat=db.observationCategories.find(c=>c.id===o.categoryId)||{name:'ملاحظة'};(o.studentIds||[]).forEach(sid=>{const st=sec.students.find(s=>s.id===sid);if(!st?.parentPhone)return;const msg=(db.waObsTemplate||'').replace('{name}',st.name).replace('{date}',fmtDT(o.timestamp)).replace('{type}',o.type==='positive'?'إيجابية ✅':'سلبية ⚠️').replace('{category}',cat.name).replace('{note}',o.note||'').replace('{teacher}',db.teacher.name);window.open(`https://wa.me/${st.parentPhone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank');});
+function sendObsWA(id){const sec=curSec();const o=(sec?.observations||[]).find(x=>x.id===id);if(!o)return;const cat=db.observationCategories.find(c=>c.id===o.categoryId)||{name:'ملاحظة'};(o.studentIds||[]).forEach(sid=>{const st=sec.students.find(s=>s.id===sid);if(!st?.parentPhone)return;const msg=applyTmplVars(db.waObsTemplate||'',{الطالب:st.name,ولي_الأمر:st.parentPhone,المعلم:db.teacher.fullname||db.teacher.name,المدرسة:db.teacher.school||'',المادة:db.teacher.subject||'',التاريخ:fmtDT(o.timestamp),الوقت:new Date(o.timestamp).toLocaleTimeString('ar'),العام_الدراسي:db.teacher.year||'',الصف:getGradeBySec(sec)?.name||'',الشعبة:sec.name,نوع_الملاحظة:o.type==='positive'?'إيجابية ✅':'سلبية ⚠️',فئة_الملاحظة:cat.name,نص_الملاحظة:o.note||''});window.open(`https://wa.me/${st.parentPhone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank');});
 }
 function sendObsToSelected(){renderObsLog();}
 
@@ -1782,7 +1783,7 @@ function saveEvaluation(andSend=false){
       if(!studentText.includes('وحصل على'))studentText=studentText+(studentText&&studentText!=='—'?'، ':'')+scoreLine;
     }
     sec.evaluations.push({id:nid(),studentId:sid,periodType:evalPeriodType,periodLabel,date,ratings:{...evalState.ratings},notes:note,generatedText:studentText,toolData,createdAt:new Date().toISOString()});
-    if(andSend){const st=sec.students.find(s=>s.id===sid);if(st?.parentPhone){const t=calcTotal(sec,sid);const lv=levelOf(t);const tmpl=db.templates?.evaluation?.[0];const body=tmpl?.body||'{student}\n{desc}';const msg=applyTmplVars(body,{student:st.name,teacher:db.teacher.fullname||db.teacher.name,school:db.teacher.school||'',subject:db.teacher.subject||'',date:new Date().toLocaleDateString('ar'),year:db.teacher.year||'',section:sec.name,score:t??'—',level:lv.l,desc:genText,period:periodLabel});setTimeout(()=>window.open(`https://wa.me/${st.parentPhone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank'),selectedIds.indexOf(sid)*1200);}}
+    if(andSend){const st=sec.students.find(s=>s.id===sid);if(st?.parentPhone){const t=calcTotal(sec,sid);const lv=levelOf(t);const tmpl=db.templates?.evaluation?.[0];const body=tmpl?.body||'[الطالب]\n[العبارة_الوصفية]';const msg=applyTmplVars(body,{الطالب:st.name,ولي_الأمر:st.parentPhone,المعلم:db.teacher.fullname||db.teacher.name,المدرسة:db.teacher.school||'',المادة:db.teacher.subject||'',التاريخ:new Date().toLocaleDateString('ar'),الوقت:new Date().toLocaleTimeString('ar'),العام_الدراسي:db.teacher.year||'',الصف:getGradeBySec(sec)?.name||'',الشعبة:sec.name,الدرجة_الإجمالية:t??'—',المستوى:lv.l,العبارة_الوصفية:genText,الفترة:periodLabel});setTimeout(()=>window.open(`https://wa.me/${st.parentPhone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank'),selectedIds.indexOf(sid)*1200);}}
   });
   save();showToast(`✅ تم حفظ التقييم لـ ${selectedIds.length} طالب`);
   document.querySelectorAll('.eval-stu-cb').forEach(c=>c.checked=false);
@@ -1820,7 +1821,7 @@ function renderEvalHistory(){
     </div>`;}).join('');
 }
 function delEval(id){if(!confirm('حذف هذا التقييم؟'))return;const sec=curSec();if(!sec)return;sec.evaluations=(sec.evaluations||[]).filter(e=>e.id!==id);save();renderEvalHistory();}
-function sendEvalWA(id){const sec=curSec();const e=(sec?.evaluations||[]).find(x=>x.id===id);if(!e)return;const st=sec.students.find(s=>s.id===e.studentId);if(!st?.parentPhone)return alert('لا يوجد رقم هاتف لهذا الطالب');const t=calcTotal(sec,e.studentId);const lv=levelOf(t);const msg=(db.waTemplate||'').replace('{name}',st.name).replace('{score}',t??'—').replace('{level}',lv.l).replace('{desc}',e.generatedText).replace('{teacher}',db.teacher.name);window.open(`https://wa.me/${st.parentPhone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank');}
+function sendEvalWA(id){const sec=curSec();const e=(sec?.evaluations||[]).find(x=>x.id===id);if(!e)return;const st=sec.students.find(s=>s.id===e.studentId);if(!st?.parentPhone)return alert('لا يوجد رقم هاتف لهذا الطالب');const t=calcTotal(sec,e.studentId);const lv=levelOf(t);const msg=applyTmplVars(db.waTemplate||'',{الطالب:st.name,ولي_الأمر:st.parentPhone,المعلم:db.teacher.fullname||db.teacher.name,المدرسة:db.teacher.school||'',المادة:db.teacher.subject||'',التاريخ:new Date().toLocaleDateString('ar'),الوقت:new Date().toLocaleTimeString('ar'),العام_الدراسي:db.teacher.year||'',الصف:getGradeBySec(sec)?.name||'',الشعبة:sec.name,الدرجة_الإجمالية:t??'—',المستوى:lv.l,العبارة_الوصفية:e.generatedText,الفترة:e.period||''});window.open(`https://wa.me/${st.parentPhone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank');}
 function sendAllEvals(){const sec=curSec();if(!sec)return;(sec.evaluations||[]).forEach((e,i)=>setTimeout(()=>sendEvalWA(e.id),i*1200));}
 
 /* ════ AXES CONFIG ════ */
@@ -1934,17 +1935,17 @@ function buildWAMsg(sec, st, tmplType){
   const catName=id=>db.observationCategories.find(c=>c.id===id)?.name||'';
   // Pick first template of the type, fallback to legacy
   const tmpls=db.templates?.[tmplType||'grades']||[];
-  const body=tmpls[0]?.body||db.waTemplate||'{student} — {score}';
+  const body=tmpls[0]?.body||db.waTemplate||'[الطالب] — [الدرجة_الإجمالية]';
   return applyTmplVars(body,{
-    student:st.name,parent:'ولي الأمر',teacher:db.teacher.fullname||db.teacher.name,
-    school:db.teacher.school||'',subject:db.teacher.subject||'',
-    date:new Date().toLocaleDateString('ar'),time:new Date().toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'}),
-    year:db.teacher.year||'',class:'الصف',section:sec.name,
-    score:total??'—',level:lv.l,desc:latest?.generatedText||'—',period:latest?.periodLabel||'—',
-    cont_score:calcCont(sec,st.id)??'—',final_score:sec.gradeData[st.id]?.finalExam??'—',
-    pos_list:posObs.map(o=>catName(o.categoryId)).join('، ')||'—',
-    neg_list:negObs.map(o=>catName(o.categoryId)).join('، ')||'—',
-    obs_count:(sec.observations||[]).length,pos_count:posObs.length,neg_count:negObs.length,
+    الطالب:st.name,ولي_الأمر:st.parentPhone||'',المعلم:db.teacher.fullname||db.teacher.name,
+    المدرسة:db.teacher.school||'',المادة:db.teacher.subject||'',
+    التاريخ:new Date().toLocaleDateString('ar'),الوقت:new Date().toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'}),
+    العام_الدراسي:db.teacher.year||'',الصف:getGradeBySec(sec)?.name||'',الشعبة:sec.name,
+    الدرجة_الإجمالية:total??'—',المستوى:lv.l,العبارة_الوصفية:latest?.generatedText||'—',الفترة:latest?.periodLabel||'—',
+    درجة_التقويم:calcCont(sec,st.id)??'—',درجة_النهائي:sec.gradeData[st.id]?.finalExam??'—',
+    الإيجابيات:posObs.map(o=>catName(o.categoryId)).join('، ')||'—',
+    السلبيات:negObs.map(o=>catName(o.categoryId)).join('، ')||'—',
+    عدد_الملاحظات:(sec.observations||[]).length,عدد_الإيجابي:posObs.length,عدد_السلبي:negObs.length,
   });
 }
 function sendWAStu(sid){
@@ -1984,17 +1985,17 @@ const TMPL_META={
   evaluation:{title:'قوالب التقييم الدوري',icon:'🎯'}
 };
 const VARS_COMMON=[
-  {v:'{student}',l:'اسم الطالب'},{v:'{parent}',l:'ولي الأمر'},
-  {v:'{teacher}',l:'اسم المعلم'},{v:'{school}',l:'اسم المدرسة'},
-  {v:'{subject}',l:'المادة'},{v:'{date}',l:'التاريخ'},
-  {v:'{time}',l:'الوقت'},{v:'{year}',l:'العام الدراسي'},
-  {v:'{class}',l:'الصف'},{v:'{section}',l:'الشعبة'}
+  {v:'[الطالب]',l:'اسم الطالب'},{v:'[ولي_الأمر]',l:'ولي الأمر'},
+  {v:'[المعلم]',l:'اسم المعلم'},{v:'[المدرسة]',l:'اسم المدرسة'},
+  {v:'[المادة]',l:'المادة'},{v:'[التاريخ]',l:'التاريخ'},
+  {v:'[الوقت]',l:'الوقت'},{v:'[العام_الدراسي]',l:'العام الدراسي'},
+  {v:'[الصف]',l:'الصف'},{v:'[الشعبة]',l:'الشعبة'}
 ];
 const VARS_SPECIFIC={
-  obs:[{v:'{category}',l:'فئة الملاحظة'},{v:'{obs_type}',l:'نوع الملاحظة'},{v:'{note}',l:'نص الملاحظة'}],
-  grades:[{v:'{score}',l:'الدرجة الإجمالية'},{v:'{level}',l:'المستوى'},{v:'{cont_score}',l:'درجة التقويم'},{v:'{final_score}',l:'درجة النهائي'}],
-  behavioral:[{v:'{pos_list}',l:'الإيجابيات'},{v:'{neg_list}',l:'السلبيات'},{v:'{obs_count}',l:'عدد الملاحظات'},{v:'{pos_count}',l:'عدد الإيجابي'},{v:'{neg_count}',l:'عدد السلبي'}],
-  evaluation:[{v:'{period}',l:'الفترة'},{v:'{desc}',l:'العبارة الوصفية'},{v:'{score}',l:'الدرجة'},{v:'{level}',l:'المستوى'},{v:'{axis1}',l:'المحور 1'},{v:'{axis2}',l:'المحور 2'},{v:'{axis3}',l:'المحور 3'},{v:'{axis4}',l:'المحور 4'},{v:'{axis5}',l:'المحور 5'}]
+  obs:[{v:'[فئة_الملاحظة]',l:'فئة الملاحظة'},{v:'[نوع_الملاحظة]',l:'نوع الملاحظة'},{v:'[نص_الملاحظة]',l:'نص الملاحظة'}],
+  grades:[{v:'[الدرجة_الإجمالية]',l:'الدرجة الإجمالية'},{v:'[المستوى]',l:'المستوى'},{v:'[درجة_التقويم]',l:'درجة التقويم المستمر'},{v:'[درجة_النهائي]',l:'درجة الامتحان النهائي'}],
+  behavioral:[{v:'[الإيجابيات]',l:'قائمة الإيجابيات'},{v:'[السلبيات]',l:'قائمة السلبيات'},{v:'[عدد_الملاحظات]',l:'عدد الملاحظات'},{v:'[عدد_الإيجابي]',l:'عدد الإيجابيات'},{v:'[عدد_السلبي]',l:'عدد السلبيات'}],
+  evaluation:[{v:'[الفترة]',l:'الفترة'},{v:'[العبارة_الوصفية]',l:'العبارة الوصفية'},{v:'[الدرجة_الإجمالية]',l:'الدرجة الإجمالية'},{v:'[المستوى]',l:'المستوى'},{v:'[المحور_1]',l:'المحور 1'},{v:'[المحور_2]',l:'المحور 2'},{v:'[المحور_3]',l:'المحور 3'},{v:'[المحور_4]',l:'المحور 4'},{v:'[المحور_5]',l:'المحور 5'}]
 };
 
 function switchTmplType(type,btn){
@@ -2063,24 +2064,68 @@ function previewTmpl(i){
   const negObs=(sec.observations||[]).filter(o=>(o.studentIds||[]).includes(st.id)&&o.type==='negative');
   const catName=id=>db.observationCategories.find(c=>c.id===id)?.name||id;
   const preview=applyTmplVars(tmpl.body,{
-    student:st.name,parent:'ولي الأمر',teacher:db.teacher.fullname||db.teacher.name,
-    school:db.teacher.school||'المدرسة',subject:db.teacher.subject,
-    date:new Date().toLocaleDateString('ar'),time:new Date().toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'}),
-    year:db.teacher.year,class:'الصف',section:sec.name,
-    score:t??'—',level:lv.l,desc:latest?.generatedText||'—',period:latest?.periodLabel||'—',
-    cont_score:calcCont(sec,st.id)??'—',final_score:sec.gradeData[st.id]?.finalExam??'—',
-    category:'مشاركة صفية',obs_type:'إيجابية',note:'ملاحظة تجريبية',
-    pos_list:posObs.map(o=>catName(o.categoryId)).join('، ')||'—',
-    neg_list:negObs.map(o=>catName(o.categoryId)).join('، ')||'—',
-    obs_count:(sec.observations||[]).length,pos_count:posObs.length,neg_count:negObs.length,
+    الطالب:st.name,ولي_الأمر:st.parentPhone||'ولي الأمر',المعلم:db.teacher.fullname||db.teacher.name,
+    المدرسة:db.teacher.school||'المدرسة',المادة:db.teacher.subject||'',
+    التاريخ:new Date().toLocaleDateString('ar'),الوقت:new Date().toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'}),
+    العام_الدراسي:db.teacher.year||'',الصف:getGradeBySec(sec)?.name||'',الشعبة:sec.name,
+    الدرجة_الإجمالية:t??'—',المستوى:lv.l,العبارة_الوصفية:latest?.generatedText||'—',الفترة:latest?.periodLabel||'—',
+    درجة_التقويم:calcCont(sec,st.id)??'—',درجة_النهائي:sec.gradeData[st.id]?.finalExam??'—',
+    فئة_الملاحظة:'مشاركة صفية',نوع_الملاحظة:'إيجابية',نص_الملاحظة:'ملاحظة تجريبية',
+    الإيجابيات:posObs.map(o=>catName(o.categoryId)).join('، ')||'—',
+    السلبيات:negObs.map(o=>catName(o.categoryId)).join('، ')||'—',
+    عدد_الملاحظات:(sec.observations||[]).length,عدد_الإيجابي:posObs.length,عدد_السلبي:negObs.length,
   });
   // Show in a stylish modal preview
   const previewModal=`<div class="overlay open" id="tmpl-preview-modal" onclick="if(event.target===this)this.remove()"><div class="modal"><h3>👁 معاينة القالب — ${tmpl.name}</h3><div class="chat-area" style="min-height:120px"><div class="chat-msg out">${preview.replace(/\n/g,'<br>')}<div class="chat-time">الآن ✓✓</div></div></div><div class="modal-footer"><button class="btn btn-p" onclick="document.getElementById('tmpl-preview-modal').remove()">إغلاق</button></div></div></div>`;
   document.body.insertAdjacentHTML('beforeend',previewModal);
 }
-function applyTmplVars(body,vars){
+/* خريطة التحويل من الصيغة القديمة {english} إلى الصيغة العربية الجديدة [العربية] */
+const VAR_OLD_TO_NEW={
+  'student':'الطالب','parent':'ولي_الأمر','teacher':'المعلم','school':'المدرسة',
+  'subject':'المادة','date':'التاريخ','time':'الوقت','year':'العام_الدراسي',
+  'class':'الصف','section':'الشعبة','name':'الطالب',
+  'category':'فئة_الملاحظة','obs_type':'نوع_الملاحظة','note':'نص_الملاحظة','type':'نوع_الملاحظة',
+  'score':'الدرجة_الإجمالية','level':'المستوى','cont_score':'درجة_التقويم','final_score':'درجة_النهائي',
+  'pos_list':'الإيجابيات','neg_list':'السلبيات','obs_count':'عدد_الملاحظات','pos_count':'عدد_الإيجابي','neg_count':'عدد_السلبي',
+  'period':'الفترة','desc':'العبارة_الوصفية','axis1':'المحور_1','axis2':'المحور_2','axis3':'المحور_3','axis4':'المحور_4','axis5':'المحور_5'
+};
+
+/* تحويل قالب قديم بالصيغة {english} إلى الصيغة العربية [العربية] */
+function migrateTemplateBody(body){
+  if(!body||typeof body!=='string')return body;
   let r=body;
-  Object.entries(vars).forEach(([k,v])=>{r=r.replaceAll('{'+k+'}',v??'—');});
+  Object.entries(VAR_OLD_TO_NEW).forEach(([oldK,newK])=>{
+    r=r.split('{'+oldK+'}').join('['+newK+']');
+  });
+  return r;
+}
+
+/* تحويل كل القوالب في db من الصيغة القديمة للجديدة - يعمل مرة واحدة عند التحميل */
+function migrateAllTemplates(){
+  if(db._tmplMigrated)return;
+  let changed=0;
+  if(db.templates){
+    ['obs','grades','behavioral','evaluation'].forEach(type=>{
+      (db.templates[type]||[]).forEach(t=>{
+        if(t.body&&t.body.includes('{')){
+          const newBody=migrateTemplateBody(t.body);
+          if(newBody!==t.body){t.body=newBody;changed++;}
+        }
+      });
+    });
+  }
+  if(db.waTemplate&&db.waTemplate.includes('{')){db.waTemplate=migrateTemplateBody(db.waTemplate);changed++;}
+  if(db.waObsTemplate&&db.waObsTemplate.includes('{')){db.waObsTemplate=migrateTemplateBody(db.waObsTemplate);changed++;}
+  db._tmplMigrated=true;
+  if(changed>0){save();console.log('✅ تم تحويل '+changed+' قالب للصيغة العربية الجديدة');}
+}
+
+function applyTmplVars(body,vars){
+  if(!body)return '';
+  /* التحويل التلقائي للقوالب القديمة (للأمان في حال استخدامها لم تُمَّر عبر migration) */
+  let r=migrateTemplateBody(body);
+  /* الاستبدال بالصيغة الجديدة [العربية] */
+  Object.entries(vars).forEach(([k,v])=>{r=r.split('['+k+']').join(v??'—');});
   return r;
 }
 
@@ -2331,11 +2376,11 @@ function sendEvalWA(id){
   if(!st?.parentPhone)return showToast('⚠️ لا يوجد رقم هاتف لهذا الطالب','warn');
   const total=calcTotal(sec,e.studentId);const lv=levelOf(total);
   const tmpl=db.templates?.evaluation?.[0];
-  const body=tmpl?.body||'{student}\n{desc}';
+  const body=tmpl?.body||'[الطالب]\n[العبارة_الوصفية]';
   const msg=applyTmplVars(body,{
-    student:st.name,teacher:db.teacher.fullname||db.teacher.name,school:db.teacher.school||'',
-    subject:db.teacher.subject||'',date:new Date().toLocaleDateString('ar'),year:db.teacher.year||'',
-    section:sec.name,score:total??'—',level:lv.l,desc:e.generatedText||'—',period:e.periodLabel||'—'
+    الطالب:st.name,ولي_الأمر:st.parentPhone,المعلم:db.teacher.fullname||db.teacher.name,المدرسة:db.teacher.school||'',
+    المادة:db.teacher.subject||'',التاريخ:new Date().toLocaleDateString('ar'),الوقت:new Date().toLocaleTimeString('ar'),العام_الدراسي:db.teacher.year||'',
+    الصف:getGradeBySec(sec)?.name||'',الشعبة:sec.name,الدرجة_الإجمالية:total??'—',المستوى:lv.l,العبارة_الوصفية:e.generatedText||'—',الفترة:e.periodLabel||'—'
   });
   window.open(`https://wa.me/${st.parentPhone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank');
 }
@@ -2343,14 +2388,14 @@ function sendObsWA(id){
   const sec=curSec();const o=(sec?.observations||[]).find(x=>x.id===id);if(!o)return;
   const cat=db.observationCategories.find(c=>c.id===o.categoryId)||{name:'ملاحظة'};
   const tmpl=db.templates?.obs?.[0];
-  const body=tmpl?.body||'{student}\n{category}\n{note}';
+  const body=tmpl?.body||'[الطالب]\n[فئة_الملاحظة]\n[نص_الملاحظة]';
   (o.studentIds||[]).forEach(sid=>{
     const st=sec.students.find(s=>s.id===sid);if(!st?.parentPhone)return;
     const msg=applyTmplVars(body,{
-      student:st.name,teacher:db.teacher.fullname||db.teacher.name,school:db.teacher.school||'',
-      subject:db.teacher.subject||'',date:fmtDT(o.timestamp),time:new Date(o.timestamp).toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'}),
-      year:db.teacher.year||'',section:sec.name,
-      category:cat.name,obs_type:o.type==='positive'?'إيجابية ✅':'سلبية ⚠️',note:o.note||''
+      الطالب:st.name,ولي_الأمر:st.parentPhone,المعلم:db.teacher.fullname||db.teacher.name,المدرسة:db.teacher.school||'',
+      المادة:db.teacher.subject||'',التاريخ:fmtDT(o.timestamp),الوقت:new Date(o.timestamp).toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'}),
+      العام_الدراسي:db.teacher.year||'',الصف:getGradeBySec(sec)?.name||'',الشعبة:sec.name,
+      فئة_الملاحظة:cat.name,نوع_الملاحظة:o.type==='positive'?'إيجابية ✅':'سلبية ⚠️',نص_الملاحظة:o.note||''
     });
     window.open(`https://wa.me/${st.parentPhone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank');
   });
@@ -2420,6 +2465,8 @@ async function initApp(){
 async function loadDataFromServer(){
   const r=await fetch('/api/data');
   if(r.ok){const d=await r.json();if(d&&Object.keys(d).length>0)Object.assign(db,d);}
+  /* تحويل القوالب من الصيغة القديمة {english} إلى الصيغة العربية [العربية] - يعمل مرة واحدة فقط */
+  migrateAllTemplates();
 }
 </script>
 </body>
