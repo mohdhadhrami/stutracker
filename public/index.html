@@ -455,6 +455,7 @@ tr.dnd-over{outline:2px dashed var(--teal);outline-offset:-2px;background:#f0fdf
       <div class="toolbar">
         <input class="search-in" id="stu-q" placeholder="بحث عن طالب..." oninput="renderStudents()">
         <div style="flex:1"></div>
+        <button class="btn btn-o btn-sm" onclick="exportStudentTemplate()">📤 تصدير قالب Excel</button>
         <button class="btn btn-o btn-sm" onclick="openImportStudents()">📥 استيراد قائمة</button>
         <button class="btn btn-p" onclick="openAddStudent()">+ إضافة طالب</button>
       </div>
@@ -1392,6 +1393,34 @@ function openImportStudents(){
   $i('imp-txt').value='';$i('imp-file').value='';$i('imp-preview').style.display='none';
   window._importParsed=null;
   openM('m-imp');
+}
+/* تصدير قالب Excel فارغ لتعبئة قائمة الطلاب */
+function exportStudentTemplate(){
+  if(typeof XLSX==='undefined')return showToast('⚠️ مكتبة Excel لم تحمّل بعد، يرجى المحاولة بعد ثانية','warn');
+  /* البيانات: صف العناوين + صف مثال + 20 صف فارغ للتعبئة */
+  const headers=['الاسم','الرقم المدرسي','الجنسية','هاتف ولي الأمر'];
+  const example=['أحمد محمد علي','202400123','عُماني','+96891234567'];
+  const emptyRow=['','','',''];
+  const rows=[headers,example];
+  for(let i=0;i<20;i++)rows.push([...emptyRow]);
+  /* إنشاء ورقة العمل */
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  /* تنسيق عرض الأعمدة */
+  ws['!cols']=[{wch:30},{wch:18},{wch:14},{wch:20}];
+  /* اتجاه الورقة من اليمين لليسار */
+  if(!ws['!views'])ws['!views']=[{}];
+  ws['!views'][0].RTL=true;
+  /* إنشاء المصنف */
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'قائمة الطلاب');
+  /* اسم الملف مع التاريخ والشعبة (إن وُجدت) */
+  const sec=curSec();
+  const secName=sec?.name?('_'+sec.name.replace(/[\\/\s]/g,'-')):'';
+  const date=new Date().toISOString().slice(0,10);
+  const filename=`قالب_الطلاب${secName}_${date}.xlsx`;
+  /* تنزيل الملف */
+  XLSX.writeFile(wb,filename);
+  showToast('✅ تم تنزيل القالب: '+filename,'success');
 }
 /* parse Excel file using SheetJS */
 function handleExcelFile(input){
