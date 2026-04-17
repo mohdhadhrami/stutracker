@@ -455,7 +455,23 @@ tr.dnd-over{outline:2px dashed var(--teal);outline-offset:-2px;background:#f0fdf
       <div class="toolbar">
         <input class="search-in" id="stu-q" placeholder="بحث عن طالب..." oninput="renderStudents()">
         <div style="flex:1"></div>
-        <button class="btn btn-o btn-sm" onclick="exportStudentTemplate()">📤 تصدير قالب Excel</button>
+        <div class="export-dropdown" style="position:relative;display:inline-block;">
+          <button class="btn btn-o btn-sm" onclick="toggleExportMenu(event)">📤 تصدير ▼</button>
+          <div class="export-menu" id="export-menu" style="display:none;position:absolute;top:calc(100% + 4px);left:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);box-shadow:0 4px 12px rgba(0,0,0,.08);min-width:240px;z-index:100;overflow:hidden;">
+            <div class="export-menu-item" onclick="exportStudentTemplate();closeExportMenu()" style="padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:13px;transition:background .15s;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+              <span style="font-size:18px;">📋</span>
+              <div><div style="font-weight:600;color:var(--text);">قالب Excel فارغ</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">للتعبئة اليدوية ثم الاستيراد</div></div>
+            </div>
+            <div class="export-menu-item" onclick="exportCurrentSection();closeExportMenu()" style="padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:13px;transition:background .15s;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+              <span style="font-size:18px;">📊</span>
+              <div><div style="font-weight:600;color:var(--text);">بيانات الشعبة الحالية</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">قائمة طلاب الشعبة المختارة</div></div>
+            </div>
+            <div class="export-menu-item" onclick="exportAllSections();closeExportMenu()" style="padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:13px;transition:background .15s;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+              <span style="font-size:18px;">📚</span>
+              <div><div style="font-weight:600;color:var(--text);">بيانات كل الشعب</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">ملف شامل بورقة لكل شعبة</div></div>
+            </div>
+          </div>
+        </div>
         <button class="btn btn-o btn-sm" onclick="openImportStudents()">📥 استيراد قائمة</button>
         <button class="btn btn-p" onclick="openAddStudent()">+ إضافة طالب</button>
       </div>
@@ -1394,6 +1410,18 @@ function openImportStudents(){
   window._importParsed=null;
   openM('m-imp');
 }
+/* إدارة القائمة المنسدلة لتصدير الطلاب */
+function toggleExportMenu(ev){
+  if(ev)ev.stopPropagation();
+  const m=$i('export-menu');if(!m)return;
+  m.style.display=m.style.display==='block'?'none':'block';
+  /* إغلاق تلقائي عند النقر خارج القائمة */
+  if(m.style.display==='block'){
+    setTimeout(()=>{document.addEventListener('click',closeExportMenu,{once:true});},50);
+  }
+}
+function closeExportMenu(){const m=$i('export-menu');if(m)m.style.display='none';}
+
 /* تصدير قالب Excel فارغ لتعبئة قائمة الطلاب */
 function exportStudentTemplate(){
   if(typeof XLSX==='undefined')return showToast('⚠️ مكتبة Excel لم تحمّل بعد، يرجى المحاولة بعد ثانية','warn');
@@ -1422,6 +1450,70 @@ function exportStudentTemplate(){
   XLSX.writeFile(wb,filename);
   showToast('✅ تم تنزيل القالب: '+filename,'success');
 }
+
+/* تصدير بيانات الشعبة الحالية (طلاب حقيقيون) */
+function exportCurrentSection(){
+  if(typeof XLSX==='undefined')return showToast('⚠️ مكتبة Excel لم تحمّل بعد','warn');
+  const sec=curSec();
+  if(!sec)return showToast('⚠️ اختر شعبة أولاً','warn');
+  if(!sec.students||sec.students.length===0)return showToast('⚠️ لا يوجد طلاب في هذه الشعبة','warn');
+  /* تجهيز الصفوف */
+  const headers=['الاسم','الرقم المدرسي','الجنسية','هاتف ولي الأمر'];
+  const rows=[headers];
+  sec.students.forEach(st=>{
+    rows.push([st.name||'',st.studentId||'',st.nationality||'',st.parentPhone||'']);
+  });
+  /* إنشاء الورقة */
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:30},{wch:18},{wch:14},{wch:20}];
+  if(!ws['!views'])ws['!views']=[{}];
+  ws['!views'][0].RTL=true;
+  /* المصنف */
+  const wb=XLSX.utils.book_new();
+  const sheetName=sec.name.replace(/[\\/?*\[\]:]/g,'-').slice(0,31);
+  XLSX.utils.book_append_sheet(wb,ws,sheetName);
+  /* اسم الملف */
+  const date=new Date().toISOString().slice(0,10);
+  const filename=`طلاب_${sec.name.replace(/[\\/\s]/g,'-')}_${date}.xlsx`;
+  XLSX.writeFile(wb,filename);
+  showToast(`✅ تم تصدير ${sec.students.length} طالب`,'success');
+}
+
+/* تصدير بيانات كل الشعب (ملف واحد بعدة أوراق) */
+function exportAllSections(){
+  if(typeof XLSX==='undefined')return showToast('⚠️ مكتبة Excel لم تحمّل بعد','warn');
+  if(!db.grades||db.grades.length===0)return showToast('⚠️ لا توجد صفوف','warn');
+  /* جمع كل الشعب من كل الصفوف */
+  let totalStudents=0;
+  let totalSections=0;
+  const wb=XLSX.utils.book_new();
+  db.grades.forEach(g=>{
+    (g.sections||[]).forEach(sec=>{
+      if(!sec.students||sec.students.length===0)return;
+      const headers=['الاسم','الرقم المدرسي','الجنسية','هاتف ولي الأمر'];
+      const rows=[headers];
+      sec.students.forEach(st=>{
+        rows.push([st.name||'',st.studentId||'',st.nationality||'',st.parentPhone||'']);
+      });
+      const ws=XLSX.utils.aoa_to_sheet(rows);
+      ws['!cols']=[{wch:30},{wch:18},{wch:14},{wch:20}];
+      if(!ws['!views'])ws['!views']=[{}];
+      ws['!views'][0].RTL=true;
+      /* اسم الورقة: اسم الصف + الشعبة، محدود بـ 31 حرف (قيد Excel) */
+      const sheetName=`${g.name}-${sec.name}`.replace(/[\\/?*\[\]:]/g,'-').slice(0,31);
+      XLSX.utils.book_append_sheet(wb,ws,sheetName);
+      totalStudents+=sec.students.length;
+      totalSections++;
+    });
+  });
+  if(totalSections===0)return showToast('⚠️ لا يوجد طلاب في أي شعبة','warn');
+  /* اسم الملف */
+  const date=new Date().toISOString().slice(0,10);
+  const filename=`كل_الطلاب_${date}.xlsx`;
+  XLSX.writeFile(wb,filename);
+  showToast(`✅ تم تصدير ${totalStudents} طالب من ${totalSections} شعبة`,'success');
+}
+
 /* parse Excel file using SheetJS */
 function handleExcelFile(input){
   const file=input.files[0];if(!file)return;
