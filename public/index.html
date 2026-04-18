@@ -198,6 +198,26 @@ tr:hover td{background:#fafbfc}
 .att-btn.selected.excused{background:#3b82f6;border-color:#3b82f6;color:white}
 
 /* ===== EVALUATION ===== */
+.eval-table-wrap{overflow-x:auto}
+.eval-table{min-width:900px;border-collapse:separate;border-spacing:0 4px}
+.eval-table th{background:#f9fafb;padding:10px 11px;text-align:right;font-weight:600;font-size:11px;color:#374151;border-bottom:2px solid #e5e7eb;white-space:nowrap;vertical-align:middle;position:sticky;top:0;z-index:2}
+.eval-table th.axis-header{background:#eef2ff;color:#4338ca;text-align:center}
+.eval-table td{padding:7px 9px;border-bottom:1px solid #f3f4f6;font-size:12px;vertical-align:middle;background:white}
+.eval-table tr:hover td{background:#fafbfc}
+.eval-table .student-cell{position:sticky;right:0;background:white;z-index:1;min-width:180px;box-shadow:-2px 0 3px rgba(0,0,0,.03)}
+.eval-table tr:hover .student-cell{background:#fafbfc}
+.rank-mini-buttons{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;min-width:0}
+.rank-mini-btn{width:26px;height:26px;border:1.5px solid #e5e7eb;background:white;border-radius:5px;cursor:pointer;font-family:inherit;font-size:11px;font-weight:700;color:#6b7280;transition:all .12s;padding:0;flex-shrink:0}
+.rank-mini-btn:hover{border-color:#9ca3af}
+.rank-mini-btn.selected{color:white;transform:scale(1.1)}
+.rank-mini-btn.rank-1.selected{background:#10b981;border-color:#10b981}
+.rank-mini-btn.rank-2.selected{background:#22c55e;border-color:#22c55e}
+.rank-mini-btn.rank-3.selected{background:#eab308;border-color:#eab308}
+.rank-mini-btn.rank-4.selected{background:#f97316;border-color:#f97316}
+.rank-mini-btn.rank-5.selected{background:#ef4444;border-color:#ef4444}
+.rank-mini-btn.selected{background:#4f46e5;border-color:#4f46e5}
+.eval-selected-label{font-size:10px;color:#4338ca;margin-top:3px;text-align:center;line-height:1.3;min-height:13px}
+
 .eval-axis{background:white;border:1px solid #e5e7eb;border-radius:9px;padding:14px;margin-bottom:10px}
 .eval-axis-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px}
 .eval-axis-header h4{font-size:14px;color:#111827;display:flex;align-items:center;gap:6px}
@@ -450,7 +470,7 @@ tr:hover td{background:#fafbfc}
       <!-- EVALUATION -->
       <div id="view-evaluation" class="hidden">
         <h2 class="page-title">⭐ التقييم الدوري</h2>
-        <p class="page-subtitle">تقييم الطلاب على المحاور المحددة في الإعدادات (أسبوعي/شهري).</p>
+        <p class="page-subtitle">تقييم جميع طلاب الشعبة دفعة واحدة. اختر الصف والشعبة والفترة ثم اضغط رقم البند أمام كل محور لكل طالب.</p>
         <div id="evalNoRubric" class="hidden">
           <div class="card">
             <div class="warn-box">
@@ -464,26 +484,19 @@ tr:hover td{background:#fafbfc}
           <div class="card">
             <div class="filter-bar">
               <div><label>الصف</label><select id="evalFilterGrade" onchange="onEvalFilterGradeChange()"></select></div>
-              <div><label>الشعبة</label><select id="evalFilterSection" onchange="renderEvalStudents()"></select></div>
-              <div><label>فترة التقييم</label><input type="text" id="evalPeriod" placeholder="مثل: الأسبوع 1 · سبتمبر 2025" oninput="renderEvalForm()"></div>
-              <div><label>اختر طالباً</label><select id="evalStudent" onchange="renderEvalForm()"></select></div>
+              <div><label>الشعبة</label><select id="evalFilterSection" onchange="renderEvalTable()"></select></div>
+              <div><label>فترة التقييم</label><input type="text" id="evalPeriod" placeholder="مثل: الأسبوع 1 · سبتمبر 2025" oninput="renderEvalTable()"></div>
+              <div><label>بحث</label><input type="text" id="evalSearch" placeholder="اسم أو رقم..." oninput="renderEvalTable()"></div>
             </div>
           </div>
-          <div id="evalFormCard" class="hidden">
-            <div class="card">
-              <div class="card-header">
-                <h3 id="evalFormTitle">التقييم</h3>
-                <div class="toolbar">
-                  <button class="btn btn-secondary btn-sm" onclick="clearEvalForm()">🔄 مسح</button>
-                  <button class="btn btn-success btn-sm" onclick="saveEvaluation()">💾 حفظ التقييم</button>
-                </div>
+          <div class="card" id="evalTableCard">
+            <div class="card-header">
+              <h3 id="evalTableTitle">جدول التقييم</h3>
+              <div class="toolbar">
+                <button class="btn btn-warning btn-sm" onclick="clearAllEvalsForPeriod()">🔄 مسح تقييمات هذه الفترة</button>
               </div>
-              <div id="evalFormBody"></div>
             </div>
-            <div class="card">
-              <div class="card-header"><h3>📜 سجل تقييمات الطالب</h3></div>
-              <div id="evalHistoryBody"></div>
-            </div>
+            <div id="evalTableBody"></div>
           </div>
         </div>
       </div>
@@ -1559,7 +1572,7 @@ async function deleteNote(sid, noteId) {
 }
 
 // ========= EVALUATION =========
-function onEvalFilterGradeChange() { fillSectionSelect('evalFilterSection', document.getElementById('evalFilterGrade').value); renderEvalStudents(); }
+function onEvalFilterGradeChange() { fillSectionSelect('evalFilterSection', document.getElementById('evalFilterGrade').value); renderEvalTable(); }
 function renderEvalMain() {
   if (!teacherData.rubric || !teacherData.rubric.length) {
     document.getElementById('evalNoRubric').classList.remove('hidden');
@@ -1568,89 +1581,114 @@ function renderEvalMain() {
   }
   document.getElementById('evalNoRubric').classList.add('hidden');
   document.getElementById('evalMain').classList.remove('hidden');
-  renderEvalStudents();
+  renderEvalTable();
 }
-function renderEvalStudents() {
+
+function renderEvalTable() {
+  const body = document.getElementById('evalTableBody');
+  const titleEl = document.getElementById('evalTableTitle');
+  if (!body) return;
   const gradeId = document.getElementById('evalFilterGrade').value;
   const secId = document.getElementById('evalFilterSection').value;
-  const list = filterStudents(gradeId, secId, '');
-  const sel = document.getElementById('evalStudent');
-  const cur = sel.value;
-  sel.innerHTML = '<option value="">-- اختر طالباً --</option>' + list.map(s => `<option value="${s.id}">${esc(s.name)} (${esc(s.student_id)})</option>`).join('');
-  if (cur && list.find(s => s.id === cur)) sel.value = cur;
-  renderEvalForm();
-}
-function renderEvalForm() {
-  const sid = document.getElementById('evalStudent').value;
   const period = document.getElementById('evalPeriod').value.trim();
-  const card = document.getElementById('evalFormCard');
-  if (!sid || !period) { card.classList.add('hidden'); return; }
-  card.classList.remove('hidden');
-  const s = teacherData.students.find(x => x.id === sid);
-  document.getElementById('evalFormTitle').textContent = `تقييم ${s?.name || ''} · ${period}`;
-  // Check if existing evaluation for this student+period exists
-  const existing = teacherData.evaluations.find(e => e.student_id === sid && e.period === period);
-  evalBuffer = existing ? JSON.parse(JSON.stringify(existing.scores || {})) : {};
-  const body = document.getElementById('evalFormBody');
-  body.innerHTML = teacherData.rubric.map((axis, idx) => {
-    const selected = evalBuffer[axis.id];
-    const previewText = selected ? axis.ranks[selected - 1] || '' : '';
-    return `<div class="eval-axis">
-      <div class="eval-axis-header">
-        <h4><span class="axis-num">${idx+1}</span> ${esc(axis.name)}</h4>
-        <div class="eval-rank-buttons">
-          ${[1,2,3,4,5].map(r => `<button class="rank-btn rank-${r} ${selected === r ? 'selected' : ''}" onclick="setEvalRank('${axis.id}',${r})">${r}</button>`).join('')}
-        </div>
-      </div>
-      <div class="eval-rank-preview ${!previewText ? 'empty' : ''}" id="preview_${axis.id}">${previewText ? esc(previewText) : 'اضغط رقماً لعرض التقدير'}</div>
-    </div>`;
-  }).join('');
-  renderEvalHistory();
-}
-function setEvalRank(axisId, rank) {
-  evalBuffer[axisId] = rank;
-  const axis = teacherData.rubric.find(a => a.id === axisId);
-  const preview = document.getElementById('preview_' + axisId);
-  if (preview && axis) {
-    preview.textContent = axis.ranks[rank - 1] || '';
-    preview.classList.remove('empty');
+  const search = document.getElementById('evalSearch').value.trim();
+
+  if (!gradeId || !secId) {
+    titleEl.textContent = 'جدول التقييم';
+    body.innerHTML = `<div class="empty-state"><h4>📋 اختر الصف والشعبة أولاً</h4></div>`;
+    return;
   }
-  // Update button states
-  const buttons = preview?.parentElement?.querySelectorAll('.rank-btn');
-  if (buttons) buttons.forEach((b, i) => b.classList.toggle('selected', (i+1) === rank));
+  if (!period) {
+    titleEl.textContent = 'جدول التقييم';
+    body.innerHTML = `<div class="empty-state"><h4>📅 أدخل فترة التقييم</h4><p>مثل: الأسبوع 1 · سبتمبر 2025</p></div>`;
+    return;
+  }
+  const list = filterStudents(gradeId, secId, search);
+  if (!list.length) {
+    body.innerHTML = `<div class="empty-state"><h4>📭 لا يوجد طلاب في هذه الشعبة</h4></div>`;
+    return;
+  }
+  const rubric = teacherData.rubric;
+  if (!rubric.length) {
+    body.innerHTML = `<div class="warn-box">⚠️ أضف بنود التقييم من الإعدادات أولاً.</div>`;
+    return;
+  }
+  titleEl.innerHTML = `جدول التقييم — <b style="color:#4f46e5">${esc(period)}</b> <span class="pill pill-gray">${list.length} طالب</span>`;
+
+  // Build table
+  let html = '<div class="eval-table-wrap"><table class="eval-table"><thead><tr>';
+  html += '<th class="student-cell">الطالب</th>';
+  rubric.forEach(axis => {
+    html += `<th class="axis-header">${esc(axis.name)}</th>`;
+  });
+  html += '</tr></thead><tbody>';
+
+  list.forEach(student => {
+    const existing = teacherData.evaluations.find(e => e.student_id === student.id && e.period === period);
+    const scores = existing ? existing.scores || {} : {};
+    html += '<tr>';
+    html += `<td class="student-cell"><div class="student-name">${esc(student.name)}</div><div style="font-size:10px;color:#6b7280">${esc(student.student_id || '')}</div></td>`;
+    rubric.forEach(axis => {
+      const selectedRank = scores[axis.id];
+      const selectedText = selectedRank && axis.ranks ? axis.ranks[selectedRank - 1] || '' : '';
+      const rankCount = (axis.ranks || []).length;
+      html += `<td><div class="rank-mini-buttons">`;
+      for (let r = 1; r <= rankCount; r++) {
+        const isSel = selectedRank === r;
+        html += `<button class="rank-mini-btn rank-${r} ${isSel ? 'selected' : ''}" onclick="setEvalCell('${student.id}','${axis.id}',${r})" title="${esc(axis.ranks[r-1] || '')}">${r}</button>`;
+      }
+      html += `</div>`;
+      if (selectedText) {
+        html += `<div class="eval-selected-label">${esc(selectedText)}</div>`;
+      } else {
+        html += `<div class="eval-selected-label"></div>`;
+      }
+      html += `</td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table></div>';
+  body.innerHTML = html;
 }
-function clearEvalForm() { evalBuffer = {}; renderEvalForm(); }
-async function saveEvaluation() {
-  const sid = document.getElementById('evalStudent').value;
+
+async function setEvalCell(studentId, axisId, rank) {
   const period = document.getElementById('evalPeriod').value.trim();
-  if (!sid || !period) return alert('اختر الطالب والفترة');
-  if (Object.keys(evalBuffer).length === 0) return alert('لم تقم بالتقييم بعد');
-  const existing = teacherData.evaluations.findIndex(e => e.student_id === sid && e.period === period);
-  const record = { id: existing >= 0 ? teacherData.evaluations[existing].id : uid('ev'), student_id: sid, period, scores: evalBuffer, date: todayStr() };
-  if (existing >= 0) teacherData.evaluations[existing] = record;
-  else teacherData.evaluations.push(record);
+  if (!period) return alert('أدخل فترة التقييم أولاً');
+  // Find or create evaluation record for this student+period
+  let rec = teacherData.evaluations.find(e => e.student_id === studentId && e.period === period);
+  if (!rec) {
+    rec = { id: uid('ev'), student_id: studentId, period, scores: {}, date: todayStr() };
+    teacherData.evaluations.push(rec);
+  }
+  if (!rec.scores) rec.scores = {};
+  // Toggle: if same rank clicked again, clear it
+  if (rec.scores[axisId] === rank) {
+    delete rec.scores[axisId];
+    // Remove record entirely if no scores left
+    if (Object.keys(rec.scores).length === 0) {
+      teacherData.evaluations = teacherData.evaluations.filter(e => e.id !== rec.id);
+    }
+  } else {
+    rec.scores[axisId] = rank;
+    rec.date = todayStr();
+  }
   await saveData();
-  alert('✅ حُفظ التقييم بنجاح');
-  renderEvalForm();
+  renderEvalTable();
 }
-function renderEvalHistory() {
-  const sid = document.getElementById('evalStudent').value;
-  const body = document.getElementById('evalHistoryBody');
-  const list = teacherData.evaluations.filter(e => e.student_id === sid).slice().sort((a,b) => (b.date || '').localeCompare(a.date || ''));
-  if (!list.length) { body.innerHTML = `<div class="empty-state" style="padding:20px"><p>لا توجد تقييمات سابقة</p></div>`; return; }
-  body.innerHTML = `<div class="table-wrap"><table><thead><tr><th>الفترة</th><th>التاريخ</th>${teacherData.rubric.map(a => `<th>${esc(a.name)}</th>`).join('')}<th>إجراءات</th></tr></thead><tbody>
-    ${list.map(e => `<tr>
-      <td><b>${esc(e.period)}</b></td>
-      <td>${esc(e.date)}</td>
-      ${teacherData.rubric.map(a => { const r = e.scores[a.id]; return `<td>${r ? `<span class="grade-chip grade-${r <= 2 ? 'excellent' : r === 3 ? 'good' : r === 4 ? 'average' : 'poor'}">${r}</span>` : '—'}</td>`; }).join('')}
-      <td><button class="btn btn-danger btn-sm" onclick="deleteEvaluation('${e.id}')">🗑️</button></td>
-    </tr>`).join('')}
-  </tbody></table></div>`;
-}
-async function deleteEvaluation(id) {
-  if (!confirm('حذف هذا التقييم؟')) return;
-  teacherData.evaluations = teacherData.evaluations.filter(e => e.id !== id);
-  await saveData(); renderEvalForm();
+
+async function clearAllEvalsForPeriod() {
+  const gradeId = document.getElementById('evalFilterGrade').value;
+  const secId = document.getElementById('evalFilterSection').value;
+  const period = document.getElementById('evalPeriod').value.trim();
+  if (!gradeId || !secId || !period) return alert('اختر الصف والشعبة والفترة');
+  const list = filterStudents(gradeId, secId, '');
+  const ids = new Set(list.map(s => s.id));
+  const count = teacherData.evaluations.filter(e => ids.has(e.student_id) && e.period === period).length;
+  if (!count) return alert('لا توجد تقييمات لهذه الفترة بعد');
+  if (!confirm(`مسح ${count} تقييم لهذه الفترة "${period}"؟`)) return;
+  teacherData.evaluations = teacherData.evaluations.filter(e => !(ids.has(e.student_id) && e.period === period));
+  await saveData();
+  renderEvalTable();
 }
 
 // ========= RUBRIC (Settings) =========
@@ -1661,24 +1699,33 @@ function renderRubric() {
     body.innerHTML = `<div class="empty-state"><h4>لم تُضف محاور بعد</h4><p>اضغط "إضافة محور" للبدء</p></div>`;
     return;
   }
-  body.innerHTML = teacherData.rubric.map((axis, idx) => `
+  body.innerHTML = teacherData.rubric.map((axis, idx) => {
+    // ensure ranks is array
+    if (!Array.isArray(axis.ranks)) axis.ranks = [];
+    return `
     <div class="rubric-axis">
       <div class="rubric-axis-header">
         <span style="background:#4f46e5;color:white;width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">${idx+1}</span>
         <input type="text" placeholder="اسم المحور (مثل: المستوى التحصيلي)" value="${esc(axis.name)}" onchange="updateRubricAxisName('${axis.id}',this.value)">
-        <button class="btn btn-danger btn-sm" onclick="deleteRubricAxis('${axis.id}')">🗑️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteRubricAxis('${axis.id}')">🗑️ حذف المحور</button>
       </div>
-      <div class="rubric-ranks">
-        ${[0,1,2,3,4].map(i => `<div class="rubric-rank-row">
+      <div class="rubric-ranks" id="ranks_${axis.id}">
+        ${axis.ranks.map((r, i) => `<div class="rubric-rank-row">
           <span class="num">${i+1}</span>
-          <input type="text" placeholder="وصف التقدير ${i+1}" value="${esc(axis.ranks[i] || '')}" onchange="updateRubricRank('${axis.id}',${i},this.value)">
+          <input type="text" placeholder="وصف البند ${i+1}" value="${esc(r || '')}" onchange="updateRubricRank('${axis.id}',${i},this.value)">
+          <button class="btn btn-danger btn-sm" onclick="deleteRubricRank('${axis.id}',${i})" title="حذف هذا البند">×</button>
         </div>`).join('')}
+        ${!axis.ranks.length ? '<div style="color:#9ca3af;font-size:11px;padding:6px;text-align:center">لم تُضف بنود بعد</div>' : ''}
       </div>
-    </div>`).join('');
+      <div style="margin-top:8px">
+        <button class="btn btn-secondary btn-sm" onclick="addRubricRank('${axis.id}')">➕ إضافة بند</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 function addRubricAxis() {
   if (!teacherData.rubric) teacherData.rubric = [];
-  teacherData.rubric.push({ id: uid('rx'), name: '', ranks: ['','','','',''] });
+  teacherData.rubric.push({ id: uid('rx'), name: '', ranks: [] });
   renderRubric();
 }
 function updateRubricAxisName(id, value) {
@@ -1687,20 +1734,48 @@ function updateRubricAxisName(id, value) {
 function updateRubricRank(axisId, idx, value) {
   const a = teacherData.rubric.find(x => x.id === axisId); if (a) a.ranks[idx] = value;
 }
+function addRubricRank(axisId) {
+  const a = teacherData.rubric.find(x => x.id === axisId); if (!a) return;
+  if (!Array.isArray(a.ranks)) a.ranks = [];
+  a.ranks.push('');
+  renderRubric();
+}
+async function deleteRubricRank(axisId, idx) {
+  const a = teacherData.rubric.find(x => x.id === axisId); if (!a) return;
+  if (!confirm(`حذف البند "${a.ranks[idx] || (idx+1)}"؟`)) return;
+  a.ranks.splice(idx, 1);
+  // Update existing evaluations: if a student had selected this rank or higher, shift/clear
+  teacherData.evaluations.forEach(e => {
+    if (e.scores && e.scores[axisId] != null) {
+      const r = e.scores[axisId];
+      if (r === idx + 1) delete e.scores[axisId]; // deleted rank
+      else if (r > idx + 1) e.scores[axisId] = r - 1; // shift up
+    }
+  });
+  await saveData(); renderRubric();
+}
 async function deleteRubricAxis(id) {
   if (!confirm('حذف هذا المحور؟ ستُحذف كل التقييمات السابقة المرتبطة به.')) return;
   teacherData.rubric = teacherData.rubric.filter(x => x.id !== id);
-  // Remove axis from existing evaluations
   teacherData.evaluations.forEach(e => { if (e.scores) delete e.scores[id]; });
   await saveData(); renderRubric();
 }
 async function saveRubric() {
   const msg = document.getElementById('rubricMessage'); msg.innerHTML = '';
-  // Validate
   for (const axis of teacherData.rubric) {
     if (!axis.name || !axis.name.trim()) {
       msg.innerHTML = '<div class="error">يجب تسمية كل المحاور</div>';
       return;
+    }
+    if (!Array.isArray(axis.ranks) || !axis.ranks.length) {
+      msg.innerHTML = `<div class="error">المحور "${esc(axis.name)}" ليس له بنود. أضف بنداً واحداً على الأقل.</div>`;
+      return;
+    }
+    for (let i = 0; i < axis.ranks.length; i++) {
+      if (!axis.ranks[i] || !axis.ranks[i].trim()) {
+        msg.innerHTML = `<div class="error">في المحور "${esc(axis.name)}": البند رقم ${i+1} فارغ.</div>`;
+        return;
+      }
     }
   }
   await saveData();
