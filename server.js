@@ -1,649 +1,601 @@
-require('dotenv').config();
+// Stutracker v2 — Multi-Tenant (Super Admin → Schools → Teachers)
 const express = require('express');
 const session = require('express-session');
-const Database = require('better-sqlite3');
 const bcrypt = require('bcryptjs');
+const Database = require('better-sqlite3');
 const path = require('path');
-const fs = require('fs');
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const SECRET = process.env.SESSION_SECRET || 'nizam-altaqweem-secret-key-2024';
+const DB_PATH = process.env.DB_PATH || '/data/data.db';
 
-// ══════════════════════════════════════
-//  إعداد قاعدة البيانات SQLite
-// ══════════════════════════════════════
-const dataDir = process.env.DATA_DIR || __dirname;
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
-}
-const dbFile = path.join(dataDir, 'data.db');
-console.log('📁 قاعدة البيانات:', dbFile);
-const sqlite = new Database(dbFile);
+// ═══════════════════════════════════════════════════════════════
+// Database setup
+// ═══════════════════════════════════════════════════════════════
+const db = new Database(DB_PATH);
+db.pragma('journal_mode = WAL');
 
-sqlite.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    username    TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
-    app_data    TEXT DEFAULT '{}',
-    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
-    last_login  DATETIME
-  );
-  CREATE TABLE IF NOT EXISTS logs (
-    id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id    INTEGER,
-    action     TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-  CREATE TABLE IF NOT EXISTS bot_conversations (
-    id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id    INTEGER,
-    from_phone TEXT,
-    message    TEXT,
-    reply      TEXT,
-    direction  TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
+db.exec(`
+CREATE TABLE IF NOT EXISTS super_admins (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  email TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  name TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS schools (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  school_code TEXT UNIQUE NOT NULL,
+  name_ar TEXT NOT NULL,
+  name_en TEXT,
+  admin_username TEXT NOT NULL,
+  admin_password_hash TEXT NOT NULL,
+  admin_email TEXT,
+  admin_name TEXT,
+  twilio_sid TEXT DEFAULT '',
+  twilio_token TEXT DEFAULT '',
+  twilio_from TEXT DEFAULT '',
+  content_sid TEXT DEFAULT '',
+  openai_key TEXT DEFAULT '',
+  openai_model TEXT DEFAULT 'gpt-4o-mini',
+  ai_system_prompt TEXT DEFAULT '',
+  status TEXT DEFAULT 'active',
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS teachers (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  school_id INTEGER NOT NULL,
+  username TEXT NOT NULL,
+  password_hash TEXT NOT NULL,
+  full_name TEXT,
+  subject TEXT,
+  grade_level TEXT,
+  phone TEXT,
+  email TEXT,
+  app_data TEXT DEFAULT '{}',
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  last_login TEXT,
+  UNIQUE(school_id, username),
+  FOREIGN KEY (school_id) REFERENCES schools(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS bot_conversations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  school_id INTEGER,
+  teacher_id INTEGER,
+  from_phone TEXT,
+  to_phone TEXT,
+  message TEXT,
+  reply TEXT,
+  direction TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_type TEXT,
+  user_id INTEGER,
+  school_id INTEGER,
+  action TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_teachers_school ON teachers(school_id);
+CREATE INDEX IF NOT EXISTS idx_bot_conv_school ON bot_conversations(school_id);
+CREATE INDEX IF NOT EXISTS idx_schools_twilio_from ON schools(twilio_from);
 `);
 
-// Schema migration: add recovery columns
-try {
-  const cols = sqlite.prepare("PRAGMA table_info(users)").all();
-  const colNames = cols.map(c => c.name);
-  if (!colNames.includes('recovery_question')) {
-    sqlite.exec("ALTER TABLE users ADD COLUMN recovery_question TEXT DEFAULT ''");
-    console.log('✅ Added recovery_question column');
-  }
-  if (!colNames.includes('recovery_answer_hash')) {
-    sqlite.exec("ALTER TABLE users ADD COLUMN recovery_answer_hash TEXT DEFAULT ''");
-    console.log('✅ Added recovery_answer_hash column');
-  }
-} catch (err) {
-  console.error('Migration warning:', err.message);
+// Seed default super admin if not exists
+const superRow = db.prepare('SELECT COUNT(*) as c FROM super_admins').get();
+if (superRow.c === 0) {
+  const defaultPass = bcrypt.hashSync('admin123', 10);
+  db.prepare('INSERT INTO super_admins (email, password_hash, name) VALUES (?, ?, ?)')
+    .run('admin@stutracker.com', defaultPass, 'System Administrator');
+  console.log('✓ Default super admin created: admin@stutracker.com / admin123');
 }
 
-// ══════════════════════════════════════
-//  Middleware
-// ══════════════════════════════════════
-app.use(express.json({ limit: '20mb' }));
-app.use(express.urlencoded({ extended: true, limit: '20mb' }));
-app.set('trust proxy', 1);
+// ═══════════════════════════════════════════════════════════════
+// Middleware
+// ═══════════════════════════════════════════════════════════════
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(session({
-  secret: SECRET,
+  secret: process.env.SESSION_SECRET || 'stutracker-v2-secret-change-me',
   resave: false,
   saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    maxAge: 7 * 24 * 60 * 60 * 1000
-  }
+  cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 } // 30 days
 }));
+app.use(express.static(path.join(__dirname, 'public')));
 
-// ══════════════════════════════════════
-//  Twilio Webhook - بدون auth (لأنه يأتي من Twilio)
-//  يجب أن يأتي قبل requireAuth
-// ══════════════════════════════════════
-app.post('/api/webhook/twilio', async (req, res) => {
-  try {
-    // Twilio يرسل application/x-www-form-urlencoded
-    const from = String(req.body.From || '').replace('whatsapp:', '');
-    const to = String(req.body.To || '').replace('whatsapp:', '');
-    const message = String(req.body.Body || '').trim();
-    const messageSid = req.body.MessageSid;
-
-    console.log(`📨 Webhook: ${from} → ${to}: "${message}" (${messageSid})`);
-
-    if (!from || !message) {
-      return res.type('text/xml').send('<Response></Response>');
-    }
-
-    // البحث عن صاحب النظام (المعلم) حسب رقم Twilio المستخدم
-    // في حالة Sandbox يكون to = +14155238886
-    // نبحث في جميع المستخدمين عن من لديه هذا الرقم مُعَد
-    const allUsers = sqlite.prepare('SELECT id, app_data FROM users').all();
-    let targetUser = null;
-    for (const u of allUsers) {
-      try {
-        const d = JSON.parse(u.app_data || '{}');
-        const twilioFrom = (d.bot && d.bot.twilioFrom) ? d.bot.twilioFrom.replace(/\s/g, '') : '';
-        if (twilioFrom && twilioFrom === to.replace(/\s/g, '')) {
-          targetUser = { id: u.id, appData: d };
-          break;
-        }
-      } catch {}
-    }
-
-    if (!targetUser) {
-      console.log('⚠️ لا يوجد معلم مُعد لهذا الرقم:', to);
-      // إن لم نجد، نستخدم أول حساب (للـ Sandbox البسيط)
-      if (allUsers.length > 0) {
-        try {
-          targetUser = { id: allUsers[0].id, appData: JSON.parse(allUsers[0].app_data || '{}') };
-        } catch {}
-      }
-    }
-
-    if (!targetUser) {
-      return res.type('text/xml').send('<Response><Message>النظام غير جاهز حالياً</Message></Response>');
-    }
-
-    // توليد رد ذكي
-    const reply = await generateAIReply(targetUser.appData, from, message);
-
-    // تسجيل المحادثة
-    sqlite.prepare(
-      'INSERT INTO bot_conversations (user_id, from_phone, message, reply, direction) VALUES (?, ?, ?, ?, ?)'
-    ).run(targetUser.id, from, message, reply, 'incoming');
-
-    // الرد عبر TwiML
-    const xml = `<?xml version="1.0" encoding="UTF-8"?><Response><Message>${escapeXml(reply)}</Message></Response>`;
-    res.type('text/xml').send(xml);
-  } catch (err) {
-    console.error('Webhook error:', err);
-    res.type('text/xml').send('<Response><Message>عذراً، حدث خطأ. الرجاء المحاولة لاحقاً.</Message></Response>');
-  }
-});
-
-function escapeXml(str) {
-  return String(str || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
-}
-
-// ══════════════════════════════════════
-//  AI Handler - يولّد رد ذكي على سؤال ولي الأمر
-// ══════════════════════════════════════
-async function generateAIReply(appData, fromPhone, userMessage) {
-  const bot = appData.bot || {};
-
-  // البحث عن الطالب حسب رقم الهاتف
-  const studentInfo = findStudentByPhone(appData, fromPhone);
-
-  // بناء context
-  const teacherName = appData.teacher?.fullname || appData.teacher?.name || 'المعلم';
-  const schoolName = appData.teacher?.school || '';
-  const subject = appData.teacher?.subject || '';
-
-  let studentContext = '';
-  if (studentInfo) {
-    const { student, section, grade } = studentInfo;
-    const total = calcTotalForStudent(section, student.id);
-    const level = levelOf(total);
-
-    // آخر 3 ملاحظات
-    const observations = (section.observations || [])
-      .filter(o => (o.studentIds || []).includes(student.id))
-      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-      .slice(0, 3);
-
-    const obsText = observations.length > 0
-      ? observations.map(o => {
-          const cat = (appData.observationCategories || []).find(c => c.id === o.categoryId);
-          return `- ${o.type === 'positive' ? '✅' : '⚠️'} ${cat?.name || 'ملاحظة'}: ${o.note || '—'}`;
-        }).join('\n')
-      : 'لا توجد ملاحظات مسجلة';
-
-    // آخر تقييم
-    const latestEval = (section.evaluations || [])
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
-
-    studentContext = `
-بيانات ابن ولي الأمر:
-- الاسم: ${student.name}
-- الصف: ${grade.name}
-- الشعبة: ${section.name}
-- الرقم المدرسي: ${student.studentId || 'غير متوفر'}
-- الدرجة الإجمالية: ${total !== null ? total + '/100' : 'لم تُدخل بعد'}
-- المستوى: ${level.l}
-
-آخر الملاحظات:
-${obsText}
-
-آخر تقييم دوري:
-${latestEval ? `${latestEval.periodLabel || ''}: ${latestEval.generatedText || '—'}` : 'لا يوجد تقييم مسجل بعد'}`;
-  } else {
-    studentContext = `
-⚠️ لم يتم التعرف على رقم الهاتف (${fromPhone}) في النظام.
-ربما الرقم غير مسجل كرقم ولي أمر، أو مسجل بصيغة مختلفة.`;
-  }
-
-  const systemPrompt = bot.systemPrompt || `أنت مساعد تعليمي ذكي اسمك "بوت المعلم ${teacherName}".
-تجيب على أسئلة أولياء الأمور عن درجات أبنائهم وملاحظات المعلم في مادة ${subject || 'الدراسة'}.
-${schoolName ? 'مدرسة: ' + schoolName : ''}
-
-أسلوبك:
-- مهذّب ومختصر (3-5 أسطر بحد أقصى)
-- ودود لكن احترافي
-- ترد بالعربية الفصحى البسيطة
-- إذا لم تعرف الإجابة، تقترح التواصل المباشر مع المعلم
-- لا تتطوع بمعلومات غير مطلوبة
-- لا تعطي آراء شخصية عن مستوى الطالب أو تشجّع التنافس`;
-
-  const fullPrompt = `${systemPrompt}
-
-${studentContext}
-
-رسالة ولي الأمر:
-"${userMessage}"
-
-اكتب ردك مباشرة (بدون مقدمات مثل "بالتأكيد" أو "حسناً"):`;
-
-  // اختيار المزود
-  const provider = bot.provider || 'openai';
-
-  try {
-    if (provider === 'openai' && bot.apiKey) {
-      return await callOpenAI(bot.apiKey, bot.model || 'gpt-4o-mini', fullPrompt);
-    } else if (provider === 'claude' && bot.apiKey) {
-      return await callClaude(bot.apiKey, bot.model || 'claude-sonnet-4-5', fullPrompt);
-    } else if (provider === 'gemini' && bot.apiKey) {
-      return await callGemini(bot.apiKey, bot.model || 'gemini-pro', fullPrompt);
-    } else {
-      // رد افتراضي بدون AI
-      return fallbackReply(studentInfo, userMessage);
-    }
-  } catch (err) {
-    console.error('AI call failed:', err);
-    return fallbackReply(studentInfo, userMessage) + '\n\n(خطأ في الاتصال بخدمة الذكاء الاصطناعي)';
-  }
-}
-
-// رد افتراضي بدون AI
-function fallbackReply(studentInfo, userMessage) {
-  if (!studentInfo) {
-    return '❌ عذراً، رقمك غير مسجل في النظام. الرجاء التواصل مع المعلم لتسجيل رقمك.';
-  }
-  const { student, section } = studentInfo;
-  const total = calcTotalForStudent(section, student.id);
-  const level = levelOf(total);
-  return `✅ مرحباً،\n\nالطالب: ${student.name}\nالشعبة: ${section.name}\nالدرجة: ${total !== null ? total + '/100' : 'لم تُدخل'}\nالمستوى: ${level.l}\n\nللاستفسار التفصيلي، الرجاء التواصل مع المعلم.`;
-}
-
-// OpenAI API
-async function callOpenAI(apiKey, model, prompt) {
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: model,
-      messages: [{ role: 'user', content: prompt }],
-      max_tokens: 500,
-      temperature: 0.7
-    })
-  });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`OpenAI ${res.status}: ${err}`);
-  }
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content?.trim() || 'عذراً، لم أتمكن من الرد.';
-}
-
-// Claude API
-async function callClaude(apiKey, model, prompt) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: model,
-      max_tokens: 500,
-      messages: [{ role: 'user', content: prompt }]
-    })
-  });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Claude ${res.status}: ${err}`);
-  }
-  const data = await res.json();
-  return data.content?.[0]?.text?.trim() || 'عذراً، لم أتمكن من الرد.';
-}
-
-// Gemini API
-async function callGemini(apiKey, model, prompt) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { maxOutputTokens: 500, temperature: 0.7 }
-    })
-  });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Gemini ${res.status}: ${err}`);
-  }
-  const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || 'عذراً، لم أتمكن من الرد.';
-}
-
-// ══════════════════════════════════════
-//  Helpers - البحث عن الطالب وحساب الدرجة
-// ══════════════════════════════════════
-function normalizePhone(phone) {
-  return String(phone || '').replace(/[^\d]/g, '');
-}
-
-function findStudentByPhone(appData, phone) {
-  const normalized = normalizePhone(phone);
-  if (!normalized) return null;
-  for (const grade of (appData.grades || [])) {
-    for (const section of (grade.sections || [])) {
-      for (const student of (section.students || [])) {
-        const studentPhone = normalizePhone(student.parentPhone);
-        // مطابقة: قد يختلف في البداية (مثلاً +968 vs 968)
-        if (studentPhone && (
-          studentPhone === normalized ||
-          studentPhone.endsWith(normalized.slice(-8)) ||
-          normalized.endsWith(studentPhone.slice(-8))
-        )) {
-          return { student, section, grade };
-        }
-      }
-    }
-  }
-  return null;
-}
-
-function calcTotalForStudent(section, studentId) {
-  // استخراج tools من الصف (grade-level)
-  // ملاحظة: نسخة مبسطة هنا
-  const gd = (section.gradeData || {})[studentId];
-  if (!gd) return null;
-  const tools = section.tools || [];
-  let contScore = 0;
-  let contMax = 0;
-  (tools || []).forEach(t => {
-    const v = gd[t.id];
-    if (v !== undefined && v !== null && v !== '') {
-      contScore += Number(v) || 0;
-      contMax += Number(t.max) || 0;
-    }
-  });
-  const contWeight = section.contWeight || 40;
-  const finalWeight = section.finalWeight || 60;
-  const finalMax = section.finalMax || 100;
-  const contPct = contMax > 0 ? (contScore / contMax) * contWeight : 0;
-  const finalExam = gd.finalExam;
-  if (finalExam === undefined || finalExam === null || finalExam === '') {
-    return contMax > 0 ? Math.round(contPct) : null;
-  }
-  const finalPct = (Number(finalExam) / finalMax) * finalWeight;
-  return Math.round(contPct + finalPct);
-}
-
-function levelOf(total) {
-  if (total === null || total === undefined) return { l: 'غير محدد', c: 'x' };
-  if (total >= 90) return { l: 'متفوق', c: 'e' };
-  if (total >= 80) return { l: 'ممتاز', c: 'g' };
-  if (total >= 70) return { l: 'جيد جداً', c: 'g' };
-  if (total >= 60) return { l: 'جيد', c: 'a' };
-  if (total >= 50) return { l: 'مقبول', c: 'a' };
-  return { l: 'يحتاج دعم', c: 'p' };
-}
-
-// ══════════════════════════════════════
-//  Auth middleware
-// ══════════════════════════════════════
-const requireAuth = (req, res, next) => {
-  if (req.session && req.session.userId) return next();
-  if (req.path.startsWith('/api/')) {
-    return res.status(401).json({ error: 'يرجى تسجيل الدخول أولاً' });
-  }
-  res.redirect('/login.html');
+// Auth guards
+const requireSuperAdmin = (req, res, next) => {
+  if (!req.session.superAdminId) return res.status(401).json({ error: 'غير مصرح' });
+  next();
+};
+const requireSchoolAdmin = (req, res, next) => {
+  if (!req.session.schoolAdminId) return res.status(401).json({ error: 'غير مصرح' });
+  next();
+};
+const requireTeacher = (req, res, next) => {
+  if (!req.session.teacherId) return res.status(401).json({ error: 'غير مصرح' });
+  next();
 };
 
-// login.html متاح بدون auth
-app.get('/login.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'));
-});
-
-// ══════════════════════════════════════
-//  API - Setup & Login (بدون auth)
-// ══════════════════════════════════════
-app.get('/api/setup-status', (req, res) => {
-  const result = sqlite.prepare('SELECT COUNT(*) as count FROM users').get();
-  res.json({ setupDone: result.count > 0 });
-});
-
-app.post('/api/setup', (req, res) => {
-  const { username, password, teacherName, recoveryQuestion, recoveryAnswer } = req.body;
-  if (!username || !password) return res.status(400).json({ error: 'اسم المستخدم وكلمة المرور مطلوبان' });
-  if (!recoveryQuestion || !recoveryAnswer) return res.status(400).json({ error: 'سؤال الاسترجاع وإجابته مطلوبان' });
-  if (recoveryAnswer.trim().length < 2) return res.status(400).json({ error: 'إجابة السؤال قصيرة جداً' });
-
-  const existing = sqlite.prepare('SELECT COUNT(*) as count FROM users').get();
-  if (existing.count > 0) return res.status(400).json({ error: 'الحساب موجود بالفعل. يرجى تسجيل الدخول.' });
-
-  try {
-    const hash = bcrypt.hashSync(password, 12);
-    const answerHash = bcrypt.hashSync(recoveryAnswer.trim().toLowerCase(), 12);
-    const defaultData = JSON.stringify({
-      teacher: { name: teacherName || username, fullname: teacherName || username, subject: '', school: '', year: '2024 / 2025', phone: '', email: '', principal: '', schoolPhone: '', visitorSup: '', eduSup: '' },
-      grades: [], evaluationAxes: [], observationCategories: [],
-      templates: { obs: [], grades: [], behavioral: [], evaluation: [] },
-      bot: {}
-    });
-    const result = sqlite.prepare('INSERT INTO users (username, password_hash, app_data, recovery_question, recovery_answer_hash) VALUES (?, ?, ?, ?, ?)')
-      .run(username, hash, defaultData, recoveryQuestion, answerHash);
-    req.session.userId = result.lastInsertRowid;
-    req.session.username = username;
-    res.json({ success: true });
-  } catch (err) {
-    if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') res.status(400).json({ error: 'اسم المستخدم مستخدم بالفعل' });
-    else res.status(500).json({ error: 'خطأ في الإعداد: ' + err.message });
+// ═══════════════════════════════════════════════════════════════
+// AUTH — Super Admin
+// ═══════════════════════════════════════════════════════════════
+app.post('/api/super/login', (req, res) => {
+  const { email, password } = req.body;
+  const admin = db.prepare('SELECT * FROM super_admins WHERE email = ?').get(email);
+  if (!admin || !bcrypt.compareSync(password, admin.password_hash)) {
+    return res.status(401).json({ error: 'البريد أو كلمة المرور غير صحيحة' });
   }
+  req.session.superAdminId = admin.id;
+  req.session.superAdminName = admin.name;
+  res.json({ success: true, name: admin.name });
 });
 
-app.post('/api/login', (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) return res.status(400).json({ error: 'أدخل اسم المستخدم وكلمة المرور' });
-  const user = sqlite.prepare('SELECT * FROM users WHERE username = ?').get(username);
-  if (!user || !bcrypt.compareSync(password, user.password_hash)) {
-    return res.status(401).json({ error: 'اسم المستخدم أو كلمة المرور غير صحيحة' });
-  }
-  req.session.userId = user.id;
-  req.session.username = user.username;
-  sqlite.prepare('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?').run(user.id);
-  sqlite.prepare('INSERT INTO logs (user_id, action) VALUES (?, ?)').run(user.id, 'login');
-  res.json({ success: true });
-});
-
-app.post('/api/logout', (req, res) => {
-  if (req.session.userId) sqlite.prepare('INSERT INTO logs (user_id, action) VALUES (?, ?)').run(req.session.userId, 'logout');
+app.post('/api/super/logout', (req, res) => {
   req.session.destroy(() => res.json({ success: true }));
 });
 
-app.get('/api/session', (req, res) => {
-  if (req.session && req.session.userId) res.json({ loggedIn: true, username: req.session.username });
-  else res.status(401).json({ loggedIn: false });
-});
-
-// ══════════════════════════════════════
-//  API - Recovery (بدون auth)
-// ══════════════════════════════════════
-app.post('/api/recovery-question', (req, res) => {
-  const { username } = req.body;
-  if (!username) return res.status(400).json({ error: 'اسم المستخدم مطلوب' });
-  const user = sqlite.prepare('SELECT recovery_question FROM users WHERE username = ?').get(username);
-  if (!user) return res.status(404).json({ error: 'اسم المستخدم غير موجود' });
-  if (!user.recovery_question) return res.status(400).json({ error: 'هذا الحساب لا يحتوي على سؤال استرجاع مسجّل' });
-  res.json({ success: true, question: user.recovery_question });
-});
-
-app.post('/api/recovery-reset', (req, res) => {
-  const { username, answer, newPassword } = req.body;
-  if (!username || !answer || !newPassword) return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
-  if (newPassword.length < 6) return res.status(400).json({ error: 'كلمة المرور الجديدة قصيرة (6 أحرف على الأقل)' });
-  const user = sqlite.prepare('SELECT id, recovery_answer_hash FROM users WHERE username = ?').get(username);
-  if (!user || !user.recovery_answer_hash) return res.status(401).json({ error: 'بيانات الاسترجاع غير صحيحة' });
-  const answerCheck = bcrypt.compareSync(answer.trim().toLowerCase(), user.recovery_answer_hash);
-  if (!answerCheck) {
-    sqlite.prepare('INSERT INTO logs (user_id, action) VALUES (?, ?)').run(user.id, 'recovery_failed');
-    return res.status(401).json({ error: 'إجابة السؤال السري غير صحيحة' });
+app.get('/api/super/session', (req, res) => {
+  if (req.session.superAdminId) {
+    res.json({ authenticated: true, name: req.session.superAdminName });
+  } else {
+    res.json({ authenticated: false });
   }
-  const newHash = bcrypt.hashSync(newPassword, 12);
-  sqlite.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(newHash, user.id);
-  sqlite.prepare('INSERT INTO logs (user_id, action) VALUES (?, ?)').run(user.id, 'recovery_reset');
+});
+
+// ═══════════════════════════════════════════════════════════════
+// SUPER ADMIN — Schools CRUD
+// ═══════════════════════════════════════════════════════════════
+app.get('/api/super/schools', requireSuperAdmin, (req, res) => {
+  const schools = db.prepare(`
+    SELECT s.*,
+    (SELECT COUNT(*) FROM teachers WHERE school_id = s.id) as teacher_count
+    FROM schools s ORDER BY s.created_at DESC
+  `).all();
+  // Don't expose password hashes
+  schools.forEach(s => { delete s.admin_password_hash; });
+  res.json({ schools });
+});
+
+app.post('/api/super/schools', requireSuperAdmin, (req, res) => {
+  const {
+    school_code, name_ar, name_en,
+    admin_username, admin_password, admin_email, admin_name,
+    twilio_sid, twilio_token, twilio_from, content_sid,
+    openai_key, openai_model, ai_system_prompt
+  } = req.body;
+
+  if (!school_code || !name_ar || !admin_username || !admin_password) {
+    return res.status(400).json({ error: 'الحقول المطلوبة ناقصة' });
+  }
+
+  if (!/^[A-Za-z0-9_-]{3,32}$/.test(school_code)) {
+    return res.status(400).json({ error: 'رمز المدرسة يجب أن يكون 3-32 حرفاً (أحرف/أرقام/_/-)' });
+  }
+
+  try {
+    const hash = bcrypt.hashSync(admin_password, 10);
+    const result = db.prepare(`
+      INSERT INTO schools (
+        school_code, name_ar, name_en,
+        admin_username, admin_password_hash, admin_email, admin_name,
+        twilio_sid, twilio_token, twilio_from, content_sid,
+        openai_key, openai_model, ai_system_prompt
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      school_code, name_ar, name_en || '',
+      admin_username, hash, admin_email || '', admin_name || '',
+      twilio_sid || '', twilio_token || '', twilio_from || '', content_sid || '',
+      openai_key || '', openai_model || 'gpt-4o-mini', ai_system_prompt || ''
+    );
+    res.json({ success: true, id: result.lastInsertRowid });
+  } catch (err) {
+    if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+      return res.status(400).json({ error: 'رمز المدرسة مستخدم مسبقاً' });
+    }
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/super/schools/:id', requireSuperAdmin, (req, res) => {
+  const id = parseInt(req.params.id);
+  const f = req.body;
+  const fields = [];
+  const values = [];
+  const allowed = ['name_ar','name_en','admin_username','admin_email','admin_name',
+    'twilio_sid','twilio_token','twilio_from','content_sid',
+    'openai_key','openai_model','ai_system_prompt','status'];
+  allowed.forEach(k => {
+    if (f[k] !== undefined) { fields.push(`${k} = ?`); values.push(f[k]); }
+  });
+  if (f.admin_password) {
+    fields.push('admin_password_hash = ?');
+    values.push(bcrypt.hashSync(f.admin_password, 10));
+  }
+  if (!fields.length) return res.json({ success: true, noop: true });
+  values.push(id);
+  db.prepare(`UPDATE schools SET ${fields.join(', ')} WHERE id = ?`).run(...values);
   res.json({ success: true });
 });
 
-// ══════════════════════════════════════
-//  Protected routes
-// ══════════════════════════════════════
-app.use(requireAuth, express.static(path.join(__dirname, 'public')));
-
-app.get('/', requireAuth, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+app.delete('/api/super/schools/:id', requireSuperAdmin, (req, res) => {
+  const id = parseInt(req.params.id);
+  db.prepare('DELETE FROM schools WHERE id = ?').run(id);
+  res.json({ success: true });
 });
 
-app.get('/api/data', requireAuth, (req, res) => {
-  const user = sqlite.prepare('SELECT app_data FROM users WHERE id = ?').get(req.session.userId);
-  try { res.json(JSON.parse(user.app_data || '{}')); } catch { res.json({}); }
+// ═══════════════════════════════════════════════════════════════
+// AUTH — School Admin
+// ═══════════════════════════════════════════════════════════════
+app.post('/api/school/login', (req, res) => {
+  const { school_code, username, password } = req.body;
+  const school = db.prepare('SELECT * FROM schools WHERE school_code = ? AND status = ?')
+    .get(school_code, 'active');
+  if (!school || school.admin_username !== username ||
+      !bcrypt.compareSync(password, school.admin_password_hash)) {
+    return res.status(401).json({ error: 'بيانات الدخول غير صحيحة' });
+  }
+  req.session.schoolAdminId = school.id;
+  req.session.schoolCode = school.school_code;
+  req.session.schoolName = school.name_ar;
+  res.json({ success: true, school: { id: school.id, code: school.school_code, name: school.name_ar } });
 });
 
-app.post('/api/data', requireAuth, (req, res) => {
+app.post('/api/school/logout', (req, res) => {
+  req.session.destroy(() => res.json({ success: true }));
+});
+
+app.get('/api/school/session', (req, res) => {
+  if (req.session.schoolAdminId) {
+    const school = db.prepare('SELECT id, school_code, name_ar, name_en, twilio_sid, twilio_from, content_sid, openai_model, ai_system_prompt FROM schools WHERE id = ?')
+      .get(req.session.schoolAdminId);
+    res.json({ authenticated: true, school });
+  } else {
+    res.json({ authenticated: false });
+  }
+});
+
+// School admin updates own settings (API keys etc.)
+app.put('/api/school/settings', requireSchoolAdmin, (req, res) => {
+  const f = req.body;
+  const fields = [];
+  const values = [];
+  const allowed = ['twilio_sid','twilio_token','twilio_from','content_sid',
+    'openai_key','openai_model','ai_system_prompt'];
+  allowed.forEach(k => {
+    if (f[k] !== undefined) { fields.push(`${k} = ?`); values.push(f[k]); }
+  });
+  if (!fields.length) return res.json({ success: true, noop: true });
+  values.push(req.session.schoolAdminId);
+  db.prepare(`UPDATE schools SET ${fields.join(', ')} WHERE id = ?`).run(...values);
+  res.json({ success: true });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// SCHOOL ADMIN — Teachers CRUD
+// ═══════════════════════════════════════════════════════════════
+app.get('/api/school/teachers', requireSchoolAdmin, (req, res) => {
+  const teachers = db.prepare(`
+    SELECT id, username, full_name, subject, grade_level, phone, email, created_at, last_login
+    FROM teachers WHERE school_id = ? ORDER BY created_at DESC
+  `).all(req.session.schoolAdminId);
+  res.json({ teachers });
+});
+
+app.post('/api/school/teachers', requireSchoolAdmin, (req, res) => {
+  const { username, password, full_name, subject, grade_level, phone, email } = req.body;
+  if (!username || !password) return res.status(400).json({ error: 'اسم المستخدم وكلمة المرور مطلوبان' });
+
   try {
-    const data = JSON.stringify(req.body);
-    sqlite.prepare('UPDATE users SET app_data = ? WHERE id = ?').run(data, req.session.userId);
+    const hash = bcrypt.hashSync(password, 10);
+    const result = db.prepare(`
+      INSERT INTO teachers (school_id, username, password_hash, full_name, subject, grade_level, phone, email)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(req.session.schoolAdminId, username, hash,
+      full_name || '', subject || '', grade_level || '', phone || '', email || '');
+    res.json({ success: true, id: result.lastInsertRowid });
+  } catch (err) {
+    if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+      return res.status(400).json({ error: 'اسم المستخدم مستخدم في هذه المدرسة' });
+    }
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/school/teachers/:id', requireSchoolAdmin, (req, res) => {
+  const id = parseInt(req.params.id);
+  const teacher = db.prepare('SELECT school_id FROM teachers WHERE id = ?').get(id);
+  if (!teacher || teacher.school_id !== req.session.schoolAdminId) {
+    return res.status(404).json({ error: 'المعلم غير موجود' });
+  }
+  const f = req.body;
+  const fields = [];
+  const values = [];
+  ['username','full_name','subject','grade_level','phone','email'].forEach(k => {
+    if (f[k] !== undefined) { fields.push(`${k} = ?`); values.push(f[k]); }
+  });
+  if (f.password) {
+    fields.push('password_hash = ?');
+    values.push(bcrypt.hashSync(f.password, 10));
+  }
+  if (!fields.length) return res.json({ success: true, noop: true });
+  values.push(id);
+  try {
+    db.prepare(`UPDATE teachers SET ${fields.join(', ')} WHERE id = ?`).run(...values);
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: 'فشل الحفظ: ' + err.message });
+    if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+      return res.status(400).json({ error: 'اسم المستخدم مستخدم' });
+    }
+    res.status(500).json({ error: err.message });
   }
 });
 
-app.post('/api/change-password', requireAuth, (req, res) => {
-  const { currentPassword, newPassword } = req.body;
-  if (!newPassword || newPassword.length < 6) return res.status(400).json({ error: 'كلمة المرور الجديدة قصيرة (6 أحرف على الأقل)' });
-  const user = sqlite.prepare('SELECT * FROM users WHERE id = ?').get(req.session.userId);
-  if (!bcrypt.compareSync(currentPassword, user.password_hash)) return res.status(401).json({ error: 'كلمة المرور الحالية غير صحيحة' });
-  const hash = bcrypt.hashSync(newPassword, 12);
-  sqlite.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hash, req.session.userId);
-  sqlite.prepare('INSERT INTO logs (user_id, action) VALUES (?, ?)').run(req.session.userId, 'change_password');
+app.delete('/api/school/teachers/:id', requireSchoolAdmin, (req, res) => {
+  const id = parseInt(req.params.id);
+  const teacher = db.prepare('SELECT school_id FROM teachers WHERE id = ?').get(id);
+  if (!teacher || teacher.school_id !== req.session.schoolAdminId) {
+    return res.status(404).json({ error: 'المعلم غير موجود' });
+  }
+  db.prepare('DELETE FROM teachers WHERE id = ?').run(id);
   res.json({ success: true });
 });
 
-// ══════════════════════════════════════
-//  API - Twilio Integration
-// ══════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// AUTH — Teacher
+// ═══════════════════════════════════════════════════════════════
+app.post('/api/teacher/login', (req, res) => {
+  const { school_code, username, password } = req.body;
+  const school = db.prepare('SELECT id, name_ar FROM schools WHERE school_code = ? AND status = ?')
+    .get(school_code, 'active');
+  if (!school) return res.status(401).json({ error: 'رمز المدرسة غير صحيح' });
 
-// إرسال رسالة واتساب عبر Twilio
-app.post('/api/bot/send-whatsapp', requireAuth, async (req, res) => {
-  const { to, message } = req.body;
-  if (!to || !message) return res.status(400).json({ error: 'الرقم والرسالة مطلوبان' });
-
-  const user = sqlite.prepare('SELECT app_data FROM users WHERE id = ?').get(req.session.userId);
-  let appData = {};
-  try { appData = JSON.parse(user.app_data || '{}'); } catch {}
-  const bot = appData.bot || {};
-
-  if (!bot.twilioSid || !bot.twilioToken || !bot.twilioFrom) {
-    return res.status(400).json({ error: 'إعدادات Twilio غير مكتملة. الرجاء ضبطها في الإعدادات → البوت الذكي' });
+  const teacher = db.prepare('SELECT * FROM teachers WHERE school_id = ? AND username = ?')
+    .get(school.id, username);
+  if (!teacher || !bcrypt.compareSync(password, teacher.password_hash)) {
+    return res.status(401).json({ error: 'اسم المستخدم أو كلمة المرور غير صحيحة' });
   }
 
-  let toNumber = String(to).replace(/[^\d+]/g, '');
-  if (!toNumber.startsWith('+')) toNumber = '+' + toNumber;
-  const fromWa = `whatsapp:${bot.twilioFrom}`;
-  const toWa = `whatsapp:${toNumber}`;
+  req.session.teacherId = teacher.id;
+  req.session.teacherSchoolId = school.id;
+  req.session.teacherSchoolName = school.name_ar;
+  req.session.teacherName = teacher.full_name || teacher.username;
 
-  const url = `https://api.twilio.com/2010-04-01/Accounts/${bot.twilioSid}/Messages.json`;
-  const auth = Buffer.from(`${bot.twilioSid}:${bot.twilioToken}`).toString('base64');
-  const params = new URLSearchParams();
-  params.append('From', fromWa);
-  params.append('To', toWa);
-  params.append('Body', message);
+  db.prepare('UPDATE teachers SET last_login = CURRENT_TIMESTAMP WHERE id = ?').run(teacher.id);
+
+  res.json({
+    success: true,
+    teacher: {
+      id: teacher.id,
+      username: teacher.username,
+      full_name: teacher.full_name,
+      subject: teacher.subject,
+      grade_level: teacher.grade_level,
+      school: { id: school.id, name: school.name_ar }
+    }
+  });
+});
+
+app.post('/api/teacher/logout', (req, res) => {
+  req.session.destroy(() => res.json({ success: true }));
+});
+
+app.get('/api/teacher/session', (req, res) => {
+  if (!req.session.teacherId) return res.json({ authenticated: false });
+  const teacher = db.prepare('SELECT id, username, full_name, subject, grade_level, school_id FROM teachers WHERE id = ?')
+    .get(req.session.teacherId);
+  if (!teacher) return res.json({ authenticated: false });
+  const school = db.prepare('SELECT id, school_code, name_ar FROM schools WHERE id = ?').get(teacher.school_id);
+  res.json({ authenticated: true, teacher, school });
+});
+
+// Teacher's own data (grades, students, templates, etc.)
+app.get('/api/teacher/data', requireTeacher, (req, res) => {
+  const row = db.prepare('SELECT app_data FROM teachers WHERE id = ?').get(req.session.teacherId);
+  res.json({ data: JSON.parse(row?.app_data || '{}') });
+});
+
+app.post('/api/teacher/data', requireTeacher, (req, res) => {
+  const data = JSON.stringify(req.body || {});
+  db.prepare('UPDATE teachers SET app_data = ? WHERE id = ?')
+    .run(data, req.session.teacherId);
+  res.json({ success: true });
+});
+
+// Teacher change password
+app.post('/api/teacher/change-password', requireTeacher, (req, res) => {
+  const { old_password, new_password } = req.body;
+  const t = db.prepare('SELECT password_hash FROM teachers WHERE id = ?').get(req.session.teacherId);
+  if (!bcrypt.compareSync(old_password, t.password_hash)) {
+    return res.status(401).json({ error: 'كلمة المرور الحالية غير صحيحة' });
+  }
+  const hash = bcrypt.hashSync(new_password, 10);
+  db.prepare('UPDATE teachers SET password_hash = ? WHERE id = ?').run(hash, req.session.teacherId);
+  res.json({ success: true });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// WhatsApp Bot — per-school routing
+// ═══════════════════════════════════════════════════════════════
+
+// Send WhatsApp (teacher sends, uses their school's Twilio)
+app.post('/api/bot/send', requireTeacher, async (req, res) => {
+  const { to, message } = req.body;
+  const school = db.prepare('SELECT * FROM schools WHERE id = ?').get(req.session.teacherSchoolId);
+  if (!school.twilio_sid || !school.twilio_token || !school.twilio_from) {
+    return res.status(400).json({ error: 'إعدادات Twilio للمدرسة غير مكتملة' });
+  }
+
+  const toNumber = String(to || '').replace(/[^\d+]/g, '');
+  if (!toNumber) return res.status(400).json({ error: 'رقم المستلم غير صحيح' });
 
   try {
-    const twilioRes = await fetch(url, {
+    const fromWa = `whatsapp:${school.twilio_from}`;
+    const toWa = `whatsapp:${toNumber.startsWith('+') ? toNumber : '+' + toNumber}`;
+    const url = `https://api.twilio.com/2010-04-01/Accounts/${school.twilio_sid}/Messages.json`;
+    const auth = Buffer.from(`${school.twilio_sid}:${school.twilio_token}`).toString('base64');
+    const params = new URLSearchParams();
+    params.append('From', fromWa);
+    params.append('To', toWa);
+    if (school.content_sid) {
+      params.append('ContentSid', school.content_sid);
+      params.append('ContentVariables', JSON.stringify({'1': message}));
+    } else {
+      params.append('Body', message);
+    }
+
+    const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Authorization': `Basic ${auth}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: {
+        'Authorization': `Basic ${auth}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
       body: params.toString()
     });
-    const result = await twilioRes.json();
-    if (!twilioRes.ok) {
-      let msg = result.message || 'فشل الإرسال';
-      if (result.code === 63007) msg = 'رقم المرسل غير مفعّل لـ WhatsApp في Twilio';
-      else if (result.code === 63003) msg = 'المستقبل لم ينضم لـ Sandbox بعد. اطلب منه إرسال كلمة join للرقم أولاً';
-      else if (result.code === 20003) msg = 'بيانات المصادقة خاطئة (Account SID أو Auth Token)';
-      return res.status(400).json({ error: msg, twilioCode: result.code });
+    const result = await response.json();
+    if (!response.ok) {
+      return res.status(400).json({ error: result.message || 'فشل الإرسال', code: result.code });
     }
-    sqlite.prepare('INSERT INTO logs (user_id, action) VALUES (?, ?)').run(req.session.userId, `whatsapp_sent:${toNumber}`);
-    sqlite.prepare('INSERT INTO bot_conversations (user_id, from_phone, message, reply, direction) VALUES (?, ?, ?, ?, ?)')
-      .run(req.session.userId, toNumber, message, '', 'outgoing');
-    res.json({ success: true, messageSid: result.sid, status: result.status });
-  } catch (err) {
-    console.error('Twilio error:', err);
-    res.status(500).json({ error: 'خطأ في الاتصال بـ Twilio: ' + err.message });
-  }
-});
 
-// اختبار اتصال Twilio
-app.post('/api/bot/test-twilio', requireAuth, async (req, res) => {
-  const { twilioSid, twilioToken } = req.body;
-  if (!twilioSid || !twilioToken) return res.status(400).json({ error: 'Account SID و Auth Token مطلوبان' });
-  const url = `https://api.twilio.com/2010-04-01/Accounts/${twilioSid}.json`;
-  const auth = Buffer.from(`${twilioSid}:${twilioToken}`).toString('base64');
-  try {
-    const twilioRes = await fetch(url, { headers: { 'Authorization': `Basic ${auth}` } });
-    const result = await twilioRes.json();
-    if (!twilioRes.ok) return res.status(400).json({ error: result.message || 'فشل التحقق', twilioCode: result.code });
-    res.json({ success: true, accountName: result.friendly_name, accountStatus: result.status, accountType: result.type });
-  } catch (err) {
-    res.status(500).json({ error: 'خطأ في الاتصال: ' + err.message });
-  }
-});
+    db.prepare(`INSERT INTO bot_conversations (school_id, teacher_id, from_phone, to_phone, message, direction)
+      VALUES (?, ?, ?, ?, ?, ?)`)
+      .run(school.id, req.session.teacherId, school.twilio_from, toNumber, message, 'outgoing');
 
-// اختبار AI
-app.post('/api/bot/test-ai', requireAuth, async (req, res) => {
-  const { provider, apiKey, model, testMessage } = req.body;
-  if (!provider || !apiKey) return res.status(400).json({ error: 'المزود والمفتاح مطلوبان' });
-  const msg = testMessage || 'مرحباً، هل تسمعني؟';
-  try {
-    let reply;
-    if (provider === 'openai') reply = await callOpenAI(apiKey, model || 'gpt-4o-mini', msg);
-    else if (provider === 'claude') reply = await callClaude(apiKey, model || 'claude-sonnet-4-5', msg);
-    else if (provider === 'gemini') reply = await callGemini(apiKey, model || 'gemini-pro', msg);
-    else return res.status(400).json({ error: 'مزود غير مدعوم' });
-    res.json({ success: true, reply });
+    res.json({ success: true, sid: result.sid });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// سجل محادثات البوت
-app.get('/api/bot/conversations', requireAuth, (req, res) => {
-  const limit = Math.min(Number(req.query.limit) || 50, 200);
-  const rows = sqlite.prepare(
-    'SELECT id, from_phone, message, reply, direction, created_at FROM bot_conversations WHERE user_id = ? ORDER BY created_at DESC LIMIT ?'
-  ).all(req.session.userId, limit);
+// Webhook — receives incoming WhatsApp messages (routed by recipient number)
+app.post('/api/webhook/twilio', async (req, res) => {
+  try {
+    const from = String(req.body.From || '').replace('whatsapp:', '');
+    const to = String(req.body.To || '').replace('whatsapp:', '');
+    const message = String(req.body.Body || '').trim();
+
+    // Find school by receiving number (whose twilio_from matches)
+    const school = db.prepare('SELECT * FROM schools WHERE twilio_from = ? AND status = ?')
+      .get(to, 'active');
+
+    res.set('Content-Type', 'text/xml');
+    if (!school) {
+      console.log(`[Webhook] No school found for ${to}`);
+      return res.send('<Response/>');
+    }
+
+    console.log(`[Webhook] ${from} → ${to} (${school.school_code}): "${message}"`);
+
+    // Store incoming
+    db.prepare(`INSERT INTO bot_conversations (school_id, from_phone, to_phone, message, direction)
+      VALUES (?, ?, ?, ?, ?)`)
+      .run(school.id, from, to, message, 'incoming');
+
+    // Generate AI reply
+    let reply = await generateAIReply(school, from, message);
+    if (!reply) reply = 'شكراً لتواصلك مع ' + school.name_ar;
+
+    // Send reply
+    const fromWa = `whatsapp:${school.twilio_from}`;
+    const toWa = `whatsapp:${from.startsWith('+') ? from : '+' + from}`;
+    const url = `https://api.twilio.com/2010-04-01/Accounts/${school.twilio_sid}/Messages.json`;
+    const auth = Buffer.from(`${school.twilio_sid}:${school.twilio_token}`).toString('base64');
+    const params = new URLSearchParams();
+    params.append('From', fromWa);
+    params.append('To', toWa);
+    if (school.content_sid) {
+      params.append('ContentSid', school.content_sid);
+      params.append('ContentVariables', JSON.stringify({'1': reply}));
+    } else {
+      params.append('Body', reply);
+    }
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Authorization': `Basic ${auth}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString()
+    });
+    const result = await response.json();
+    console.log(`[Webhook] Reply status: ${response.status}, code: ${result.code || 'ok'}`);
+
+    db.prepare(`INSERT INTO bot_conversations (school_id, from_phone, to_phone, message, reply, direction)
+      VALUES (?, ?, ?, ?, ?, ?)`)
+      .run(school.id, school.twilio_from, from, reply, reply, 'outgoing');
+
+    res.send('<Response/>');
+  } catch (err) {
+    console.error('Webhook error:', err);
+    res.status(500).send('<Response/>');
+  }
+});
+
+async function generateAIReply(school, fromPhone, message) {
+  if (!school.openai_key) return null;
+
+  const systemPrompt = school.ai_system_prompt ||
+    `أنت مساعد ذكي لمدرسة ${school.name_ar}. أجب بإيجاز واحترام باللغة العربية.`;
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${school.openai_key}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: school.openai_model || 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: message }
+        ],
+        max_tokens: 500
+      })
+    });
+    const data = await response.json();
+    if (data.choices?.[0]?.message?.content) {
+      return data.choices[0].message.content.trim();
+    }
+    console.error('OpenAI error:', data);
+    return null;
+  } catch (err) {
+    console.error('AI call failed:', err);
+    return null;
+  }
+}
+
+// Teacher: view own conversations
+app.get('/api/bot/conversations', requireTeacher, (req, res) => {
+  const rows = db.prepare(`
+    SELECT * FROM bot_conversations
+    WHERE school_id = ?
+    ORDER BY created_at DESC LIMIT 100
+  `).all(req.session.teacherSchoolId);
   res.json({ conversations: rows });
 });
 
-// ══════════════════════════════════════
-//  بدء تشغيل السيرفر
-// ══════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// Static routes
+// ═══════════════════════════════════════════════════════════════
+app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
+app.get('/school-admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'school-admin.html')));
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+
+// ═══════════════════════════════════════════════════════════════
+// Start server
+// ═══════════════════════════════════════════════════════════════
 app.listen(PORT, () => {
-  console.log('');
-  console.log('╔══════════════════════════════════════════╗');
-  console.log('║     نظام التقويم الذكي — يعمل الآن       ║');
-  console.log('╠══════════════════════════════════════════╣');
-  console.log(`║  الرابط: http://localhost:${PORT}              ║`);
-  console.log('║  🤖 البوت الذكي: جاهز                    ║');
-  console.log('║  📱 Twilio WhatsApp: مُفعّل              ║');
-  console.log('╚══════════════════════════════════════════╝');
-  console.log('');
-  const users = sqlite.prepare('SELECT COUNT(*) as count FROM users').get();
-  if (users.count === 0) console.log('⚠️  لا يوجد حساب — سيتم توجيهك للإعداد الأول');
-  else console.log(`✅ ${users.count} حساب مسجّل`);
+  console.log('╔═══════════════════════════════════════╗');
+  console.log('║  Stutracker v2 — Multi-Tenant        ║');
+  console.log('║  Running on port ' + PORT.toString().padEnd(21) + '║');
+  console.log('║  /admin → Super Admin                 ║');
+  console.log('║  /school-admin → School Admin         ║');
+  console.log('║  / → Teacher Login                    ║');
+  console.log('╚═══════════════════════════════════════╝');
 });
