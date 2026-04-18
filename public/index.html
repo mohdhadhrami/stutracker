@@ -11,6 +11,7 @@
 body{font-family:'Cairo',sans-serif;color:#1f2937;background:#f3f4f6;min-height:100vh}
 .hidden{display:none !important}
 
+/* ===== LOGIN ===== */
 .login-bg{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
 .login-card{background:white;padding:40px 36px;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.2);width:100%;max-width:440px}
 .logo{text-align:center;margin-bottom:28px}
@@ -18,13 +19,14 @@ body{font-family:'Cairo',sans-serif;color:#1f2937;background:#f3f4f6;min-height:
 .logo h1{color:#4f46e5;font-size:24px;margin-bottom:4px}
 .logo p{color:#6b7280;font-size:13px}
 
+/* ===== COMMON ===== */
 .form-group{margin-bottom:14px}
 .form-group label{display:block;margin-bottom:6px;font-weight:500;font-size:13px;color:#374151}
-.form-group input,.form-group select,.form-group textarea{width:100%;padding:11px 13px;border:1px solid #d1d5db;border-radius:9px;font-family:inherit;font-size:14px;background:white}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 13px;border:1px solid #d1d5db;border-radius:8px;font-family:inherit;font-size:14px;background:white}
 .form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:#4f46e5}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-.btn{padding:10px 18px;border:none;border-radius:9px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px;justify-content:center}
+.btn{padding:9px 16px;border:none;border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px;justify-content:center}
 .btn-primary{background:#4f46e5;color:white}
 .btn-primary:hover{background:#4338ca}
 .btn-success{background:#10b981;color:white}
@@ -41,132 +43,200 @@ body{font-family:'Cairo',sans-serif;color:#1f2937;background:#f3f4f6;min-height:
 .btn-full{width:100%}
 .link{color:#4f46e5;text-decoration:none;font-size:13px;cursor:pointer}
 .link:hover{text-decoration:underline}
-.error{background:#fef2f2;color:#991b1b;padding:11px;border-radius:8px;margin-bottom:14px;font-size:13px;line-height:1.6}
-.success{background:#f0fdf4;color:#166534;padding:11px;border-radius:8px;margin-bottom:14px;font-size:13px;line-height:1.6}
-.info-box{background:#eff6ff;color:#1e40af;padding:11px 14px;border-radius:8px;margin-bottom:14px;font-size:13px;line-height:1.7}
+.error{background:#fef2f2;color:#991b1b;padding:10px;border-radius:7px;margin-bottom:12px;font-size:13px;line-height:1.6}
+.success{background:#f0fdf4;color:#166534;padding:10px;border-radius:7px;margin-bottom:12px;font-size:13px;line-height:1.6}
+.info-box{background:#eff6ff;color:#1e40af;padding:10px 13px;border-radius:7px;margin-bottom:12px;font-size:12px;line-height:1.7}
+.warn-box{background:#fef3c7;color:#92400e;padding:10px 13px;border-radius:7px;margin-bottom:12px;font-size:12px;line-height:1.7}
 .portal-links{margin-top:20px;padding-top:18px;border-top:1px solid #e5e7eb;text-align:center;font-size:12px;color:#6b7280}
-.portal-links a{color:#4f46e5;text-decoration:none;margin:0 6px;display:inline-block;padding:4px 0}
-.portal-links a:hover{text-decoration:underline}
+.portal-links a{color:#4f46e5;text-decoration:none;margin:0 6px}
 
-.topbar{background:#4f46e5;color:white;padding:13px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
-.topbar h1{font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px}
-.topbar .info{display:flex;gap:12px;align-items:center;font-size:12px;flex-wrap:wrap}
-.topbar button{background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.3);padding:6px 12px;border-radius:7px;cursor:pointer;font-family:inherit;font-size:12px}
-.container{max-width:1400px;margin:0 auto;padding:20px}
+/* ===== DASHBOARD LAYOUT ===== */
+.topbar{background:#4f46e5;color:white;padding:11px 22px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:40}
+.topbar h1{font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px}
+.topbar .info{display:flex;gap:10px;align-items:center;font-size:12px;flex-wrap:wrap}
+.topbar button{background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.3);padding:6px 11px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:12px}
+.topbar .menu-toggle{display:none;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:5px 9px;font-size:16px;cursor:pointer;color:white}
 
-.welcome-banner{background:white;padding:20px 24px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.05);margin-bottom:16px}
-.welcome-banner h2{color:#4f46e5;font-size:19px;margin-bottom:4px}
-.welcome-banner p{color:#6b7280;font-size:13px;line-height:1.7}
-.welcome-banner .meta{display:flex;gap:14px;margin-top:8px;font-size:12px;color:#6b7280;flex-wrap:wrap}
-.welcome-banner .meta span{background:#f3f4f6;padding:3px 10px;border-radius:12px}
+.layout{display:flex;min-height:calc(100vh - 46px)}
+.sidebar{width:230px;background:white;box-shadow:-2px 0 10px rgba(0,0,0,.04);padding:16px 10px;display:flex;flex-direction:column;gap:3px;flex-shrink:0;overflow-y:auto}
+.sidebar .section-label{font-size:10px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;padding:10px 12px 6px;margin-top:4px}
+.sidebar .section-label:first-child{margin-top:0}
+.nav-item{background:transparent;border:none;padding:10px 13px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:13.5px;color:#4b5563;text-align:right;display:flex;align-items:center;gap:9px;transition:all .15s;font-weight:500}
+.nav-item:hover{background:#f3f4f6;color:#111827}
+.nav-item.active{background:#4f46e5;color:white;font-weight:600;box-shadow:0 2px 6px rgba(79,70,229,.3)}
+.nav-item .icon{font-size:16px;width:20px;text-align:center;flex-shrink:0}
 
-.tabs{display:flex;gap:4px;background:white;padding:5px;border-radius:11px;margin-bottom:16px;overflow-x:auto;box-shadow:0 2px 8px rgba(0,0,0,.04)}
-.tab{padding:9px 14px;background:transparent;border:none;border-radius:7px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:500;color:#6b7280;white-space:nowrap;transition:all .15s}
-.tab:hover{background:#f3f4f6}
-.tab.active{background:#4f46e5;color:white}
+.main-content{flex:1;padding:20px;overflow-x:hidden;min-width:0}
 
-.card{background:white;border-radius:11px;box-shadow:0 2px 8px rgba(0,0,0,.04);padding:18px;margin-bottom:12px}
+/* ===== WELCOME ===== */
+.welcome-banner{background:linear-gradient(135deg,#eef2ff 0%,#e0e7ff 100%);padding:18px 22px;border-radius:12px;margin-bottom:16px;border:1px solid #c7d2fe}
+.welcome-banner h2{color:#4338ca;font-size:18px;margin-bottom:4px}
+.welcome-banner p{color:#4b5563;font-size:13px;line-height:1.6}
+.welcome-banner .meta{display:flex;gap:10px;margin-top:8px;font-size:11px;flex-wrap:wrap}
+.welcome-banner .meta span{background:white;padding:3px 10px;border-radius:10px;color:#4338ca;font-weight:500}
+
+/* ===== CARDS ===== */
+.card{background:white;border-radius:11px;box-shadow:0 1px 4px rgba(0,0,0,.04);padding:18px;margin-bottom:12px}
 .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px}
 .card-header h3{font-size:15px;color:#111827;display:flex;align-items:center;gap:7px}
-.toolbar{display:flex;gap:7px;flex-wrap:wrap}
+.toolbar{display:flex;gap:6px;flex-wrap:wrap}
 
-.filter-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:12px;align-items:flex-end}
-.filter-bar .field{min-width:0}
-.filter-bar label{display:block;margin-bottom:4px;font-size:12px;color:#6b7280;font-weight:500}
-.filter-bar select,.filter-bar input{width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-family:inherit;font-size:13px;background:white}
+.page-title{font-size:20px;color:#111827;margin-bottom:14px;display:flex;align-items:center;gap:9px}
+.page-subtitle{color:#6b7280;font-size:13px;margin-bottom:14px;line-height:1.6}
 
+/* ===== FILTERS ===== */
+.filter-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:9px;margin-bottom:12px;align-items:flex-end}
+.filter-bar label{display:block;margin-bottom:4px;font-size:11px;color:#6b7280;font-weight:500}
+.filter-bar select,.filter-bar input{width:100%;padding:7px 10px;border:1px solid #d1d5db;border-radius:7px;font-family:inherit;font-size:13px;background:white}
+
+/* ===== TABLES ===== */
 .table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;min-width:900px}
-th{background:#f9fafb;padding:10px 11px;text-align:right;font-weight:600;font-size:11px;color:#374151;border-bottom:1px solid #e5e7eb;white-space:nowrap}
+table{width:100%;border-collapse:collapse;min-width:700px}
+th{background:#f9fafb;padding:9px 10px;text-align:right;font-weight:600;font-size:11px;color:#374151;border-bottom:1px solid #e5e7eb;white-space:nowrap}
 th small{font-weight:400;color:#6b7280}
-td{padding:9px 11px;border-bottom:1px solid #f3f4f6;font-size:12px;vertical-align:middle}
+td{padding:8px 10px;border-bottom:1px solid #f3f4f6;font-size:12px;vertical-align:middle}
 tr:hover td{background:#fafbfc}
-.empty-state{text-align:center;padding:40px 20px;color:#9ca3af}
-.empty-state h4{font-size:15px;margin-bottom:6px;color:#6b7280}
+.empty-state{text-align:center;padding:38px 20px;color:#9ca3af}
+.empty-state h4{font-size:14px;margin-bottom:5px;color:#6b7280}
+.empty-state p{font-size:12px}
 .student-name{font-weight:600;color:#111827}
 
-.grade-chip{display:inline-flex;align-items:center;justify-content:center;min-width:36px;padding:3px 7px;border-radius:6px;font-weight:600;font-size:11px}
+.grade-chip{display:inline-flex;align-items:center;justify-content:center;min-width:34px;padding:3px 7px;border-radius:5px;font-weight:600;font-size:11px}
 .grade-excellent{background:#dcfce7;color:#166534}
 .grade-good{background:#dbeafe;color:#1e40af}
 .grade-average{background:#fef3c7;color:#92400e}
 .grade-poor{background:#fee2e2;color:#991b1b}
 .grade-empty{background:#f3f4f6;color:#9ca3af}
-
-.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;background:#eef2ff;color:#4338ca}
+.pill{display:inline-block;padding:2px 8px;border-radius:9px;font-size:10px;font-weight:500;background:#eef2ff;color:#4338ca}
 .pill-gray{background:#f3f4f6;color:#6b7280}
+.pill-green{background:#dcfce7;color:#166534}
+.pill-red{background:#fee2e2;color:#991b1b}
+.pill-yellow{background:#fef3c7;color:#92400e}
+.actions{display:flex;gap:3px}
 
-.actions{display:flex;gap:4px}
-.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
-.modal{background:white;border-radius:14px;max-width:720px;width:100%;max-height:92vh;overflow-y:auto}
+/* ===== MODALS ===== */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:200;padding:18px}
+.modal{background:white;border-radius:13px;max-width:720px;width:100%;max-height:92vh;overflow-y:auto}
 .modal-lg{max-width:880px}
 .modal-sm{max-width:460px}
-.modal-header{padding:16px 22px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:white;z-index:1}
-.modal-header h3{font-size:16px;color:#111827}
+.modal-header{padding:14px 20px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:white;z-index:1}
+.modal-header h3{font-size:15px;color:#111827}
 .modal-header .close{background:transparent;font-size:22px;color:#6b7280;cursor:pointer;padding:0;border:none;line-height:1}
-.modal-body{padding:20px 22px}
-.modal-footer{padding:14px 22px;border-top:1px solid #e5e7eb;display:flex;gap:9px;justify-content:flex-end;position:sticky;bottom:0;background:white}
+.modal-body{padding:18px 20px}
+.modal-footer{padding:12px 20px;border-top:1px solid #e5e7eb;display:flex;gap:8px;justify-content:flex-end;position:sticky;bottom:0;background:white}
 
-.section-title{font-size:12px;font-weight:600;color:#4f46e5;text-transform:uppercase;letter-spacing:.05em;margin:16px 0 9px;padding-bottom:5px;border-bottom:1px solid #e5e7eb}
+.section-title{font-size:11px;font-weight:600;color:#4f46e5;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 8px;padding-bottom:4px;border-bottom:1px solid #e5e7eb}
 .section-title:first-child{margin-top:0}
 
-.notes-area{background:#f9fafb;border-radius:9px;padding:12px;margin-top:4px}
-.notes-list{margin-bottom:8px;display:flex;flex-direction:column;gap:5px;max-height:160px;overflow-y:auto}
-.note-item{display:flex;justify-content:space-between;align-items:flex-start;padding:7px 9px;background:white;border-radius:5px;font-size:12px;gap:7px;line-height:1.5}
+/* ===== NOTES ===== */
+.notes-area{background:#f9fafb;border-radius:8px;padding:11px;margin-top:4px}
+.notes-list{margin-bottom:7px;display:flex;flex-direction:column;gap:5px;max-height:150px;overflow-y:auto}
+.note-item{display:flex;justify-content:space-between;align-items:flex-start;padding:7px 9px;background:white;border-radius:5px;font-size:12px;gap:6px;line-height:1.5}
 .note-item.positive{border-right:3px solid #10b981}
 .note-item.negative{border-right:3px solid #ef4444}
 .note-remove{background:none;border:none;color:#9ca3af;cursor:pointer;font-size:14px;padding:0 3px}
 .note-remove:hover{color:#ef4444}
-.note-input-row{display:flex;gap:6px}
+.note-input-row{display:flex;gap:5px}
 .note-input-row input{flex:1;padding:7px 9px;border:1px solid #d1d5db;border-radius:5px;font-family:inherit;font-size:12px;background:white}
-.note-input-row select{width:100px;padding:7px 9px;border:1px solid #d1d5db;border-radius:5px;font-family:inherit;font-size:12px;background:white}
+.note-input-row select{width:95px;padding:7px 9px;border:1px solid #d1d5db;border-radius:5px;font-family:inherit;font-size:12px;background:white}
 
-.import-zone{border:2px dashed #c7d2fe;background:#f5f3ff;border-radius:11px;padding:24px 18px;text-align:center;margin-bottom:14px;cursor:pointer}
-.import-zone .import-icon{font-size:36px;margin-bottom:8px}
-.import-zone h4{font-size:15px;color:#4f46e5;margin-bottom:5px}
-.import-zone p{color:#6b7280;font-size:12px;margin-bottom:12px;line-height:1.6}
+/* ===== IMPORT ZONE ===== */
+.import-zone{border:2px dashed #c7d2fe;background:#f5f3ff;border-radius:10px;padding:22px 16px;text-align:center;margin-bottom:12px;cursor:pointer}
+.import-zone .import-icon{font-size:32px;margin-bottom:7px}
+.import-zone h4{font-size:14px;color:#4f46e5;margin-bottom:4px}
+.import-zone p{color:#6b7280;font-size:12px;line-height:1.6}
 .import-zone input[type=file]{display:none}
 
-.templates-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
-.template-card{background:#f9fafb;border:1px solid #e5e7eb;border-radius:9px;padding:14px}
-.template-card h4{font-size:14px;color:#111827;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center}
-.template-card .template-body{font-size:12px;color:#374151;line-height:1.6;margin-bottom:10px;max-height:80px;overflow:hidden;white-space:pre-wrap}
-.template-card .actions{justify-content:flex-end}
+/* ===== TEMPLATES ===== */
+.templates-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.template-card{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:13px}
+.template-card h4{font-size:13px;color:#111827;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.template-card .template-body{font-size:11px;color:#374151;line-height:1.6;margin-bottom:9px;max-height:70px;overflow:hidden;white-space:pre-wrap}
 
-.placeholder-hint{background:#eef2ff;border:1px solid #c7d2fe;color:#3730a3;padding:10px 13px;border-radius:7px;font-size:11px;margin-top:5px;line-height:1.7}
+.placeholder-hint{background:#eef2ff;border:1px solid #c7d2fe;color:#3730a3;padding:9px 12px;border-radius:6px;font-size:11px;margin-top:4px;line-height:1.7}
 .placeholder-hint code{background:rgba(255,255,255,.7);padding:1px 5px;border-radius:3px;font-family:monospace;font-size:10px}
 
+/* ===== STATS ===== */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:9px;margin-bottom:12px}
+.stat-tile{background:white;border-radius:8px;padding:11px 13px;border:1px solid #e5e7eb}
+.stat-tile .label{font-size:10px;color:#6b7280;margin-bottom:3px}
+.stat-tile .value{font-size:18px;font-weight:700;color:#4f46e5}
+
+/* ===== GRADE BLOCKS ===== */
+.grade-block{background:white;border:1px solid #e5e7eb;border-radius:9px;padding:13px;margin-bottom:10px}
+.grade-block-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;flex-wrap:wrap;gap:7px}
+.grade-block-header h4{font-size:13px;color:#111827}
+.sections-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.section-chip{background:#eef2ff;color:#4338ca;padding:3px 9px;border-radius:9px;font-size:11px;display:inline-flex;align-items:center;gap:4px}
+.section-chip .remove-x{cursor:pointer;color:#6366f1;font-size:14px;line-height:1}
+.section-chip .remove-x:hover{color:#dc2626}
+.assessments-list{display:flex;flex-direction:column;gap:4px;margin-top:7px}
+.assessment-row{display:flex;justify-content:space-between;align-items:center;background:#f9fafb;padding:6px 9px;border-radius:5px;font-size:11px}
+.assessment-row .name{font-weight:500;color:#111827}
+.assessment-row .max{color:#6b7280;font-size:10px;margin-right:6px}
+.inline-input{display:flex;gap:4px;margin-top:7px}
+.inline-input input{flex:1;padding:6px 8px;border:1px solid #d1d5db;border-radius:5px;font-family:inherit;font-size:11px}
+.inline-input input.small{max-width:80px}
+
+/* ===== SETTINGS SUB-TABS ===== */
+.settings-tabs{display:flex;gap:4px;background:#f3f4f6;padding:4px;border-radius:8px;margin-bottom:12px;overflow-x:auto}
+.settings-tab{padding:7px 13px;background:transparent;border:none;border-radius:5px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:500;color:#6b7280;white-space:nowrap}
+.settings-tab.active{background:white;color:#4f46e5;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+/* ===== ATTENDANCE ===== */
+.attendance-grid{display:grid;gap:8px}
+.attendance-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#f9fafb;border-radius:7px;gap:10px;flex-wrap:wrap}
+.attendance-row .stu-info{flex:1;min-width:140px;display:flex;align-items:center;gap:10px}
+.attendance-row .stu-info .name{font-weight:600;color:#111827;font-size:13px}
+.attendance-row .stu-info .sid{font-size:10px;color:#6b7280}
+.attendance-buttons{display:flex;gap:4px;flex-wrap:wrap}
+.att-btn{padding:5px 11px;border:1.5px solid #e5e7eb;background:white;border-radius:6px;cursor:pointer;font-family:inherit;font-size:11px;font-weight:500;color:#6b7280;transition:all .12s}
+.att-btn:hover{border-color:#9ca3af}
+.att-btn.selected.present{background:#10b981;border-color:#10b981;color:white}
+.att-btn.selected.absent{background:#ef4444;border-color:#ef4444;color:white}
+.att-btn.selected.late{background:#f59e0b;border-color:#f59e0b;color:white}
+.att-btn.selected.excused{background:#3b82f6;border-color:#3b82f6;color:white}
+
+/* ===== EVALUATION ===== */
+.eval-axis{background:white;border:1px solid #e5e7eb;border-radius:9px;padding:14px;margin-bottom:10px}
+.eval-axis-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.eval-axis-header h4{font-size:14px;color:#111827;display:flex;align-items:center;gap:6px}
+.eval-axis-header .axis-num{background:#4f46e5;color:white;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.eval-rank-buttons{display:flex;gap:5px;flex-wrap:wrap}
+.rank-btn{width:38px;height:38px;border:2px solid #e5e7eb;background:white;border-radius:8px;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;color:#6b7280;transition:all .12s}
+.rank-btn:hover{border-color:#9ca3af;transform:translateY(-1px)}
+.rank-btn.selected{background:#4f46e5;border-color:#4f46e5;color:white;transform:scale(1.1)}
+.rank-btn.rank-1.selected{background:#10b981;border-color:#10b981}
+.rank-btn.rank-2.selected{background:#22c55e;border-color:#22c55e}
+.rank-btn.rank-3.selected{background:#eab308;border-color:#eab308}
+.rank-btn.rank-4.selected{background:#f97316;border-color:#f97316}
+.rank-btn.rank-5.selected{background:#ef4444;border-color:#ef4444}
+.eval-rank-preview{margin-top:10px;padding:9px 11px;background:#f0f9ff;border-right:3px solid #0ea5e9;border-radius:6px;font-size:12px;color:#075985;line-height:1.6;min-height:32px;display:flex;align-items:center}
+.eval-rank-preview.empty{color:#9ca3af;font-style:italic}
+
+.rubric-axis{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px;margin-bottom:9px}
+.rubric-axis-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:7px}
+.rubric-axis-header input{flex:1;padding:7px 9px;border:1px solid #d1d5db;border-radius:5px;font-family:inherit;font-size:13px;font-weight:600;background:white}
+.rubric-ranks{display:flex;flex-direction:column;gap:5px}
+.rubric-rank-row{display:flex;align-items:center;gap:6px}
+.rubric-rank-row .num{background:#e5e7eb;color:#4b5563;width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.rubric-rank-row input{flex:1;padding:6px 9px;border:1px solid #d1d5db;border-radius:5px;font-family:inherit;font-size:12px;background:white}
+
+/* ===== SEND FORM ===== */
 .send-form{max-width:640px}
 .send-form textarea{min-height:120px;resize:vertical}
 
-.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px}
-.stat-tile{background:white;border-radius:9px;padding:12px 14px;border:1px solid #e5e7eb}
-.stat-tile .label{font-size:11px;color:#6b7280;margin-bottom:3px}
-.stat-tile .value{font-size:20px;font-weight:700;color:#4f46e5}
-
-.grade-block{background:white;border:1px solid #e5e7eb;border-radius:10px;padding:14px;margin-bottom:12px}
-.grade-block-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px}
-.grade-block-header h4{font-size:14px;color:#111827}
-.sections-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.section-chip{background:#eef2ff;color:#4338ca;padding:3px 10px;border-radius:10px;font-size:11px;display:inline-flex;align-items:center;gap:5px}
-.section-chip .remove-x{cursor:pointer;color:#6366f1;font-size:14px;line-height:1}
-.section-chip .remove-x:hover{color:#dc2626}
-.assessments-list{display:flex;flex-direction:column;gap:5px;margin-top:8px}
-.assessment-row{display:flex;justify-content:space-between;align-items:center;background:#f9fafb;padding:7px 10px;border-radius:6px;font-size:12px}
-.assessment-row .name{font-weight:500;color:#111827}
-.assessment-row .max{color:#6b7280;font-size:11px;margin-right:8px}
-.inline-input{display:flex;gap:5px;margin-top:8px}
-.inline-input input{flex:1;padding:7px 9px;border:1px solid #d1d5db;border-radius:5px;font-family:inherit;font-size:12px}
-.inline-input input.small{max-width:90px}
-
-.settings-tabs{display:flex;gap:4px;background:#f3f4f6;padding:4px;border-radius:9px;margin-bottom:14px;overflow-x:auto}
-.settings-tab{padding:8px 14px;background:transparent;border:none;border-radius:6px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:500;color:#6b7280;white-space:nowrap}
-.settings-tab.active{background:white;color:#4f46e5;box-shadow:0 1px 3px rgba(0,0,0,.08)}
-
-@media (max-width:640px){
+/* ===== RESPONSIVE ===== */
+@media (max-width:768px){
+  .topbar .menu-toggle{display:inline-flex;align-items:center}
+  .layout{flex-direction:column}
+  .sidebar{position:fixed;top:46px;right:0;height:calc(100vh - 46px);z-index:50;transform:translateX(100%);transition:transform .2s;width:260px}
+  .sidebar.open{transform:translateX(0);box-shadow:-6px 0 20px rgba(0,0,0,.15)}
+  .main-content{padding:14px}
   .form-row,.form-row-3{grid-template-columns:1fr}
-  .topbar{padding:10px 12px}
-  .container{padding:12px}
 }
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45;display:none}
+.overlay.open{display:block}
 </style>
 </head>
 <body>
@@ -180,22 +250,11 @@ tr:hover td{background:#fafbfc}
       <p>Stutracker · دخول المعلم</p>
     </div>
     <div id="loginError" class="error hidden"></div>
-    <div class="form-group">
-      <label>رمز المدرسة</label>
-      <input type="text" id="loginSchoolCode" placeholder="مثل: Khalili4314" autocomplete="organization">
-    </div>
-    <div class="form-group">
-      <label>اسم المستخدم</label>
-      <input type="text" id="loginUsername" autocomplete="username">
-    </div>
-    <div class="form-group">
-      <label>كلمة المرور</label>
-      <input type="password" id="loginPassword" autocomplete="current-password">
-    </div>
+    <div class="form-group"><label>رمز المدرسة</label><input type="text" id="loginSchoolCode" placeholder="مثل: Khalili4314" autocomplete="organization"></div>
+    <div class="form-group"><label>اسم المستخدم</label><input type="text" id="loginUsername" autocomplete="username"></div>
+    <div class="form-group"><label>كلمة المرور</label><input type="password" id="loginPassword" autocomplete="current-password"></div>
     <button class="btn btn-primary btn-full" onclick="doLogin()" id="loginBtn">دخول</button>
-    <div style="text-align:center;margin-top:14px">
-      <span class="link" onclick="openRecovery()">🔑 نسيت كلمة المرور؟</span>
-    </div>
+    <div style="text-align:center;margin-top:14px"><span class="link" onclick="openRecovery()">🔑 نسيت كلمة المرور؟</span></div>
     <div class="portal-links">
       <a href="/school-admin">🏫 مدير المدرسة</a>
       <a href="/admin">🏢 مدير النظام</a>
@@ -203,51 +262,24 @@ tr:hover td{background:#fafbfc}
   </div>
 </div>
 
-<!-- ============ PASSWORD RECOVERY ============ -->
+<!-- ============ RECOVERY ============ -->
 <div id="recoveryScreen" class="login-bg hidden">
   <div class="login-card">
-    <div class="logo">
-      <div class="icon">🔑</div>
-      <h1>استرجاع كلمة المرور</h1>
-      <p id="recoveryStep1Label">أدخل بيانات حسابك</p>
-    </div>
+    <div class="logo"><div class="icon">🔑</div><h1>استرجاع كلمة المرور</h1></div>
     <div id="recoveryError" class="error hidden"></div>
     <div id="recoverySuccess" class="success hidden"></div>
-
-    <!-- Step 1: lookup -->
     <div id="recoveryStep1">
-      <div class="form-group">
-        <label>رمز المدرسة</label>
-        <input type="text" id="recSchoolCode" placeholder="مثل: Khalili4314">
-      </div>
-      <div class="form-group">
-        <label>اسم المستخدم</label>
-        <input type="text" id="recUsername">
-      </div>
+      <div class="form-group"><label>رمز المدرسة</label><input type="text" id="recSchoolCode"></div>
+      <div class="form-group"><label>اسم المستخدم</label><input type="text" id="recUsername"></div>
       <button class="btn btn-primary btn-full" onclick="recoveryLookup()">متابعة ←</button>
     </div>
-
-    <!-- Step 2: answer + new password -->
     <div id="recoveryStep2" class="hidden">
-      <div class="info-box">
-        <b>المدرسة:</b> <span id="recSchoolName"></span><br>
-        <b>سؤال الأمان:</b><br>
-        <span id="recQuestion" style="font-weight:600;color:#4f46e5;display:block;margin-top:4px"></span>
-      </div>
-      <div class="form-group">
-        <label>الإجابة</label>
-        <input type="text" id="recAnswer">
-      </div>
-      <div class="form-group">
-        <label>كلمة المرور الجديدة</label>
-        <input type="password" id="recNewPassword" autocomplete="new-password">
-      </div>
-      <button class="btn btn-success btn-full" onclick="recoveryReset()">🔒 تعيين كلمة المرور الجديدة</button>
+      <div class="info-box"><b>المدرسة:</b> <span id="recSchoolName"></span><br><b>سؤال الأمان:</b><br><span id="recQuestion" style="font-weight:600;color:#4f46e5;display:block;margin-top:4px"></span></div>
+      <div class="form-group"><label>الإجابة</label><input type="text" id="recAnswer"></div>
+      <div class="form-group"><label>كلمة المرور الجديدة</label><input type="password" id="recNewPassword"></div>
+      <button class="btn btn-success btn-full" onclick="recoveryReset()">🔒 تعيين كلمة المرور</button>
     </div>
-
-    <div style="text-align:center;margin-top:14px">
-      <span class="link" onclick="closeRecovery()">← العودة لتسجيل الدخول</span>
-    </div>
+    <div style="text-align:center;margin-top:14px"><span class="link" onclick="closeRecovery()">← العودة لتسجيل الدخول</span></div>
   </div>
 </div>
 
@@ -256,264 +288,329 @@ tr:hover td{background:#fafbfc}
   <div class="topbar">
     <h1>🎓 <span id="tSchoolName"></span></h1>
     <div class="info">
+      <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
       <span>👤 <b id="tName"></b></span>
       <button onclick="doLogout()">خروج</button>
     </div>
   </div>
-  <div class="container">
-    <div class="welcome-banner">
-      <h2>مرحبا أستاذ <span id="tGreeting"></span> 👋</h2>
-      <p>أنت مسجل دخول إلى نظام التقويم الذكي الخاص بـ <b id="tSchoolBanner"></b>.</p>
-      <div class="meta" id="teacherMeta"></div>
-    </div>
 
-    <div class="tabs">
-      <button class="tab active" data-tab="grades" onclick="switchTab('grades')">📊 سجل الدرجات</button>
-      <button class="tab" data-tab="classes" onclick="switchTab('classes')">📚 الصفوف والشعب</button>
-      <button class="tab" data-tab="templates" onclick="switchTab('templates')">💬 قوالب الرسائل</button>
-      <button class="tab" data-tab="whatsapp" onclick="switchTab('whatsapp')">📱 إرسال عبر WhatsApp</button>
-      <button class="tab" data-tab="settings" onclick="switchTab('settings')">⚙️ الإعدادات</button>
-    </div>
+  <div class="overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <nav class="sidebar" id="sidebar">
+      <div class="section-label">الأكاديمي</div>
+      <button class="nav-item active" data-view="home" onclick="switchView('home')"><span class="icon">🏠</span>الرئيسية</button>
+      <button class="nav-item" data-view="classes" onclick="switchView('classes')"><span class="icon">📚</span>الصفوف والشعب</button>
+      <button class="nav-item" data-view="students" onclick="switchView('students')"><span class="icon">👥</span>الطلاب</button>
+      <button class="nav-item" data-view="grades" onclick="switchView('grades')"><span class="icon">📊</span>سجل الدرجات</button>
+      <button class="nav-item" data-view="attendance" onclick="switchView('attendance')"><span class="icon">📅</span>سجل الغياب</button>
+      <button class="nav-item" data-view="notes" onclick="switchView('notes')"><span class="icon">📝</span>سجل الملاحظات</button>
+      <button class="nav-item" data-view="evaluation" onclick="switchView('evaluation')"><span class="icon">⭐</span>التقييم الدوري</button>
 
-    <!-- =========== GRADES TAB =========== -->
-    <div id="tab-grades">
-      <div class="card" id="noGradesCard" style="display:none">
-        <div class="empty-state">
-          <h4>📚 لم تقم بإنشاء أي صف بعد</h4>
-          <p style="margin:10px 0">ابدأ بإنشاء صف من تبويب "الصفوف والشعب" لإضافة الطلاب وتسجيل درجاتهم</p>
-          <button class="btn btn-primary" onclick="switchTab('classes')">📚 الذهاب للصفوف والشعب</button>
+      <div class="section-label">التواصل</div>
+      <button class="nav-item" data-view="templates" onclick="switchView('templates')"><span class="icon">💬</span>قوالب الرسائل</button>
+      <button class="nav-item" data-view="whatsapp" onclick="switchView('whatsapp')"><span class="icon">📱</span>إرسال واتساب</button>
+
+      <div class="section-label">الإعدادات</div>
+      <button class="nav-item" data-view="settings" onclick="switchView('settings')"><span class="icon">⚙️</span>الإعدادات</button>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <!-- HOME -->
+      <div id="view-home">
+        <div class="welcome-banner">
+          <h2>مرحبا أستاذ <span id="tGreeting"></span> 👋</h2>
+          <p>أنت مسجل دخول إلى نظام التقويم الذكي الخاص بـ <b id="tSchoolBanner"></b>.</p>
+          <div class="meta" id="teacherMeta"></div>
+        </div>
+        <div class="stats-row" id="homeStats"></div>
+        <div class="card">
+          <div class="card-header"><h3>⚡ إجراءات سريعة</h3></div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px">
+            <button class="btn btn-primary" onclick="switchView('students')">👥 إدارة الطلاب</button>
+            <button class="btn btn-success" onclick="switchView('grades')">📊 إدخال الدرجات</button>
+            <button class="btn btn-info" onclick="switchView('attendance')">📅 تسجيل الغياب</button>
+            <button class="btn btn-warning" onclick="switchView('evaluation')">⭐ التقييم الدوري</button>
+            <button class="btn btn-secondary" onclick="switchView('notes')">📝 سجل الملاحظات</button>
+            <button class="btn btn-secondary" onclick="switchView('whatsapp')">📱 إرسال رسالة</button>
+          </div>
         </div>
       </div>
 
-      <div id="gradesContent">
-        <div class="card">
-          <div class="filter-bar">
-            <div class="field">
-              <label>الصف</label>
-              <select id="filterGrade" onchange="onFilterGradeChange()"></select>
-            </div>
-            <div class="field">
-              <label>الشعبة</label>
-              <select id="filterSection" onchange="renderStudents()"></select>
-            </div>
-            <div class="field">
-              <label>بحث</label>
-              <input type="text" id="filterSearch" placeholder="اسم الطالب أو الرقم..." oninput="renderStudents()">
-            </div>
-          </div>
-        </div>
-
-        <div class="stats-row" id="statsRow"></div>
-
+      <!-- CLASSES -->
+      <div id="view-classes" class="hidden">
+        <h2 class="page-title">📚 الصفوف والشعب</h2>
+        <p class="page-subtitle">إدارة الصفوف والشعب الخاصة بك. الصف يحتوي على شعب متعددة.</p>
         <div class="card">
           <div class="card-header">
-            <h3>📊 سجل الدرجات</h3>
+            <h3>قائمة الصفوف</h3>
+            <button class="btn btn-primary btn-sm" onclick="openGradeModal()">➕ إضافة صف جديد</button>
+          </div>
+          <div id="gradesBlocksContainer"></div>
+        </div>
+      </div>
+
+      <!-- STUDENTS -->
+      <div id="view-students" class="hidden">
+        <h2 class="page-title">👥 الطلاب</h2>
+        <p class="page-subtitle">إضافة الطلاب وإدارة بياناتهم. اضغط على طالب لعرض ملفه الكامل.</p>
+        <div class="card">
+          <div class="filter-bar">
+            <div><label>الصف</label><select id="stuFilterGrade" onchange="onStuFilterGradeChange()"></select></div>
+            <div><label>الشعبة</label><select id="stuFilterSection" onchange="renderStudentsList()"></select></div>
+            <div><label>بحث</label><input type="text" id="stuFilterSearch" placeholder="اسم أو رقم..." oninput="renderStudentsList()"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3>قائمة الطلاب <span class="pill pill-gray" id="stuCountBadge">0</span></h3>
             <div class="toolbar">
-              <button class="btn btn-success btn-sm" onclick="openImportModal()">📥 استيراد من Excel</button>
-              <button class="btn btn-info btn-sm" onclick="downloadTemplate()">📄 تنزيل قالب Excel</button>
-              <button class="btn btn-warning btn-sm" onclick="exportGrades()">📤 تصدير الدرجات</button>
+              <button class="btn btn-success btn-sm" onclick="openImportModal()">📥 استيراد Excel</button>
+              <button class="btn btn-info btn-sm" onclick="downloadTemplate()">📄 قالب Excel</button>
+              <button class="btn btn-warning btn-sm" onclick="exportStudents()">📤 تصدير</button>
               <button class="btn btn-primary btn-sm" onclick="openStudentModal()">➕ إضافة طالب</button>
             </div>
           </div>
-          <div class="table-wrap" id="studentsTableWrap"></div>
+          <div class="table-wrap" id="studentsListWrap"></div>
         </div>
       </div>
-    </div>
 
-    <!-- =========== CLASSES TAB =========== -->
-    <div id="tab-classes" class="hidden">
-      <div class="card">
-        <div class="card-header">
-          <h3>📚 إدارة الصفوف والشعب وأدوات التقويم</h3>
-          <button class="btn btn-primary btn-sm" onclick="openGradeModal()">➕ إضافة صف جديد</button>
-        </div>
-        <div class="info-box">
-          ℹ️ كل صف له <b>أدوات تقويم</b> خاصة به (مشتركة بين جميع شعبه). مثلاً: الصف الحادي عشر قد يكون له "تقويم مستمر 60 + اختبار نهائي 40"، بينما الصف العاشر قد يكون له توزيع مختلف.
-        </div>
-        <div id="gradesBlocksContainer"></div>
-      </div>
-    </div>
-
-    <!-- =========== TEMPLATES TAB =========== -->
-    <div id="tab-templates" class="hidden">
-      <div class="card">
-        <div class="card-header">
-          <h3>💬 قوالب الرسائل</h3>
-          <button class="btn btn-primary btn-sm" onclick="openTemplateModal()">➕ قالب جديد</button>
-        </div>
-        <div class="placeholder-hint">
-          💡 المتغيرات المتاحة:
-          <code>{{اسم_الطالب}}</code>
-          <code>{{الرقم_المدرسي}}</code>
-          <code>{{الجنسية}}</code>
-          <code>{{الصف}}</code>
-          <code>{{الشعبة}}</code>
-          <code>{{المجموع}}</code>
-          <code>{{الملاحظات_الإيجابية}}</code>
-          <code>{{الملاحظات_السلبية}}</code>
-          <code>{{اسم_المدرسة}}</code>
-          <code>{{اسم_المعلم}}</code>
-          <code>{{المادة}}</code>
-          <code>{{العام_الدراسي}}</code>
-          <code>{{الفصل_الدراسي}}</code>
-          <br>
-          <small>💡 لكل أداة تقويم متغير بصيغة: <code>{{درجة_اسم_الأداة}}</code> مثل <code>{{درجة_التقويم_المستمر}}</code></small>
-        </div>
-        <div id="templatesGrid" class="templates-grid"></div>
-      </div>
-    </div>
-
-    <!-- =========== WHATSAPP TAB =========== -->
-    <div id="tab-whatsapp" class="hidden">
-      <div class="card">
-        <div class="card-header"><h3>📱 إرسال رسالة واتساب</h3></div>
-        <div class="info-box">ℹ️ يمكنك اختيار طالب لتعبئة رقم ولي أمره تلقائياً، واختيار قالب لتعبئة نص الرسالة مع استبدال المتغيرات تلقائياً.</div>
-        <div id="sendResult"></div>
-        <div class="send-form">
-          <div class="form-row">
-            <div class="form-group">
-              <label>الصف</label>
-              <select id="sendFilterGrade" onchange="refreshSendStudents()"></select>
-            </div>
-            <div class="form-group">
-              <label>الشعبة</label>
-              <select id="sendFilterSection" onchange="refreshSendStudents()"></select>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>اختر طالباً (اختياري)</label>
-            <select id="sendStudent" onchange="onSendStudentChange()">
-              <option value="">-- بدون اختيار --</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>رقم ولي الأمر *</label>
-            <input type="text" id="sendTo" placeholder="+96899xxxxxxx">
-          </div>
-          <div class="form-group">
-            <label>اختر قالباً (اختياري)</label>
-            <select id="sendTemplate" onchange="onSendTemplateChange()">
-              <option value="">-- بدون قالب --</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>نص الرسالة *</label>
-            <textarea id="sendMessage" placeholder="اكتب الرسالة هنا..."></textarea>
-          </div>
-          <button class="btn btn-success" onclick="sendWhatsApp()" id="sendBtn">📤 إرسال الرسالة</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- =========== SETTINGS TAB =========== -->
-    <div id="tab-settings" class="hidden">
-      <div class="settings-tabs">
-        <button class="settings-tab active" data-sub="profile" onclick="switchSettingsSub('profile')">👤 الملف الشخصي</button>
-        <button class="settings-tab" data-sub="security" onclick="switchSettingsSub('security')">🔐 الأمان</button>
-      </div>
-
-      <!-- Profile sub-tab -->
-      <div id="settings-profile">
+      <!-- GRADES -->
+      <div id="view-grades" class="hidden">
+        <h2 class="page-title">📊 سجل الدرجات</h2>
+        <p class="page-subtitle">إدارة أدوات التقويم وإدخال درجات الطلاب. اختر الصف ثم الشعبة.</p>
         <div class="card">
-          <div class="card-header"><h3>👤 بياناتي الشخصية</h3></div>
-          <div id="profileMessage"></div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>الاسم الكامل</label>
-              <input type="text" id="profFullName">
-            </div>
-            <div class="form-group">
-              <label>اسم المستخدم (للدخول)</label>
-              <input type="text" id="profUsername" disabled style="background:#f3f4f6;color:#6b7280">
+          <div class="filter-bar">
+            <div><label>الصف</label><select id="grFilterGrade" onchange="onGrFilterGradeChange()"></select></div>
+            <div><label>الشعبة</label><select id="grFilterSection" onchange="renderGradesTable()"></select></div>
+            <div><label>بحث</label><input type="text" id="grFilterSearch" placeholder="اسم أو رقم..." oninput="renderGradesTable()"></div>
+          </div>
+        </div>
+        <div class="card" id="assessmentsManageCard">
+          <div class="card-header">
+            <h3>🔧 أدوات التقويم <span id="assessmentsForGradeLabel" style="font-weight:400;font-size:12px;color:#6b7280"></span></h3>
+          </div>
+          <div id="assessmentsManageBody"></div>
+        </div>
+        <div class="stats-row" id="gradesStatsRow"></div>
+        <div class="card">
+          <div class="card-header"><h3>📋 جدول الدرجات</h3></div>
+          <div class="table-wrap" id="gradesTableWrap"></div>
+        </div>
+      </div>
+
+      <!-- ATTENDANCE -->
+      <div id="view-attendance" class="hidden">
+        <h2 class="page-title">📅 سجل الغياب</h2>
+        <p class="page-subtitle">تسجيل حضور وغياب الطلاب يومياً. اختر الصف والشعبة والتاريخ.</p>
+        <div class="card">
+          <div class="filter-bar">
+            <div><label>الصف</label><select id="attFilterGrade" onchange="onAttFilterGradeChange()"></select></div>
+            <div><label>الشعبة</label><select id="attFilterSection" onchange="renderAttendance()"></select></div>
+            <div><label>التاريخ</label><input type="date" id="attDate" onchange="renderAttendance()"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3>الحضور والغياب</h3>
+            <div class="toolbar">
+              <button class="btn btn-success btn-sm" onclick="markAllAttendance('present')">✅ الجميع حاضرون</button>
+              <button class="btn btn-secondary btn-sm" onclick="clearAttendance()">🔄 إعادة تعيين</button>
             </div>
           </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>البريد الإلكتروني</label>
-              <input type="email" id="profEmail">
+          <div id="attendanceBody"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>📊 ملخص الغياب حسب الطالب</h3></div>
+          <div class="table-wrap" id="attendanceSummaryWrap"></div>
+        </div>
+      </div>
+
+      <!-- NOTES -->
+      <div id="view-notes" class="hidden">
+        <h2 class="page-title">📝 سجل الملاحظات</h2>
+        <p class="page-subtitle">تسجيل الملاحظات الإيجابية والسلبية لكل طالب مع التاريخ.</p>
+        <div class="card">
+          <div class="filter-bar">
+            <div><label>الصف</label><select id="noteFilterGrade" onchange="onNoteFilterGradeChange()"></select></div>
+            <div><label>الشعبة</label><select id="noteFilterSection" onchange="renderNotesStudents()"></select></div>
+            <div><label>اختر طالباً</label><select id="noteStudent" onchange="renderStudentNotes()"></select></div>
+          </div>
+        </div>
+        <div class="card" id="notesCard">
+          <div class="card-header">
+            <h3 id="notesCardTitle">الملاحظات</h3>
+            <button class="btn btn-primary btn-sm" onclick="openNoteModal()" id="addNoteBtn" disabled>➕ إضافة ملاحظة</button>
+          </div>
+          <div id="notesBody"></div>
+        </div>
+      </div>
+
+      <!-- EVALUATION -->
+      <div id="view-evaluation" class="hidden">
+        <h2 class="page-title">⭐ التقييم الدوري</h2>
+        <p class="page-subtitle">تقييم الطلاب على المحاور المحددة في الإعدادات (أسبوعي/شهري).</p>
+        <div id="evalNoRubric" class="hidden">
+          <div class="card">
+            <div class="warn-box">
+              ⚠️ <b>لم تقم بتحديد بنود التقييم بعد.</b><br>
+              لبدء التقييم الدوري، يجب أولاً إضافة محاور التقييم وبنودها من الإعدادات.
             </div>
-            <div class="form-group">
-              <label>رقم الهاتف</label>
-              <input type="text" id="profPhone">
+            <button class="btn btn-primary" onclick="switchView('settings');setTimeout(()=>switchSettingsSub('rubric'),50)">⚙️ الذهاب للإعدادات → بنود التقييم</button>
+          </div>
+        </div>
+        <div id="evalMain">
+          <div class="card">
+            <div class="filter-bar">
+              <div><label>الصف</label><select id="evalFilterGrade" onchange="onEvalFilterGradeChange()"></select></div>
+              <div><label>الشعبة</label><select id="evalFilterSection" onchange="renderEvalStudents()"></select></div>
+              <div><label>فترة التقييم</label><input type="text" id="evalPeriod" placeholder="مثل: الأسبوع 1 · سبتمبر 2025" oninput="renderEvalForm()"></div>
+              <div><label>اختر طالباً</label><select id="evalStudent" onchange="renderEvalForm()"></select></div>
             </div>
           </div>
-          <div class="section-title">📚 البيانات الأكاديمية</div>
-          <div class="form-row-3">
-            <div class="form-group">
-              <label>المادة / التخصص</label>
-              <input type="text" id="profSubject" placeholder="مثل: الكيمياء">
+          <div id="evalFormCard" class="hidden">
+            <div class="card">
+              <div class="card-header">
+                <h3 id="evalFormTitle">التقييم</h3>
+                <div class="toolbar">
+                  <button class="btn btn-secondary btn-sm" onclick="clearEvalForm()">🔄 مسح</button>
+                  <button class="btn btn-success btn-sm" onclick="saveEvaluation()">💾 حفظ التقييم</button>
+                </div>
+              </div>
+              <div id="evalFormBody"></div>
             </div>
-            <div class="form-group">
-              <label>العام الدراسي</label>
-              <input type="text" id="profAcademicYear" placeholder="مثل: 2025/2026">
+            <div class="card">
+              <div class="card-header"><h3>📜 سجل تقييمات الطالب</h3></div>
+              <div id="evalHistoryBody"></div>
             </div>
-            <div class="form-group">
-              <label>الفصل الدراسي</label>
-              <select id="profAcademicTerm">
-                <option value="">-- اختر --</option>
-                <option value="الفصل الأول">الفصل الأول</option>
-                <option value="الفصل الثاني">الفصل الثاني</option>
-                <option value="الفصل الصيفي">الفصل الصيفي</option>
+          </div>
+        </div>
+      </div>
+
+      <!-- TEMPLATES -->
+      <div id="view-templates" class="hidden">
+        <h2 class="page-title">💬 قوالب الرسائل</h2>
+        <div class="card">
+          <div class="card-header">
+            <h3>القوالب</h3>
+            <button class="btn btn-primary btn-sm" onclick="openTemplateModal()">➕ قالب جديد</button>
+          </div>
+          <div class="placeholder-hint" id="tplVariablesHintHome"></div>
+          <div id="templatesGrid" class="templates-grid" style="margin-top:10px"></div>
+        </div>
+      </div>
+
+      <!-- WHATSAPP -->
+      <div id="view-whatsapp" class="hidden">
+        <h2 class="page-title">📱 إرسال رسالة واتساب</h2>
+        <div class="card">
+          <div class="info-box">ℹ️ يمكنك اختيار طالب لتعبئة رقم ولي أمره تلقائياً، واختيار قالب لتعبئة نص الرسالة.</div>
+          <div id="sendResult"></div>
+          <div class="send-form">
+            <div class="form-row">
+              <div class="form-group"><label>الصف</label><select id="sendFilterGrade" onchange="refreshSendStudents()"></select></div>
+              <div class="form-group"><label>الشعبة</label><select id="sendFilterSection" onchange="refreshSendStudents()"></select></div>
+            </div>
+            <div class="form-group"><label>اختر طالباً (اختياري)</label><select id="sendStudent" onchange="onSendStudentChange()"><option value="">-- بدون اختيار --</option></select></div>
+            <div class="form-group"><label>رقم ولي الأمر *</label><input type="text" id="sendTo" placeholder="+96899xxxxxxx"></div>
+            <div class="form-group"><label>اختر قالباً (اختياري)</label><select id="sendTemplate" onchange="onSendTemplateChange()"><option value="">-- بدون قالب --</option></select></div>
+            <div class="form-group"><label>نص الرسالة *</label><textarea id="sendMessage" placeholder="اكتب الرسالة هنا..."></textarea></div>
+            <button class="btn btn-success" onclick="sendWhatsApp()" id="sendBtn">📤 إرسال الرسالة</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div id="view-settings" class="hidden">
+        <h2 class="page-title">⚙️ الإعدادات</h2>
+        <div class="settings-tabs">
+          <button class="settings-tab active" data-sub="profile" onclick="switchSettingsSub('profile')">👤 الملف الشخصي</button>
+          <button class="settings-tab" data-sub="security" onclick="switchSettingsSub('security')">🔐 الأمان</button>
+          <button class="settings-tab" data-sub="rubric" onclick="switchSettingsSub('rubric')">⭐ بنود التقييم</button>
+        </div>
+
+        <div id="settings-profile">
+          <div class="card">
+            <div class="card-header"><h3>👤 بياناتي الشخصية</h3></div>
+            <div id="profileMessage"></div>
+            <div class="form-row">
+              <div class="form-group"><label>الاسم الكامل</label><input type="text" id="profFullName"></div>
+              <div class="form-group"><label>اسم المستخدم</label><input type="text" id="profUsername" disabled style="background:#f3f4f6;color:#6b7280"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="profEmail"></div>
+              <div class="form-group"><label>رقم الهاتف</label><input type="text" id="profPhone"></div>
+            </div>
+            <div class="section-title">📚 البيانات الأكاديمية</div>
+            <div class="form-row-3">
+              <div class="form-group"><label>المادة/التخصص</label><input type="text" id="profSubject"></div>
+              <div class="form-group"><label>العام الدراسي</label><input type="text" id="profAcademicYear" placeholder="2025/2026"></div>
+              <div class="form-group"><label>الفصل الدراسي</label>
+                <select id="profAcademicTerm"><option value="">--</option><option>الفصل الأول</option><option>الفصل الثاني</option><option>الفصل الصيفي</option></select>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="saveProfile()">💾 حفظ البيانات</button>
+          </div>
+        </div>
+
+        <div id="settings-security" class="hidden">
+          <div class="card">
+            <div class="card-header"><h3>🔒 تغيير كلمة المرور</h3></div>
+            <div id="pwMessage"></div>
+            <div class="form-group"><label>كلمة المرور الحالية</label><input type="password" id="pwCurrent"></div>
+            <div class="form-row">
+              <div class="form-group"><label>كلمة المرور الجديدة</label><input type="password" id="pwNew"></div>
+              <div class="form-group"><label>تأكيد كلمة المرور</label><input type="password" id="pwConfirm"></div>
+            </div>
+            <button class="btn btn-primary" onclick="changePassword()">🔒 تغيير كلمة المرور</button>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>🛡️ سؤال الأمان</h3></div>
+            <div id="sqMessage"></div>
+            <div class="info-box">💡 يتيح لك استرجاع كلمة المرور عند نسيانها. <span id="currentSecQuestionInfo"></span></div>
+            <div class="form-group"><label>السؤال</label>
+              <select id="sqQuestion">
+                <option value="">-- اختر سؤالاً --</option>
+                <option>ما اسم أول مدرسة درست فيها؟</option>
+                <option>ما هي مدينتك الأصلية؟</option>
+                <option>ما اسم أول معلم أثر فيك؟</option>
+                <option>ما اسم أول حيوان أليف لديك؟</option>
+                <option>ما اسم والدتك بالكامل؟</option>
+                <option>ما كنيتك المفضلة؟</option>
               </select>
             </div>
+            <div class="form-group"><label>الإجابة</label><input type="text" id="sqAnswer"></div>
+            <button class="btn btn-primary" onclick="saveSecurityQuestion()">💾 حفظ السؤال</button>
           </div>
-          <button class="btn btn-primary" onclick="saveProfile()">💾 حفظ البيانات</button>
+        </div>
+
+        <div id="settings-rubric" class="hidden">
+          <div class="card">
+            <div class="card-header">
+              <h3>⭐ بنود التقييم الدوري</h3>
+              <button class="btn btn-primary btn-sm" onclick="addRubricAxis()">➕ إضافة محور</button>
+            </div>
+            <div class="info-box">
+              💡 عرّف <b>محاور التقييم</b> وبنودها. كل محور له 5 تقديرات من الأفضل (1) إلى الأضعف (5).<br>
+              المعتاد: 1=ممتاز · 2=جيد جداً · 3=جيد · 4=مقبول · 5=ضعيف
+            </div>
+            <div id="rubricMessage"></div>
+            <div id="rubricAxesBody"></div>
+            <div style="margin-top:12px;text-align:left">
+              <button class="btn btn-success" onclick="saveRubric()">💾 حفظ بنود التقييم</button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Security sub-tab -->
-      <div id="settings-security" class="hidden">
-        <div class="card">
-          <div class="card-header"><h3>🔒 تغيير كلمة المرور</h3></div>
-          <div id="pwMessage"></div>
-          <div class="form-group">
-            <label>كلمة المرور الحالية</label>
-            <input type="password" id="pwCurrent" autocomplete="current-password">
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>كلمة المرور الجديدة</label>
-              <input type="password" id="pwNew" autocomplete="new-password">
-            </div>
-            <div class="form-group">
-              <label>تأكيد كلمة المرور</label>
-              <input type="password" id="pwConfirm" autocomplete="new-password">
-            </div>
-          </div>
-          <button class="btn btn-primary" onclick="changePassword()">🔒 تغيير كلمة المرور</button>
-        </div>
-
-        <div class="card">
-          <div class="card-header"><h3>🛡️ سؤال الأمان (لاسترجاع كلمة المرور)</h3></div>
-          <div id="sqMessage"></div>
-          <div class="info-box">
-            💡 عند تعيين سؤال الأمان، يمكنك استرجاع كلمة مرورك بنفسك عند نسيانها.<br>
-            <span id="currentSecQuestionInfo"></span>
-          </div>
-          <div class="form-group">
-            <label>السؤال</label>
-            <select id="sqQuestion">
-              <option value="">-- اختر سؤالاً --</option>
-              <option value="ما اسم أول مدرسة درست فيها؟">ما اسم أول مدرسة درست فيها؟</option>
-              <option value="ما هي مدينتك الأصلية؟">ما هي مدينتك الأصلية؟</option>
-              <option value="ما اسم أول معلم أثر فيك؟">ما اسم أول معلم أثر فيك؟</option>
-              <option value="ما اسم أول حيوان أليف لديك؟">ما اسم أول حيوان أليف لديك؟</option>
-              <option value="ما اسم والدتك بالكامل؟">ما اسم والدتك بالكامل؟</option>
-              <option value="ما كنيتك المفضلة؟">ما كنيتك المفضلة؟</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>الإجابة</label>
-            <input type="text" id="sqAnswer" placeholder="الإجابة (غير حساسة لحالة الأحرف)">
-          </div>
-          <button class="btn btn-primary" onclick="saveSecurityQuestion()">💾 حفظ السؤال</button>
-        </div>
-      </div>
-    </div>
+    </main>
   </div>
 </div>
 
-<!-- ============ STUDENT MODAL ============ -->
+<!-- ============ MODALS ============ -->
+
+<!-- Student Modal -->
 <div id="studentModal" class="modal-backdrop hidden">
   <div class="modal modal-lg">
     <div class="modal-header">
@@ -524,72 +621,35 @@ tr:hover td{background:#fafbfc}
       <div id="studentError" class="error hidden"></div>
       <div class="section-title">بيانات الطالب</div>
       <div class="form-row">
-        <div class="form-group">
-          <label>اسم الطالب *</label>
-          <input type="text" id="sName">
-        </div>
-        <div class="form-group">
-          <label>الرقم المدرسي *</label>
-          <input type="text" id="sStudentId">
-        </div>
+        <div class="form-group"><label>اسم الطالب *</label><input type="text" id="sName"></div>
+        <div class="form-group"><label>الرقم المدرسي *</label><input type="text" id="sStudentId"></div>
       </div>
       <div class="form-row">
-        <div class="form-group">
-          <label>الجنسية</label>
-          <input type="text" id="sNationality" placeholder="عُماني">
-        </div>
-        <div class="form-group">
-          <label>رقم ولي الأمر (واتساب)</label>
-          <input type="text" id="sParentPhone" placeholder="+96899xxxxxxx">
-        </div>
+        <div class="form-group"><label>الجنسية</label><input type="text" id="sNationality" placeholder="عُماني"></div>
+        <div class="form-group"><label>رقم ولي الأمر</label><input type="text" id="sParentPhone"></div>
       </div>
       <div class="form-row">
-        <div class="form-group">
-          <label>الصف *</label>
-          <select id="sGrade" onchange="onStudentGradeChange()"></select>
-        </div>
-        <div class="form-group">
-          <label>الشعبة *</label>
-          <select id="sSection"></select>
-        </div>
-      </div>
-
-      <div class="section-title">الدرجات</div>
-      <div id="sScoresContainer"><p style="color:#9ca3af;font-size:12px">اختر الصف أولاً لعرض أدوات التقويم</p></div>
-
-      <div class="section-title">الملاحظات الإيجابية والسلبية</div>
-      <div class="notes-area">
-        <div class="notes-list" id="sNotesList"></div>
-        <div class="note-input-row">
-          <select id="sNoteType">
-            <option value="positive">✅ إيجابية</option>
-            <option value="negative">⚠️ سلبية</option>
-          </select>
-          <input type="text" id="sNoteText" placeholder="اكتب الملاحظة">
-          <button class="btn btn-secondary btn-sm" onclick="addNote()">➕</button>
-        </div>
+        <div class="form-group"><label>الصف *</label><select id="sGrade" onchange="onStudentGradeChange()"></select></div>
+        <div class="form-group"><label>الشعبة *</label><select id="sSection"></select></div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('studentModal')">إلغاء</button>
-      <button class="btn btn-primary" onclick="saveStudent()" id="saveStudentBtn">حفظ</button>
+      <button class="btn btn-primary" onclick="saveStudent()">حفظ</button>
     </div>
   </div>
 </div>
 
-<!-- ============ GRADE (CLASS) MODAL ============ -->
+<!-- Grade Modal -->
 <div id="gradeModal" class="modal-backdrop hidden">
-  <div class="modal">
+  <div class="modal modal-sm">
     <div class="modal-header">
-      <h3 id="gradeModalTitle">إضافة صف جديد</h3>
+      <h3 id="gradeModalTitle">إضافة صف</h3>
       <button class="close" onclick="closeModal('gradeModal')">×</button>
     </div>
     <div class="modal-body">
       <div id="gradeError" class="error hidden"></div>
-      <div class="form-group">
-        <label>اسم الصف *</label>
-        <input type="text" id="gName" placeholder="مثل: الصف الحادي عشر">
-      </div>
+      <div class="form-group"><label>اسم الصف *</label><input type="text" id="gName" placeholder="مثل: الصف الحادي عشر"></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('gradeModal')">إلغاء</button>
@@ -598,60 +658,38 @@ tr:hover td{background:#fafbfc}
   </div>
 </div>
 
-<!-- ============ IMPORT MODAL ============ -->
+<!-- Import Modal -->
 <div id="importModal" class="modal-backdrop hidden">
   <div class="modal">
-    <div class="modal-header">
-      <h3>📥 استيراد الطلاب من ملف Excel</h3>
-      <button class="close" onclick="closeModal('importModal')">×</button>
-    </div>
+    <div class="modal-header"><h3>📥 استيراد الطلاب من Excel</h3><button class="close" onclick="closeModal('importModal')">×</button></div>
     <div class="modal-body">
       <div id="importError" class="error hidden"></div>
       <div id="importSuccess" class="success hidden"></div>
       <div class="info-box">
-        <b>📋 الأعمدة المتوقعة في ملف Excel:</b><br>
-        • <code>اسم الطالب</code> (إلزامي)<br>
-        • <code>الرقم المدرسي</code> (إلزامي)<br>
-        • <code>الصف</code> (إلزامي — يتم إنشاؤه تلقائياً إن لم يكن موجوداً)<br>
-        • <code>الشعبة</code> (إلزامي — يتم إنشاؤها تلقائياً)<br>
-        • <code>الجنسية</code> (اختياري)<br>
-        • <code>رقم ولي الأمر</code> (اختياري)
+        <b>الأعمدة:</b> <code>اسم الطالب</code> · <code>الرقم المدرسي</code> · <code>الصف</code> · <code>الشعبة</code> · <code>الجنسية</code> · <code>رقم ولي الأمر</code>
       </div>
-      <div style="margin-bottom:12px">
-        <button class="btn btn-info btn-sm" onclick="downloadTemplate()">📄 تنزيل قالب Excel جاهز</button>
-      </div>
+      <div style="margin-bottom:12px"><button class="btn btn-info btn-sm" onclick="downloadTemplate()">📄 تنزيل قالب Excel</button></div>
       <div class="import-zone" onclick="document.getElementById('importFile').click()">
-        <div class="import-icon">📂</div>
-        <h4>اختر ملف Excel</h4>
-        <p>اضغط هنا لاختيار ملف .xlsx أو .xls</p>
+        <div class="import-icon">📂</div><h4>اختر ملف Excel</h4><p>اضغط هنا لاختيار .xlsx أو .xls</p>
         <input type="file" id="importFile" accept=".xlsx,.xls" onchange="previewImport(event)">
       </div>
       <div id="importPreview"></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('importModal')">إلغاء</button>
-      <button class="btn btn-success hidden" id="confirmImportBtn" onclick="confirmImport()">✅ تأكيد الاستيراد</button>
+      <button class="btn btn-success hidden" id="confirmImportBtn" onclick="confirmImport()">✅ تأكيد</button>
     </div>
   </div>
 </div>
 
-<!-- ============ TEMPLATE MODAL ============ -->
+<!-- Template Modal -->
 <div id="templateModal" class="modal-backdrop hidden">
   <div class="modal">
-    <div class="modal-header">
-      <h3 id="templateModalTitle">قالب جديد</h3>
-      <button class="close" onclick="closeModal('templateModal')">×</button>
-    </div>
+    <div class="modal-header"><h3 id="templateModalTitle">قالب جديد</h3><button class="close" onclick="closeModal('templateModal')">×</button></div>
     <div class="modal-body">
       <div id="templateError" class="error hidden"></div>
-      <div class="form-group">
-        <label>اسم القالب *</label>
-        <input type="text" id="tplName" placeholder="مثل: تقرير التقويم المستمر">
-      </div>
-      <div class="form-group">
-        <label>نص الرسالة *</label>
-        <textarea id="tplBody" rows="9" placeholder="السلام عليكم، ولي أمر الطالب/ة {{اسم_الطالب}}..."></textarea>
-      </div>
+      <div class="form-group"><label>اسم القالب *</label><input type="text" id="tplName"></div>
+      <div class="form-group"><label>نص الرسالة *</label><textarea id="tplBody" rows="8"></textarea></div>
       <div class="placeholder-hint" id="tplVariablesHint"></div>
     </div>
     <div class="modal-footer">
@@ -661,117 +699,104 @@ tr:hover td{background:#fafbfc}
   </div>
 </div>
 
-<script>
-// ============ STATE ============
-let teacherInfo = null;
-let teacherData = { profile: {}, grades: [], students: [], templates: [] };
-let editingStudentId = null;
-let editingTemplateId = null;
-let editingGradeId = null;
-let pendingImportRows = [];
-let studentNotesBuffer = [];
-let studentScoresBuffer = {};
+<!-- Note Modal -->
+<div id="noteModal" class="modal-backdrop hidden">
+  <div class="modal modal-sm">
+    <div class="modal-header"><h3>➕ إضافة ملاحظة</h3><button class="close" onclick="closeModal('noteModal')">×</button></div>
+    <div class="modal-body">
+      <div id="noteModalError" class="error hidden"></div>
+      <div class="info-box">الطالب: <b id="noteModalStudentName"></b></div>
+      <div class="form-row">
+        <div class="form-group"><label>النوع</label><select id="noteModalType"><option value="positive">✅ إيجابية</option><option value="negative">⚠️ سلبية</option></select></div>
+        <div class="form-group"><label>التاريخ</label><input type="date" id="noteModalDate"></div>
+      </div>
+      <div class="form-group"><label>نص الملاحظة *</label><textarea id="noteModalText" rows="3"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('noteModal')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveNote()">حفظ</button>
+    </div>
+  </div>
+</div>
 
-const uid = (p='s') => p + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+<script>
+// ========= STATE =========
+let teacherInfo = null;
+let teacherData = { profile:{}, grades:[], students:[], templates:[], attendance:{}, notes:{}, evaluations:[], rubric:[] };
+let editingStudentId = null, editingTemplateId = null, editingGradeId = null;
+let pendingImportRows = [];
+let evalBuffer = {};
+
+const uid = p => p + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
 const esc = s => String(s == null ? '' : s).replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
 const num = v => { const n = parseFloat(v); return isNaN(n) ? null : n; };
-const varKey = name => String(name || '').trim().replace(/\s+/g, '_');
+const varKey = n => String(n || '').trim().replace(/\s+/g, '_');
+const todayStr = () => new Date().toISOString().slice(0, 10);
+const ymd = d => d ? String(d).slice(0, 10) : '';
 
-// ============ AUTH ============
+// ========= AUTH =========
 async function doLogin() {
+  const err = document.getElementById('loginError'); err.classList.add('hidden');
   const school_code = document.getElementById('loginSchoolCode').value.trim();
   const username = document.getElementById('loginUsername').value.trim();
   const password = document.getElementById('loginPassword').value;
-  const errDiv = document.getElementById('loginError');
+  if (!school_code || !username || !password) { err.textContent = 'الرجاء تعبئة جميع الحقول'; err.classList.remove('hidden'); return; }
   const btn = document.getElementById('loginBtn');
-  errDiv.classList.add('hidden');
-  if (!school_code || !username || !password) {
-    errDiv.textContent = 'الرجاء تعبئة جميع الحقول';
-    errDiv.classList.remove('hidden'); return;
-  }
   btn.disabled = true; btn.textContent = 'جاري الدخول...';
   try {
-    const r = await fetch('/api/teacher/login', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ school_code, username, password })
-    });
+    const r = await fetch('/api/teacher/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ school_code, username, password }) });
     const data = await r.json();
     if (!r.ok) throw new Error(data.error);
     initDashboard(data.teacher);
-  } catch (e) {
-    errDiv.textContent = e.message; errDiv.classList.remove('hidden');
-  } finally { btn.disabled = false; btn.textContent = 'دخول'; }
+  } catch (e) { err.textContent = e.message; err.classList.remove('hidden'); }
+  finally { btn.disabled = false; btn.textContent = 'دخول'; }
 }
 
-async function doLogout() {
-  await fetch('/api/teacher/logout', { method: 'POST' });
-  location.reload();
-}
+async function doLogout() { await fetch('/api/teacher/logout', { method:'POST' }); location.reload(); }
 
 function openRecovery() {
   document.getElementById('loginScreen').classList.add('hidden');
   document.getElementById('recoveryScreen').classList.remove('hidden');
   document.getElementById('recoveryStep1').classList.remove('hidden');
   document.getElementById('recoveryStep2').classList.add('hidden');
-  document.getElementById('recoveryError').classList.add('hidden');
-  document.getElementById('recoverySuccess').classList.add('hidden');
 }
 function closeRecovery() {
   document.getElementById('recoveryScreen').classList.add('hidden');
   document.getElementById('loginScreen').classList.remove('hidden');
 }
-
 async function recoveryLookup() {
-  const err = document.getElementById('recoveryError');
-  err.classList.add('hidden');
-  const school_code = document.getElementById('recSchoolCode').value.trim();
-  const username = document.getElementById('recUsername').value.trim();
-  if (!school_code || !username) {
-    err.textContent = 'جميع الحقول مطلوبة'; err.classList.remove('hidden'); return;
-  }
+  const err = document.getElementById('recoveryError'); err.classList.add('hidden');
   try {
-    const r = await fetch('/api/recovery/lookup', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ school_code, username })
-    });
+    const r = await fetch('/api/recovery/lookup', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ school_code: document.getElementById('recSchoolCode').value.trim(), username: document.getElementById('recUsername').value.trim() }) });
     const data = await r.json();
     if (!r.ok) throw new Error(data.error);
     document.getElementById('recSchoolName').textContent = data.school_name;
     document.getElementById('recQuestion').textContent = data.question;
     document.getElementById('recoveryStep1').classList.add('hidden');
     document.getElementById('recoveryStep2').classList.remove('hidden');
-  } catch (e) {
-    err.textContent = e.message; err.classList.remove('hidden');
-  }
+  } catch (e) { err.textContent = e.message; err.classList.remove('hidden'); }
 }
-
 async function recoveryReset() {
-  const err = document.getElementById('recoveryError');
-  const ok = document.getElementById('recoverySuccess');
+  const err = document.getElementById('recoveryError'); const ok = document.getElementById('recoverySuccess');
   err.classList.add('hidden'); ok.classList.add('hidden');
-  const school_code = document.getElementById('recSchoolCode').value.trim();
-  const username = document.getElementById('recUsername').value.trim();
-  const answer = document.getElementById('recAnswer').value.trim();
-  const new_password = document.getElementById('recNewPassword').value;
-  if (!answer || !new_password) {
-    err.textContent = 'جميع الحقول مطلوبة'; err.classList.remove('hidden'); return;
-  }
   try {
-    const r = await fetch('/api/recovery/reset', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ school_code, username, answer, new_password })
-    });
+    const r = await fetch('/api/recovery/reset', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        school_code: document.getElementById('recSchoolCode').value.trim(),
+        username: document.getElementById('recUsername').value.trim(),
+        answer: document.getElementById('recAnswer').value.trim(),
+        new_password: document.getElementById('recNewPassword').value
+      }) });
     const data = await r.json();
     if (!r.ok) throw new Error(data.error);
-    ok.innerHTML = '✅ تم تغيير كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول.';
+    ok.innerHTML = '✅ تم تغيير كلمة المرور. يمكنك تسجيل الدخول الآن.';
     ok.classList.remove('hidden');
-    setTimeout(() => closeRecovery(), 2500);
-  } catch (e) {
-    err.textContent = e.message; err.classList.remove('hidden');
-  }
+    setTimeout(closeRecovery, 2500);
+  } catch (e) { err.textContent = e.message; err.classList.remove('hidden'); }
 }
 
-// ============ INIT ============
+// ========= INIT =========
 async function initDashboard(teacher) {
   teacherInfo = teacher;
   document.getElementById('loginScreen').classList.add('hidden');
@@ -779,166 +804,194 @@ async function initDashboard(teacher) {
   document.getElementById('dashboard').classList.remove('hidden');
   document.getElementById('tSchoolName').textContent = teacher.school.name;
   document.getElementById('tSchoolBanner').textContent = teacher.school.name;
-  const displayName = teacher.full_name || teacher.username;
-  document.getElementById('tName').textContent = displayName;
-  document.getElementById('tGreeting').textContent = displayName;
-  renderTeacherMeta();
-  await loadTeacherData();
+  const disp = teacher.full_name || teacher.username;
+  document.getElementById('tName').textContent = disp;
+  document.getElementById('tGreeting').textContent = disp;
+  renderMeta();
+  await loadData();
   loadProfileForm();
+  document.getElementById('attDate').value = todayStr();
+  document.getElementById('noteModalDate').value = todayStr();
 }
 
-function renderTeacherMeta() {
-  const meta = document.getElementById('teacherMeta');
+function renderMeta() {
+  const m = document.getElementById('teacherMeta');
   const parts = [];
   if (teacherInfo.subject) parts.push(`📘 ${esc(teacherInfo.subject)}`);
   if (teacherInfo.academic_year) parts.push(`📅 ${esc(teacherInfo.academic_year)}`);
   if (teacherInfo.academic_term) parts.push(`📖 ${esc(teacherInfo.academic_term)}`);
-  meta.innerHTML = parts.map(p => `<span>${p}</span>`).join('');
+  m.innerHTML = parts.map(p => `<span>${p}</span>`).join('');
 }
 
-async function loadTeacherData() {
+async function loadData() {
   try {
-    const r = await fetch('/api/teacher/data');
-    const payload = await r.json();
-    teacherData = payload.data || {};
+    const r = await fetch('/api/teacher/data'); const p = await r.json();
+    teacherData = p.data || {};
     if (!teacherData.profile) teacherData.profile = {};
     if (!Array.isArray(teacherData.grades)) teacherData.grades = [];
     if (!Array.isArray(teacherData.students)) teacherData.students = [];
     if (!Array.isArray(teacherData.templates)) teacherData.templates = [];
-    // Migrate old data: if students have flat continuous/final, convert to scores map
-    migrateLegacyData();
-    refreshGradeFilters();
-    renderStudents();
-    renderStats();
-    renderGradeBlocks();
-    renderTemplates();
-    refreshSendFilters();
-    updateTemplateVariablesHint();
-  } catch (e) {
-    console.error(e);
-    teacherData = { profile: {}, grades: [], students: [], templates: [] };
-  }
+    if (!teacherData.attendance || typeof teacherData.attendance !== 'object') teacherData.attendance = {};
+    if (!teacherData.notes || typeof teacherData.notes !== 'object') teacherData.notes = {};
+    if (!Array.isArray(teacherData.evaluations)) teacherData.evaluations = [];
+    if (!Array.isArray(teacherData.rubric)) teacherData.rubric = [];
+    migrateLegacy();
+    renderAll();
+  } catch (e) { console.error(e); }
 }
 
-function migrateLegacyData() {
-  // Old schema: student { continuous, final, notes } without grade_id/section_id
-  // Keep them orphan but don't crash
-  let legacyFound = false;
+function migrateLegacy() {
+  let touched = false;
   teacherData.students.forEach(s => {
     if (!s.scores && (s.continuous != null || s.final != null)) {
       s.scores = {};
       if (s.continuous != null) s.scores['legacy_continuous'] = s.continuous;
       if (s.final != null) s.scores['legacy_final'] = s.final;
-      legacyFound = true;
+      touched = true;
     }
     if (!s.scores) s.scores = {};
+    // Migrate embedded notes into notes map
+    if (Array.isArray(s.notes) && s.notes.length > 0) {
+      if (!teacherData.notes[s.id]) teacherData.notes[s.id] = [];
+      s.notes.forEach(n => {
+        teacherData.notes[s.id].push({ id: uid('n'), type: n.type, text: n.text, date: ymd(n.date) || todayStr() });
+      });
+      delete s.notes;
+      touched = true;
+    }
   });
-  if (legacyFound && teacherData.students.length > 0 && teacherData.grades.length === 0) {
-    // Create a default grade for legacy students
-    const defaultGradeId = uid('g');
-    const defaultSectionId = uid('sec');
-    teacherData.grades.push({
-      id: defaultGradeId,
-      name: 'صف افتراضي (من البيانات السابقة)',
-      sections: [{ id: defaultSectionId, name: 'الشعبة الافتراضية' }],
-      assessments: [
-        { id: 'legacy_continuous', name: 'التقويم المستمر', max: 60 },
-        { id: 'legacy_final', name: 'الاختبار النهائي', max: 40 }
-      ]
-    });
-    teacherData.students.forEach(s => {
-      if (!s.grade_id) s.grade_id = defaultGradeId;
-      if (!s.section_id) s.section_id = defaultSectionId;
-    });
+  if (touched && teacherData.students.length > 0 && teacherData.grades.length === 0) {
+    const g = { id: uid('g'), name: 'صف افتراضي (بيانات سابقة)', sections: [{ id: uid('sec'), name: 'الشعبة 1' }],
+      assessments: [{ id: 'legacy_continuous', name: 'التقويم المستمر', max: 60 }, { id: 'legacy_final', name: 'الاختبار النهائي', max: 40 }] };
+    teacherData.grades.push(g);
+    teacherData.students.forEach(s => { if (!s.grade_id) s.grade_id = g.id; if (!s.section_id) s.section_id = g.sections[0].id; });
   }
 }
 
-async function saveTeacherData() {
-  try {
-    await fetch('/api/teacher/data', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(teacherData)
-    });
-  } catch (e) { console.error(e); }
+async function saveData() {
+  try { await fetch('/api/teacher/data', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(teacherData) }); }
+  catch (e) { console.error(e); }
 }
 
-// ============ TABS ============
-function switchTab(name) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
-  ['grades','classes','templates','whatsapp','settings'].forEach(t =>
-    document.getElementById('tab-' + t).classList.toggle('hidden', t !== name)
-  );
-  if (name === 'grades') toggleEmptyGradesView();
+function renderAll() {
+  refreshAllFilters();
+  renderHomeStats();
+  renderGradeBlocks();
+  renderStudentsList();
+  renderGradesTable();
+  renderAttendance();
+  renderNotesStudents();
+  renderEvalMain();
+  renderTemplates();
+  updateTemplateVariablesHint();
+  renderRubric();
 }
 
-function switchSettingsSub(name) {
-  document.querySelectorAll('.settings-tab').forEach(t => t.classList.toggle('active', t.dataset.sub === name));
-  document.getElementById('settings-profile').classList.toggle('hidden', name !== 'profile');
-  document.getElementById('settings-security').classList.toggle('hidden', name !== 'security');
+// ========= NAVIGATION =========
+function switchView(v) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === v));
+  ['home','classes','students','grades','attendance','notes','evaluation','templates','whatsapp','settings'].forEach(n => {
+    const el = document.getElementById('view-' + n);
+    if (el) el.classList.toggle('hidden', n !== v);
+  });
+  if (v === 'home') renderHomeStats();
+  if (v === 'classes') renderGradeBlocks();
+  if (v === 'students') renderStudentsList();
+  if (v === 'grades') renderGradesTable();
+  if (v === 'attendance') renderAttendance();
+  if (v === 'notes') renderNotesStudents();
+  if (v === 'evaluation') renderEvalMain();
+  if (v === 'templates') { renderTemplates(); updateTemplateVariablesHint(); }
+  if (v === 'whatsapp') { refreshSendFilters(); }
+  if (v === 'settings') { loadProfileForm(); renderRubric(); }
+  toggleSidebar(true);
+}
+
+function toggleSidebar(forceClose) {
+  const s = document.getElementById('sidebar'); const o = document.getElementById('sidebarOverlay');
+  if (forceClose === true) { s.classList.remove('open'); o.classList.remove('open'); return; }
+  s.classList.toggle('open'); o.classList.toggle('open');
+}
+
+function switchSettingsSub(n) {
+  document.querySelectorAll('.settings-tab').forEach(t => t.classList.toggle('active', t.dataset.sub === n));
+  ['profile','security','rubric'].forEach(x => document.getElementById('settings-' + x).classList.toggle('hidden', x !== n));
+  if (n === 'rubric') renderRubric();
 }
 
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-function toggleEmptyGradesView() {
-  const empty = teacherData.grades.length === 0;
-  document.getElementById('noGradesCard').style.display = empty ? 'block' : 'none';
-  document.getElementById('gradesContent').style.display = empty ? 'none' : 'block';
+// ========= FILTERS =========
+function fillGradeSelect(selId, includeAll = true) {
+  const sel = document.getElementById(selId);
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = (includeAll ? '<option value="">-- كل الصفوف --</option>' : '<option value="">-- اختر --</option>') +
+    teacherData.grades.map(g => `<option value="${g.id}">${esc(g.name)}</option>`).join('');
+  if (cur && teacherData.grades.find(g => g.id === cur)) sel.value = cur;
+}
+function fillSectionSelect(selId, gradeId, includeAll = true) {
+  const sel = document.getElementById(selId);
+  if (!sel) return;
+  const cur = sel.value;
+  if (!gradeId) { sel.innerHTML = '<option value="">-- اختر الصف --</option>'; return; }
+  const g = teacherData.grades.find(x => x.id === gradeId);
+  sel.innerHTML = (includeAll ? '<option value="">-- كل الشعب --</option>' : '<option value="">-- اختر --</option>') +
+    (g?.sections || []).map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
+  if (cur) sel.value = cur;
 }
 
-// ============ GRADES / CLASSES MANAGEMENT ============
+function refreshAllFilters() {
+  ['stuFilterGrade','grFilterGrade','attFilterGrade','noteFilterGrade','evalFilterGrade','sendFilterGrade'].forEach(id => fillGradeSelect(id));
+  onStuFilterGradeChange(); onGrFilterGradeChange(); onAttFilterGradeChange(); onNoteFilterGradeChange();
+  onEvalFilterGradeChange(); refreshSendStudents(); refreshSendTemplates();
+}
+
+// ========= HOME STATS =========
+function renderHomeStats() {
+  const totalStudents = teacherData.students.length;
+  const totalGrades = teacherData.grades.length;
+  const totalSections = teacherData.grades.reduce((n,g) => n + (g.sections?.length || 0), 0);
+  const totalNotes = Object.values(teacherData.notes || {}).reduce((n,arr) => n + (arr?.length || 0), 0);
+  const totalEvals = (teacherData.evaluations || []).length;
+  const todayAtt = teacherData.attendance[todayStr()] || {};
+  const todayCount = Object.keys(todayAtt).length;
+  document.getElementById('homeStats').innerHTML = `
+    <div class="stat-tile"><div class="label">الصفوف</div><div class="value">${totalGrades}</div></div>
+    <div class="stat-tile"><div class="label">الشعب</div><div class="value">${totalSections}</div></div>
+    <div class="stat-tile"><div class="label">الطلاب</div><div class="value">${totalStudents}</div></div>
+    <div class="stat-tile"><div class="label">ملاحظات</div><div class="value">${totalNotes}</div></div>
+    <div class="stat-tile"><div class="label">تقييمات</div><div class="value">${totalEvals}</div></div>
+    <div class="stat-tile"><div class="label">غياب اليوم</div><div class="value">${todayCount}</div></div>
+  `;
+}
+
+// ========= CLASSES / GRADES MANAGEMENT =========
 function renderGradeBlocks() {
   const c = document.getElementById('gradesBlocksContainer');
   if (!teacherData.grades.length) {
-    c.innerHTML = `<div class="empty-state"><h4>📚 لا توجد صفوف</h4><p>اضغط "إضافة صف جديد" للبدء</p></div>`;
+    c.innerHTML = `<div class="empty-state"><h4>📚 لا توجد صفوف</h4><p>اضغط "إضافة صف" للبدء</p></div>`;
     return;
   }
   c.innerHTML = teacherData.grades.map(g => {
-    const studentCount = teacherData.students.filter(s => s.grade_id === g.id).length;
+    const stuCount = teacherData.students.filter(s => s.grade_id === g.id).length;
     return `
       <div class="grade-block">
         <div class="grade-block-header">
-          <h4>📘 ${esc(g.name)} <span class="pill-gray pill" style="margin-right:6px">${studentCount} طالب</span></h4>
+          <h4>📘 ${esc(g.name)} <span class="pill pill-gray">${stuCount} طالب</span></h4>
           <div class="actions">
-            <button class="btn btn-secondary btn-sm" onclick="renameGrade('${g.id}')">✏️ تعديل</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteGrade('${g.id}')">🗑️ حذف</button>
+            <button class="btn btn-secondary btn-sm" onclick="renameGrade('${g.id}')">✏️</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteGrade('${g.id}')">🗑️</button>
           </div>
         </div>
-
-        <div>
-          <div style="font-size:12px;color:#6b7280;font-weight:500;margin-bottom:6px">الشعب:</div>
-          <div class="sections-row">
-            ${(g.sections || []).map(sec => `
-              <span class="section-chip">
-                ${esc(sec.name)}
-                <span class="remove-x" onclick="deleteSection('${g.id}','${sec.id}')">×</span>
-              </span>
-            `).join('')}
-          </div>
+        <div><div style="font-size:11px;color:#6b7280;font-weight:500;margin-bottom:5px">الشعب:</div>
+          <div class="sections-row">${(g.sections || []).map(sec => `<span class="section-chip">${esc(sec.name)}<span class="remove-x" onclick="deleteSection('${g.id}','${sec.id}')">×</span></span>`).join('')}</div>
           <div class="inline-input">
             <input type="text" id="newSec_${g.id}" placeholder="اسم الشعبة (مثل 11/1)" onkeydown="if(event.key==='Enter')addSection('${g.id}')">
-            <button class="btn btn-secondary btn-sm" onclick="addSection('${g.id}')">➕ إضافة شعبة</button>
+            <button class="btn btn-secondary btn-sm" onclick="addSection('${g.id}')">➕ شعبة</button>
           </div>
         </div>
-
-        <div style="margin-top:14px">
-          <div style="font-size:12px;color:#6b7280;font-weight:500;margin-bottom:6px">أدوات التقويم (مشتركة لكل شعب الصف):</div>
-          <div class="assessments-list">
-            ${(g.assessments || []).map(a => `
-              <div class="assessment-row">
-                <div><span class="name">${esc(a.name)}</span> <span class="max">(من ${a.max})</span></div>
-                <button class="btn btn-danger btn-sm" onclick="deleteAssessment('${g.id}','${a.id}')">🗑️</button>
-              </div>
-            `).join('')}
-            ${(g.assessments || []).length === 0 ? '<div style="color:#9ca3af;font-size:12px;padding:6px">لم تضف أدوات تقويم بعد</div>' : ''}
-          </div>
-          <div class="inline-input">
-            <input type="text" id="newAsName_${g.id}" placeholder="اسم الأداة (مثل: التقويم المستمر)">
-            <input type="number" id="newAsMax_${g.id}" placeholder="الدرجة" class="small" min="1" max="1000">
-            <button class="btn btn-secondary btn-sm" onclick="addAssessment('${g.id}')">➕ إضافة أداة</button>
-          </div>
-        </div>
-      </div>
-    `;
+      </div>`;
   }).join('');
 }
 
@@ -949,462 +1002,187 @@ function openGradeModal() {
   document.getElementById('gradeError').classList.add('hidden');
   document.getElementById('gradeModal').classList.remove('hidden');
 }
-
 function renameGrade(id) {
-  const g = teacherData.grades.find(x => x.id === id);
-  if (!g) return;
+  const g = teacherData.grades.find(x => x.id === id); if (!g) return;
   editingGradeId = id;
   document.getElementById('gradeModalTitle').textContent = 'تعديل الصف';
   document.getElementById('gName').value = g.name;
   document.getElementById('gradeError').classList.add('hidden');
   document.getElementById('gradeModal').classList.remove('hidden');
 }
-
 async function saveGrade() {
-  const err = document.getElementById('gradeError');
-  err.classList.add('hidden');
+  const err = document.getElementById('gradeError'); err.classList.add('hidden');
   const name = document.getElementById('gName').value.trim();
-  if (!name) { err.textContent = 'اسم الصف مطلوب'; err.classList.remove('hidden'); return; }
+  if (!name) { err.textContent = 'الاسم مطلوب'; err.classList.remove('hidden'); return; }
   if (editingGradeId) {
-    const g = teacherData.grades.find(x => x.id === editingGradeId);
-    if (g) g.name = name;
+    const g = teacherData.grades.find(x => x.id === editingGradeId); if (g) g.name = name;
   } else {
-    teacherData.grades.push({
-      id: uid('g'), name, sections: [], assessments: []
-    });
+    teacherData.grades.push({ id: uid('g'), name, sections: [], assessments: [] });
   }
-  await saveTeacherData();
-  closeModal('gradeModal');
-  renderGradeBlocks();
-  refreshGradeFilters();
-  refreshSendFilters();
+  await saveData(); closeModal('gradeModal'); renderAll();
 }
-
 async function deleteGrade(id) {
-  const g = teacherData.grades.find(x => x.id === id);
-  if (!g) return;
-  const studentCount = teacherData.students.filter(s => s.grade_id === id).length;
-  if (!confirm(`حذف الصف "${g.name}"؟\nسيتم حذف ${studentCount} طالب تابع لهذا الصف أيضاً.`)) return;
+  const g = teacherData.grades.find(x => x.id === id); if (!g) return;
+  const sc = teacherData.students.filter(s => s.grade_id === id).length;
+  if (!confirm(`حذف "${g.name}"؟ ${sc ? `سيحذف ${sc} طالباً.` : ''}`)) return;
   teacherData.grades = teacherData.grades.filter(x => x.id !== id);
   teacherData.students = teacherData.students.filter(s => s.grade_id !== id);
-  await saveTeacherData();
-  renderGradeBlocks();
-  refreshGradeFilters();
-  refreshSendFilters();
-  renderStudents();
-  renderStats();
+  await saveData(); renderAll();
 }
-
 async function addSection(gradeId) {
-  const input = document.getElementById('newSec_' + gradeId);
-  const name = input.value.trim();
-  if (!name) return;
-  const g = teacherData.grades.find(x => x.id === gradeId);
-  if (!g) return;
-  if ((g.sections || []).some(s => s.name === name)) { alert('الشعبة موجودة مسبقاً'); return; }
+  const inp = document.getElementById('newSec_' + gradeId);
+  const name = inp.value.trim(); if (!name) return;
+  const g = teacherData.grades.find(x => x.id === gradeId); if (!g) return;
+  if ((g.sections || []).some(s => s.name === name)) { alert('الشعبة موجودة'); return; }
   if (!g.sections) g.sections = [];
   g.sections.push({ id: uid('sec'), name });
-  input.value = '';
-  await saveTeacherData();
-  renderGradeBlocks();
-  refreshGradeFilters();
-  refreshSendFilters();
+  inp.value = '';
+  await saveData(); renderAll();
 }
-
 async function deleteSection(gradeId, sectionId) {
-  const g = teacherData.grades.find(x => x.id === gradeId);
-  if (!g) return;
-  const sec = (g.sections || []).find(s => s.id === sectionId);
-  if (!sec) return;
-  const studentCount = teacherData.students.filter(s => s.section_id === sectionId).length;
-  if (!confirm(`حذف الشعبة "${sec.name}"؟${studentCount ? `\nسيتم حذف ${studentCount} طالب من هذه الشعبة.` : ''}`)) return;
+  const g = teacherData.grades.find(x => x.id === gradeId); if (!g) return;
+  const sec = (g.sections || []).find(s => s.id === sectionId); if (!sec) return;
+  const sc = teacherData.students.filter(s => s.section_id === sectionId).length;
+  if (!confirm(`حذف "${sec.name}"؟${sc ? ` (${sc} طالباً)` : ''}`)) return;
   g.sections = g.sections.filter(s => s.id !== sectionId);
   teacherData.students = teacherData.students.filter(s => s.section_id !== sectionId);
-  await saveTeacherData();
-  renderGradeBlocks();
-  refreshGradeFilters();
-  refreshSendFilters();
-  renderStudents();
-  renderStats();
+  await saveData(); renderAll();
 }
 
-async function addAssessment(gradeId) {
-  const nameInput = document.getElementById('newAsName_' + gradeId);
-  const maxInput = document.getElementById('newAsMax_' + gradeId);
-  const name = nameInput.value.trim();
-  const max = parseFloat(maxInput.value);
-  if (!name) return alert('اسم الأداة مطلوب');
-  if (isNaN(max) || max <= 0) return alert('الدرجة القصوى يجب أن تكون رقماً موجباً');
-  const g = teacherData.grades.find(x => x.id === gradeId);
-  if (!g) return;
-  if (!g.assessments) g.assessments = [];
-  g.assessments.push({ id: uid('a'), name, max });
-  nameInput.value = ''; maxInput.value = '';
-  await saveTeacherData();
-  renderGradeBlocks();
-  updateTemplateVariablesHint();
-  renderStudents();
-}
-
-async function deleteAssessment(gradeId, assessmentId) {
-  const g = teacherData.grades.find(x => x.id === gradeId);
-  if (!g) return;
-  const a = (g.assessments || []).find(x => x.id === assessmentId);
-  if (!a) return;
-  if (!confirm(`حذف أداة التقويم "${a.name}"؟\nسيتم حذف الدرجات المسجلة لها.`)) return;
-  g.assessments = g.assessments.filter(x => x.id !== assessmentId);
-  teacherData.students.forEach(s => {
-    if (s.grade_id === gradeId && s.scores) delete s.scores[assessmentId];
-  });
-  await saveTeacherData();
-  renderGradeBlocks();
-  updateTemplateVariablesHint();
-  renderStudents();
-  renderStats();
-}
-
-// ============ FILTERS ============
-function refreshGradeFilters() {
-  const f = document.getElementById('filterGrade');
-  const curVal = f.value;
-  f.innerHTML = '<option value="">-- كل الصفوف --</option>' +
-    teacherData.grades.map(g => `<option value="${g.id}">${esc(g.name)}</option>`).join('');
-  f.value = curVal && teacherData.grades.find(g => g.id === curVal) ? curVal : '';
-  onFilterGradeChange();
-}
-
-function onFilterGradeChange() {
-  const gradeId = document.getElementById('filterGrade').value;
-  const secSelect = document.getElementById('filterSection');
-  if (!gradeId) {
-    secSelect.innerHTML = '<option value="">-- كل الشعب --</option>';
-  } else {
-    const g = teacherData.grades.find(x => x.id === gradeId);
-    secSelect.innerHTML = '<option value="">-- كل الشعب --</option>' +
-      (g?.sections || []).map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
-  }
-  renderStudents();
-  renderStats();
-}
-
-// ============ STUDENTS RENDER ============
-function filterStudents() {
-  const gradeId = document.getElementById('filterGrade').value;
-  const sectionId = document.getElementById('filterSection').value;
-  const search = (document.getElementById('filterSearch').value || '').trim().toLowerCase();
+// ========= STUDENTS =========
+function onStuFilterGradeChange() { fillSectionSelect('stuFilterSection', document.getElementById('stuFilterGrade').value); renderStudentsList(); }
+function filterStudents(gradeId, sectionId, search) {
   return teacherData.students.filter(s => {
     if (gradeId && s.grade_id !== gradeId) return false;
     if (sectionId && s.section_id !== sectionId) return false;
-    if (search) {
-      const hay = `${s.name || ''} ${s.student_id || ''}`.toLowerCase();
-      if (!hay.includes(search)) return false;
-    }
+    if (search) { const h = `${s.name || ''} ${s.student_id || ''}`.toLowerCase(); if (!h.includes(search.toLowerCase())) return false; }
     return true;
   });
 }
-
-function computeStudentTotal(s) {
-  const g = teacherData.grades.find(x => x.id === s.grade_id);
-  if (!g || !g.assessments) return null;
-  let total = 0; let any = false;
-  g.assessments.forEach(a => {
-    const v = num(s.scores?.[a.id]);
-    if (v !== null) { total += v; any = true; }
-  });
-  return any ? total : null;
-}
-
-function computeGradeTotal(gradeId) {
-  const g = teacherData.grades.find(x => x.id === gradeId);
-  if (!g || !g.assessments) return 0;
-  return g.assessments.reduce((sum, a) => sum + (parseFloat(a.max) || 0), 0);
-}
-
-function gradeChipClass(total, maxTotal) {
-  if (total === null || total === undefined || isNaN(total)) return 'grade-empty';
-  if (!maxTotal) return 'grade-empty';
-  const pct = (total / maxTotal) * 100;
-  if (pct >= 90) return 'grade-excellent';
-  if (pct >= 75) return 'grade-good';
-  if (pct >= 60) return 'grade-average';
-  return 'grade-poor';
-}
-
-function renderStats() {
-  const filtered = filterStudents();
-  const statsDiv = document.getElementById('statsRow');
-  const gradeId = document.getElementById('filterGrade').value;
-  let maxTotal = 100;
-  if (gradeId) maxTotal = computeGradeTotal(gradeId);
-  const totals = filtered.map(s => computeStudentTotal(s)).filter(t => t !== null);
-  const avg = totals.length ? (totals.reduce((a,b)=>a+b,0)/totals.length).toFixed(1) : '—';
-  const pct60 = maxTotal ? maxTotal * 0.6 : 60;
-  const pct90 = maxTotal ? maxTotal * 0.9 : 90;
-  const passed = totals.filter(t => t >= pct60).length;
-  const excellent = totals.filter(t => t >= pct90).length;
-  statsDiv.innerHTML = `
-    <div class="stat-tile"><div class="label">الطلاب</div><div class="value">${filtered.length}</div></div>
-    <div class="stat-tile"><div class="label">متوسط الدرجات</div><div class="value">${avg}</div></div>
-    <div class="stat-tile"><div class="label">ناجحون</div><div class="value">${passed}</div></div>
-    <div class="stat-tile"><div class="label">متفوقون (90%+)</div><div class="value">${excellent}</div></div>
-  `;
-}
-
-function renderStudents() {
-  renderStats();
-  const wrap = document.getElementById('studentsTableWrap');
-  const filtered = filterStudents();
-  const gradeId = document.getElementById('filterGrade').value;
-  let assessments = [];
-  if (gradeId) {
-    const g = teacherData.grades.find(x => x.id === gradeId);
-    assessments = g?.assessments || [];
-  }
-  const maxTotal = gradeId ? computeGradeTotal(gradeId) : 100;
-  const headerAssessments = assessments.map(a =>
-    `<th>${esc(a.name)}<br><small>(من ${a.max})</small></th>`
-  ).join('');
-  const gradeCol = gradeId ? '' : '<th>الصف/الشعبة</th>';
-  const colCount = 6 + (gradeId ? 0 : 1) + assessments.length + 2;
-  wrap.innerHTML = `
-    <table>
-      <thead>
-        <tr>
-          <th>اسم الطالب</th>
-          <th>الرقم المدرسي</th>
-          <th>الجنسية</th>
-          <th>رقم ولي الأمر</th>
-          ${gradeCol}
-          ${headerAssessments}
-          <th>المجموع<br><small>${gradeId ? `(من ${maxTotal})` : '(من 100)'}</small></th>
-          <th>ملاحظات</th>
-          <th>إجراءات</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${!filtered.length ? `<tr><td colspan="${colCount}"><div class="empty-state"><h4>📭 لا يوجد طلاب</h4><p>ابدأ بإضافة طلاب أو استيراد ملف Excel جاهز</p></div></td></tr>` : filtered.map(s => {
-          const total = computeStudentTotal(s);
-          const totalDisplay = total === null ? '—' : total.toFixed(1);
-          const notes = Array.isArray(s.notes) ? s.notes : [];
-          const pos = notes.filter(n => n.type === 'positive').length;
-          const neg = notes.filter(n => n.type === 'negative').length;
-          const g = teacherData.grades.find(x => x.id === s.grade_id);
-          const sec = g?.sections?.find(x => x.id === s.section_id);
-          const gradeSectionCell = gradeId ? '' :
-            `<td><span class="pill">${esc(g?.name || '—')}</span> ${sec ? `<span class="pill-gray pill">${esc(sec.name)}</span>` : ''}</td>`;
-          const scoreCells = assessments.map(a => {
-            const v = num(s.scores?.[a.id]);
-            return `<td><span class="grade-chip ${v===null?'grade-empty':''}">${v===null?'—':v}</span></td>`;
-          }).join('');
-          return `
-            <tr>
-              <td><div class="student-name">${esc(s.name)}</div></td>
-              <td><code>${esc(s.student_id || '')}</code></td>
-              <td>${esc(s.nationality || '—')}</td>
-              <td>${esc(s.parent_phone || '—')}</td>
-              ${gradeSectionCell}
-              ${scoreCells}
-              <td><span class="grade-chip ${gradeChipClass(total, maxTotal)}">${totalDisplay}</span></td>
-              <td style="white-space:nowrap">
-                ${pos > 0 ? `<span style="color:#059669">✅ ${pos}</span>` : ''}
-                ${neg > 0 ? ` <span style="color:#dc2626">⚠️ ${neg}</span>` : ''}
-                ${pos === 0 && neg === 0 ? '<span style="color:#9ca3af">—</span>' : ''}
-              </td>
-              <td class="actions">
-                <button class="btn btn-secondary btn-sm" onclick="editStudent('${s.id}')" title="تعديل">✏️</button>
-                <button class="btn btn-info btn-sm" onclick="quickSend('${s.id}')" title="إرسال">📱</button>
-                <button class="btn btn-danger btn-sm" onclick="deleteStudent('${s.id}')" title="حذف">🗑️</button>
-              </td>
-            </tr>`;
-        }).join('')}
-      </tbody>
-    </table>`;
-}
-
-// ============ STUDENT MODAL ============
-function openStudentModal() {
-  if (!teacherData.grades.length) {
-    alert('⚠️ يجب إنشاء صف واحد على الأقل قبل إضافة طلاب. انتقل لتبويب "الصفوف والشعب".');
-    switchTab('classes');
+function renderStudentsList() {
+  const wrap = document.getElementById('studentsListWrap');
+  if (!wrap) return;
+  const gradeId = document.getElementById('stuFilterGrade').value;
+  const secId = document.getElementById('stuFilterSection').value;
+  const search = document.getElementById('stuFilterSearch').value.trim();
+  const list = filterStudents(gradeId, secId, search);
+  document.getElementById('stuCountBadge').textContent = list.length;
+  if (!list.length) {
+    wrap.innerHTML = `<div class="empty-state"><h4>📭 لا يوجد طلاب</h4><p>أضف طلاباً يدوياً أو استورد من Excel</p></div>`;
     return;
   }
+  wrap.innerHTML = `<table>
+    <thead><tr><th>#</th><th>الاسم</th><th>الرقم المدرسي</th><th>الصف/الشعبة</th><th>الجنسية</th><th>رقم ولي الأمر</th><th>إجراءات</th></tr></thead>
+    <tbody>${list.map((s,i) => {
+      const g = teacherData.grades.find(x => x.id === s.grade_id);
+      const sec = g?.sections?.find(x => x.id === s.section_id);
+      return `<tr>
+        <td>${i+1}</td>
+        <td><div class="student-name">${esc(s.name)}</div></td>
+        <td><code>${esc(s.student_id || '')}</code></td>
+        <td><span class="pill">${esc(g?.name || '—')}</span> ${sec ? `<span class="pill pill-gray">${esc(sec.name)}</span>` : ''}</td>
+        <td>${esc(s.nationality || '—')}</td>
+        <td>${esc(s.parent_phone || '—')}</td>
+        <td class="actions">
+          <button class="btn btn-secondary btn-sm" onclick="editStudent('${s.id}')" title="تعديل">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteStudent('${s.id}')" title="حذف">🗑️</button>
+        </td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+}
+
+function openStudentModal() {
+  if (!teacherData.grades.length) { alert('⚠️ أنشئ صفاً أولاً من "الصفوف والشعب"'); switchView('classes'); return; }
   editingStudentId = null;
-  studentNotesBuffer = [];
-  studentScoresBuffer = {};
   document.getElementById('studentModalTitle').textContent = 'إضافة طالب جديد';
-  ['sName','sStudentId','sNationality','sParentPhone','sNoteText'].forEach(id => document.getElementById(id).value = '');
-  fillGradeSelects('sGrade', 'sSection');
-  renderNotesBuffer();
-  renderScoresInputs();
+  ['sName','sStudentId','sNationality','sParentPhone'].forEach(id => document.getElementById(id).value = '');
+  fillGradeSelectFor('sGrade', 'sSection');
   document.getElementById('studentError').classList.add('hidden');
   document.getElementById('studentModal').classList.remove('hidden');
 }
-
 function editStudent(id) {
-  const s = teacherData.students.find(x => x.id === id);
-  if (!s) return;
+  const s = teacherData.students.find(x => x.id === id); if (!s) return;
   editingStudentId = id;
-  studentNotesBuffer = Array.isArray(s.notes) ? JSON.parse(JSON.stringify(s.notes)) : [];
-  studentScoresBuffer = s.scores ? JSON.parse(JSON.stringify(s.scores)) : {};
   document.getElementById('studentModalTitle').textContent = 'تعديل: ' + s.name;
   document.getElementById('sName').value = s.name || '';
   document.getElementById('sStudentId').value = s.student_id || '';
   document.getElementById('sNationality').value = s.nationality || '';
   document.getElementById('sParentPhone').value = s.parent_phone || '';
-  document.getElementById('sNoteText').value = '';
-  fillGradeSelects('sGrade', 'sSection', s.grade_id, s.section_id);
-  renderNotesBuffer();
-  renderScoresInputs();
+  fillGradeSelectFor('sGrade', 'sSection', s.grade_id, s.section_id);
   document.getElementById('studentError').classList.add('hidden');
   document.getElementById('studentModal').classList.remove('hidden');
 }
-
-function fillGradeSelects(gradeSelId, sectionSelId, gradeId = null, sectionId = null) {
-  const gSel = document.getElementById(gradeSelId);
-  gSel.innerHTML = '<option value="">-- اختر الصف --</option>' +
-    teacherData.grades.map(g => `<option value="${g.id}">${esc(g.name)}</option>`).join('');
-  if (gradeId) gSel.value = gradeId;
-  fillSectionSelect(sectionSelId, gSel.value, sectionId);
+function fillGradeSelectFor(gId, secId, g=null, sec=null) {
+  const sel = document.getElementById(gId);
+  sel.innerHTML = '<option value="">-- اختر الصف --</option>' + teacherData.grades.map(x => `<option value="${x.id}">${esc(x.name)}</option>`).join('');
+  if (g) sel.value = g;
+  fillSecFor(secId, sel.value, sec);
 }
-
-function fillSectionSelect(sectionSelId, gradeId, sectionId = null) {
-  const sSel = document.getElementById(sectionSelId);
-  if (!gradeId) {
-    sSel.innerHTML = '<option value="">-- اختر الصف أولاً --</option>';
-    return;
-  }
-  const g = teacherData.grades.find(x => x.id === gradeId);
-  sSel.innerHTML = '<option value="">-- اختر الشعبة --</option>' +
-    (g?.sections || []).map(sec => `<option value="${sec.id}">${esc(sec.name)}</option>`).join('');
-  if (sectionId) sSel.value = sectionId;
+function fillSecFor(secId, gradeId, sec=null) {
+  const sel = document.getElementById(secId);
+  if (!gradeId) { sel.innerHTML = '<option value="">-- اختر الصف أولاً --</option>'; return; }
+  const grade = teacherData.grades.find(x => x.id === gradeId);
+  sel.innerHTML = '<option value="">-- اختر الشعبة --</option>' + (grade?.sections || []).map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
+  if (sec) sel.value = sec;
 }
-
-function onStudentGradeChange() {
-  const gradeId = document.getElementById('sGrade').value;
-  fillSectionSelect('sSection', gradeId);
-  studentScoresBuffer = {};
-  renderScoresInputs();
-}
-
-function renderScoresInputs() {
-  const container = document.getElementById('sScoresContainer');
-  const gradeId = document.getElementById('sGrade').value;
-  if (!gradeId) { container.innerHTML = '<p style="color:#9ca3af;font-size:12px">اختر الصف أولاً لعرض أدوات التقويم</p>'; return; }
-  const g = teacherData.grades.find(x => x.id === gradeId);
-  if (!g || !g.assessments || !g.assessments.length) {
-    container.innerHTML = '<p style="color:#f59e0b;font-size:12px">⚠️ هذا الصف ليس له أدوات تقويم بعد. أضفها من تبويب "الصفوف والشعب".</p>';
-    return;
-  }
-  container.innerHTML = `<div class="form-row">` + g.assessments.map(a => `
-    <div class="form-group">
-      <label>${esc(a.name)} (من ${a.max})</label>
-      <input type="number" id="score_${a.id}" min="0" max="${a.max}" step="0.5" value="${studentScoresBuffer[a.id] != null ? studentScoresBuffer[a.id] : ''}">
-    </div>
-  `).join('') + `</div>`;
-}
-
-function renderNotesBuffer() {
-  const list = document.getElementById('sNotesList');
-  if (!studentNotesBuffer.length) {
-    list.innerHTML = '<div style="color:#9ca3af;font-size:11px;text-align:center;padding:7px">لا توجد ملاحظات بعد</div>';
-    return;
-  }
-  list.innerHTML = studentNotesBuffer.map((n,i) => `
-    <div class="note-item ${n.type}">
-      <div>${n.type === 'positive' ? '✅' : '⚠️'} ${esc(n.text)}</div>
-      <button class="note-remove" onclick="removeNote(${i})">×</button>
-    </div>`).join('');
-}
-
-function addNote() {
-  const text = document.getElementById('sNoteText').value.trim();
-  const type = document.getElementById('sNoteType').value;
-  if (!text) return;
-  studentNotesBuffer.push({ type, text, date: new Date().toISOString() });
-  document.getElementById('sNoteText').value = '';
-  renderNotesBuffer();
-}
-
-function removeNote(i) { studentNotesBuffer.splice(i, 1); renderNotesBuffer(); }
+function onStudentGradeChange() { fillSecFor('sSection', document.getElementById('sGrade').value); }
 
 async function saveStudent() {
-  const errDiv = document.getElementById('studentError');
-  errDiv.classList.add('hidden');
+  const err = document.getElementById('studentError'); err.classList.add('hidden');
   try {
     const name = document.getElementById('sName').value.trim();
     const sid = document.getElementById('sStudentId').value.trim();
-    const gradeId = document.getElementById('sGrade').value;
-    const sectionId = document.getElementById('sSection').value;
-    if (!name) throw new Error('اسم الطالب مطلوب');
+    const grade_id = document.getElementById('sGrade').value;
+    const section_id = document.getElementById('sSection').value;
+    if (!name) throw new Error('الاسم مطلوب');
     if (!sid) throw new Error('الرقم المدرسي مطلوب');
-    if (!gradeId) throw new Error('يجب اختيار الصف');
-    if (!sectionId) throw new Error('يجب اختيار الشعبة');
-    const g = teacherData.grades.find(x => x.id === gradeId);
-    const scores = {};
-    if (g && g.assessments) {
-      for (const a of g.assessments) {
-        const el = document.getElementById('score_' + a.id);
-        const v = el?.value.trim();
-        if (v === '' || v == null) continue;
-        const n = parseFloat(v);
-        if (isNaN(n)) throw new Error(`قيمة غير صالحة لـ ${a.name}`);
-        if (n < 0 || n > a.max) throw new Error(`${a.name}: يجب أن يكون بين 0 و ${a.max}`);
-        scores[a.id] = n;
-      }
-    }
+    if (!grade_id) throw new Error('اختر الصف');
+    if (!section_id) throw new Error('اختر الشعبة');
     const data = {
-      id: editingStudentId || uid('st'),
-      name, student_id: sid,
+      id: editingStudentId || uid('st'), name, student_id: sid,
       nationality: document.getElementById('sNationality').value.trim(),
       parent_phone: document.getElementById('sParentPhone').value.trim(),
-      grade_id: gradeId, section_id: sectionId,
-      scores, notes: studentNotesBuffer
+      grade_id, section_id,
+      scores: editingStudentId ? (teacherData.students.find(x => x.id === editingStudentId)?.scores || {}) : {}
     };
     if (editingStudentId) {
-      const idx = teacherData.students.findIndex(x => x.id === editingStudentId);
-      if (idx >= 0) teacherData.students[idx] = data;
+      const i = teacherData.students.findIndex(x => x.id === editingStudentId);
+      if (i >= 0) teacherData.students[i] = data;
     } else {
-      if (teacherData.students.some(x => x.student_id === sid)) {
-        throw new Error('الرقم المدرسي موجود مسبقاً');
-      }
+      if (teacherData.students.some(x => x.student_id === sid)) throw new Error('الرقم المدرسي موجود');
       teacherData.students.push(data);
     }
-    await saveTeacherData();
-    closeModal('studentModal');
-    renderStudents();
-    renderGradeBlocks();
-  } catch (e) {
-    errDiv.textContent = e.message; errDiv.classList.remove('hidden');
-  }
+    await saveData(); closeModal('studentModal'); renderAll();
+  } catch (e) { err.textContent = e.message; err.classList.remove('hidden'); }
 }
 
 async function deleteStudent(id) {
-  const s = teacherData.students.find(x => x.id === id);
-  if (!s) return;
-  if (!confirm(`حذف الطالب "${s.name}"؟`)) return;
+  const s = teacherData.students.find(x => x.id === id); if (!s) return;
+  if (!confirm(`حذف "${s.name}"؟`)) return;
   teacherData.students = teacherData.students.filter(x => x.id !== id);
-  await saveTeacherData();
-  renderStudents(); renderGradeBlocks();
+  delete teacherData.notes[id];
+  teacherData.evaluations = teacherData.evaluations.filter(e => e.student_id !== id);
+  // Clean attendance
+  Object.keys(teacherData.attendance).forEach(date => { if (teacherData.attendance[date][id]) delete teacherData.attendance[date][id]; });
+  await saveData(); renderAll();
 }
 
-// ============ EXCEL ============
+// ========= EXCEL =========
 function downloadTemplate() {
-  const headers = ['اسم الطالب', 'الرقم المدرسي', 'الصف', 'الشعبة', 'الجنسية', 'رقم ولي الأمر'];
+  const headers = ['اسم الطالب','الرقم المدرسي','الصف','الشعبة','الجنسية','رقم ولي الأمر'];
   const sample = [
-    ['محمد أحمد', '20240001', 'الصف الحادي عشر', '11/1', 'عُماني', '+96899123456'],
-    ['سارة علي', '20240002', 'الصف الحادي عشر', '11/2', 'عُمانية', '+96899654321'],
-    ['يوسف سعيد', '20240003', 'الصف العاشر', '10/1', 'عُماني', '+96899112233']
+    ['محمد أحمد','20240001','الصف الحادي عشر','11/1','عُماني','+96899123456'],
+    ['سارة علي','20240002','الصف الحادي عشر','11/2','عُمانية','+96899654321'],
+    ['يوسف سعيد','20240003','الصف العاشر','10/1','عُماني','+96899112233']
   ];
   const ws = XLSX.utils.aoa_to_sheet([headers, ...sample]);
   ws['!cols'] = [{wch:22},{wch:16},{wch:20},{wch:10},{wch:12},{wch:18}];
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'الطلاب');
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'الطلاب');
   XLSX.writeFile(wb, 'قالب_استيراد_الطلاب.xlsx');
 }
 
 function openImportModal() {
-  document.getElementById('importError').classList.add('hidden');
-  document.getElementById('importSuccess').classList.add('hidden');
+  ['importError','importSuccess'].forEach(id => document.getElementById(id).classList.add('hidden'));
   document.getElementById('importPreview').innerHTML = '';
   document.getElementById('confirmImportBtn').classList.add('hidden');
   document.getElementById('importFile').value = '';
@@ -1412,66 +1190,41 @@ function openImportModal() {
   document.getElementById('importModal').classList.remove('hidden');
 }
 
-function previewImport(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const err = document.getElementById('importError');
-  err.classList.add('hidden');
+function previewImport(ev) {
+  const file = ev.target.files[0]; if (!file) return;
+  const err = document.getElementById('importError'); err.classList.add('hidden');
   const reader = new FileReader();
   reader.onload = (e) => {
     try {
-      const data = new Uint8Array(e.target.result);
-      const wb = XLSX.read(data, { type: 'array' });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+      const wb = XLSX.read(new Uint8Array(e.target.result), { type:'array' });
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' });
       if (!rows.length) throw new Error('الملف فارغ');
-      const mapped = [];
-      const errors = [];
+      const mapped = []; const errors = [];
       rows.forEach((r, i) => {
-        const name = String(r['اسم الطالب'] || r['name'] || '').trim();
-        const sid = String(r['الرقم المدرسي'] || r['student_id'] || '').trim();
-        const gradeName = String(r['الصف'] || r['grade'] || '').trim();
-        const sectionName = String(r['الشعبة'] || r['section'] || '').trim();
+        const name = String(r['اسم الطالب'] || '').trim();
+        const sid = String(r['الرقم المدرسي'] || '').trim();
+        const gn = String(r['الصف'] || '').trim();
+        const sn = String(r['الشعبة'] || '').trim();
         if (!name && !sid) return;
-        if (!name) { errors.push(`صف ${i+2}: اسم الطالب مفقود`); return; }
-        if (!sid) { errors.push(`صف ${i+2}: الرقم المدرسي مفقود`); return; }
-        if (!gradeName) { errors.push(`صف ${i+2}: الصف مفقود`); return; }
-        if (!sectionName) { errors.push(`صف ${i+2}: الشعبة مفقودة`); return; }
-        mapped.push({
-          name, student_id: sid, grade_name: gradeName, section_name: sectionName,
-          nationality: String(r['الجنسية'] || '').trim(),
-          parent_phone: String(r['رقم ولي الأمر'] || '').trim()
-        });
+        if (!name) { errors.push(`صف ${i+2}: الاسم مفقود`); return; }
+        if (!sid) { errors.push(`صف ${i+2}: الرقم مفقود`); return; }
+        if (!gn) { errors.push(`صف ${i+2}: الصف مفقود`); return; }
+        if (!sn) { errors.push(`صف ${i+2}: الشعبة مفقودة`); return; }
+        mapped.push({ name, student_id: sid, grade_name: gn, section_name: sn,
+          nationality: String(r['الجنسية'] || '').trim(), parent_phone: String(r['رقم ولي الأمر'] || '').trim() });
       });
-      if (errors.length) throw new Error(errors.slice(0, 5).join(' · ') + (errors.length > 5 ? ` (و ${errors.length-5} أخرى)` : ''));
-      if (!mapped.length) throw new Error('لم يتم العثور على طلاب صالحين');
+      if (errors.length) throw new Error(errors.slice(0,4).join(' · ') + (errors.length > 4 ? ` (+${errors.length-4})` : ''));
+      if (!mapped.length) throw new Error('لا يوجد طلاب صالحون');
       pendingImportRows = mapped;
-      // summarize grades/sections to be created
-      const existingGradeNames = new Set(teacherData.grades.map(g => g.name));
-      const newGrades = new Set();
-      const newSections = new Map();
-      mapped.forEach(r => {
-        if (!existingGradeNames.has(r.grade_name)) newGrades.add(r.grade_name);
-        const key = r.grade_name + '|' + r.section_name;
-        const g = teacherData.grades.find(x => x.name === r.grade_name);
-        const exists = g && (g.sections || []).some(s => s.name === r.section_name);
-        if (!exists) newSections.set(key, { grade: r.grade_name, section: r.section_name });
-      });
-      let summary = `<div class="success" style="display:block">✅ تم العثور على <b>${mapped.length}</b> طالباً جاهزاً للاستيراد</div>`;
-      if (newGrades.size || newSections.size) {
-        summary += `<div class="info-box" style="margin-top:8px">
-          ${newGrades.size ? `<b>صفوف جديدة ستُنشأ:</b> ${[...newGrades].map(g => `<span class="pill">${esc(g)}</span>`).join(' ')}<br>` : ''}
-          ${newSections.size ? `<b>شعب جديدة ستُنشأ:</b> ${[...newSections.values()].map(s => `<span class="pill">${esc(s.grade)} — ${esc(s.section)}</span>`).join(' ')}` : ''}
+      const existing = new Set(teacherData.grades.map(g => g.name));
+      const newGrades = [...new Set(mapped.map(r => r.grade_name).filter(n => !existing.has(n)))];
+      document.getElementById('importPreview').innerHTML = `
+        <div class="success" style="display:block">✅ ${mapped.length} طالباً جاهز للاستيراد${newGrades.length ? ` · ${newGrades.length} صفوف جديدة ستُنشأ` : ''}</div>
+        <div class="table-wrap" style="max-height:240px;overflow-y:auto;margin-top:8px">
+          <table style="min-width:auto"><thead><tr><th>#</th><th>الاسم</th><th>الرقم</th><th>الصف</th><th>الشعبة</th></tr></thead>
+          <tbody>${mapped.slice(0,10).map((s,i)=>`<tr><td>${i+1}</td><td>${esc(s.name)}</td><td>${esc(s.student_id)}</td><td>${esc(s.grade_name)}</td><td>${esc(s.section_name)}</td></tr>`).join('')}</tbody></table>
+          ${mapped.length > 10 ? `<div style="padding:6px;text-align:center;color:#6b7280;font-size:11px">... و ${mapped.length-10} آخرين</div>` : ''}
         </div>`;
-      }
-      summary += `<div class="table-wrap" style="max-height:260px;overflow-y:auto;margin-top:8px">
-        <table style="min-width:auto">
-          <thead><tr><th>#</th><th>الاسم</th><th>الرقم</th><th>الصف</th><th>الشعبة</th><th>الجنسية</th><th>ولي الأمر</th></tr></thead>
-          <tbody>${mapped.slice(0,12).map((s,i) => `<tr><td>${i+1}</td><td>${esc(s.name)}</td><td>${esc(s.student_id)}</td><td>${esc(s.grade_name)}</td><td>${esc(s.section_name)}</td><td>${esc(s.nationality||'—')}</td><td>${esc(s.parent_phone||'—')}</td></tr>`).join('')}</tbody>
-        </table>
-        ${mapped.length > 12 ? `<div style="padding:6px;text-align:center;color:#6b7280;font-size:11px">... و ${mapped.length-12} آخرين</div>` : ''}
-      </div>`;
-      document.getElementById('importPreview').innerHTML = summary;
       document.getElementById('confirmImportBtn').classList.remove('hidden');
     } catch (ex) {
       err.textContent = ex.message; err.classList.remove('hidden');
@@ -1484,110 +1237,505 @@ function previewImport(event) {
 
 async function confirmImport() {
   if (!pendingImportRows.length) return;
-  const existingIds = new Set(teacherData.students.map(s => s.student_id));
+  const ex = new Set(teacherData.students.map(s => s.student_id));
   let added = 0, skipped = 0;
   pendingImportRows.forEach(r => {
-    if (existingIds.has(r.student_id)) { skipped++; return; }
-    // ensure grade exists
+    if (ex.has(r.student_id)) { skipped++; return; }
     let g = teacherData.grades.find(x => x.name === r.grade_name);
-    if (!g) {
-      g = { id: uid('g'), name: r.grade_name, sections: [], assessments: [] };
-      teacherData.grades.push(g);
-    }
+    if (!g) { g = { id: uid('g'), name: r.grade_name, sections: [], assessments: [] }; teacherData.grades.push(g); }
     if (!g.sections) g.sections = [];
     let sec = g.sections.find(x => x.name === r.section_name);
-    if (!sec) {
-      sec = { id: uid('sec'), name: r.section_name };
-      g.sections.push(sec);
-    }
-    teacherData.students.push({
-      id: uid('st'), name: r.name, student_id: r.student_id,
-      nationality: r.nationality, parent_phone: r.parent_phone,
-      grade_id: g.id, section_id: sec.id,
-      scores: {}, notes: []
-    });
-    existingIds.add(r.student_id); added++;
+    if (!sec) { sec = { id: uid('sec'), name: r.section_name }; g.sections.push(sec); }
+    teacherData.students.push({ id: uid('st'), name: r.name, student_id: r.student_id, nationality: r.nationality, parent_phone: r.parent_phone, grade_id: g.id, section_id: sec.id, scores:{} });
+    ex.add(r.student_id); added++;
   });
-  await saveTeacherData();
-  refreshGradeFilters();
-  refreshSendFilters();
-  renderStudents();
-  renderGradeBlocks();
-  toggleEmptyGradesView();
+  await saveData(); renderAll();
   const ok = document.getElementById('importSuccess');
-  ok.innerHTML = `✅ تمت إضافة <b>${added}</b> طالباً${skipped ? ` · تم تخطي <b>${skipped}</b> (موجودين مسبقاً)` : ''}`;
+  ok.innerHTML = `✅ أضيف <b>${added}</b>${skipped ? ` · تُخطي <b>${skipped}</b>` : ''}`;
   ok.classList.remove('hidden');
   document.getElementById('importPreview').innerHTML = '';
   document.getElementById('confirmImportBtn').classList.add('hidden');
-  document.getElementById('importFile').value = '';
-  setTimeout(() => closeModal('importModal'), 2200);
+  setTimeout(() => closeModal('importModal'), 2000);
 }
 
-function exportGrades() {
-  if (!teacherData.students.length) return alert('لا يوجد طلاب للتصدير');
+function exportStudents() {
+  if (!teacherData.students.length) return alert('لا يوجد طلاب');
   const rows = teacherData.students.map(s => {
     const g = teacherData.grades.find(x => x.id === s.grade_id);
     const sec = g?.sections?.find(x => x.id === s.section_id);
-    const notes = Array.isArray(s.notes) ? s.notes : [];
-    const pos = notes.filter(n => n.type === 'positive').map(n => n.text).join(' · ');
-    const neg = notes.filter(n => n.type === 'negative').map(n => n.text).join(' · ');
-    const total = computeStudentTotal(s);
-    const row = {
-      'اسم الطالب': s.name,
-      'الرقم المدرسي': s.student_id,
-      'الصف': g?.name || '',
-      'الشعبة': sec?.name || '',
-      'الجنسية': s.nationality || '',
-      'رقم ولي الأمر': s.parent_phone || ''
-    };
-    if (g && g.assessments) {
-      g.assessments.forEach(a => { row[a.name] = s.scores?.[a.id] ?? ''; });
-    }
-    row['المجموع'] = total ?? '';
-    row['ملاحظات إيجابية'] = pos;
-    row['ملاحظات سلبية'] = neg;
-    return row;
+    return { 'اسم الطالب':s.name, 'الرقم المدرسي':s.student_id, 'الصف':g?.name || '', 'الشعبة':sec?.name || '', 'الجنسية':s.nationality || '', 'رقم ولي الأمر':s.parent_phone || '' };
   });
   const ws = XLSX.utils.json_to_sheet(rows);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'سجل الدرجات');
-  XLSX.writeFile(wb, `سجل_الدرجات_${new Date().toISOString().slice(0,10)}.xlsx`);
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'الطلاب');
+  XLSX.writeFile(wb, `الطلاب_${todayStr()}.xlsx`);
 }
 
-// ============ TEMPLATES ============
-function updateTemplateVariablesHint() {
-  const hint = document.getElementById('tplVariablesHint');
-  if (!hint) return;
-  const assessments = new Set();
-  teacherData.grades.forEach(g => (g.assessments || []).forEach(a => assessments.add(a.name)));
-  const assessmentVars = [...assessments].map(n => `<code>{{درجة_${varKey(n)}}}</code>`).join(' ');
-  hint.innerHTML = `💡 المتغيرات المتاحة:<br>
-    <code>{{اسم_الطالب}}</code> <code>{{الرقم_المدرسي}}</code> <code>{{الجنسية}}</code>
-    <code>{{الصف}}</code> <code>{{الشعبة}}</code>
-    <code>{{المجموع}}</code>
-    <code>{{الملاحظات_الإيجابية}}</code> <code>{{الملاحظات_السلبية}}</code>
-    <code>{{اسم_المدرسة}}</code> <code>{{اسم_المعلم}}</code>
-    <code>{{المادة}}</code> <code>{{العام_الدراسي}}</code> <code>{{الفصل_الدراسي}}</code>
-    ${assessmentVars ? `<br><b>أدوات التقويم:</b> ${assessmentVars}` : ''}`;
+// ========= GRADES TAB =========
+function onGrFilterGradeChange() {
+  fillSectionSelect('grFilterSection', document.getElementById('grFilterGrade').value);
+  renderAssessmentsManage();
+  renderGradesTable();
 }
-
-function renderTemplates() {
-  const grid = document.getElementById('templatesGrid');
-  if (!teacherData.templates.length) {
-    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><h4>📬 لا توجد قوالب</h4><p>اضغط "قالب جديد" لإنشاء أول قالب</p></div>`;
+function renderAssessmentsManage() {
+  const gradeId = document.getElementById('grFilterGrade').value;
+  const card = document.getElementById('assessmentsManageCard');
+  const body = document.getElementById('assessmentsManageBody');
+  const lbl = document.getElementById('assessmentsForGradeLabel');
+  if (!gradeId) {
+    card.style.display = 'none';
     return;
   }
-  grid.innerHTML = teacherData.templates.map(t => `
-    <div class="template-card">
-      <h4>📝 ${esc(t.name)}</h4>
-      <div class="template-body">${esc(t.body)}</div>
-      <div class="actions">
-        <button class="btn btn-secondary btn-sm" onclick="editTemplate('${t.id}')">✏️ تعديل</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteTemplate('${t.id}')">🗑️ حذف</button>
+  card.style.display = 'block';
+  const g = teacherData.grades.find(x => x.id === gradeId);
+  if (!g) return;
+  lbl.textContent = `— ${g.name}`;
+  const list = g.assessments || [];
+  body.innerHTML = `
+    <div class="assessments-list">
+      ${list.map(a => `<div class="assessment-row"><div><span class="name">${esc(a.name)}</span> <span class="max">(من ${a.max})</span></div><button class="btn btn-danger btn-sm" onclick="deleteAssessment('${g.id}','${a.id}')">🗑️</button></div>`).join('')}
+      ${!list.length ? '<div style="color:#9ca3af;font-size:12px;padding:6px;text-align:center">لم تضف أدوات تقويم بعد</div>' : ''}
+    </div>
+    <div class="inline-input">
+      <input type="text" id="newAsName" placeholder="اسم الأداة (مثل: التقويم المستمر)">
+      <input type="number" id="newAsMax" placeholder="الدرجة" class="small" min="1" max="1000">
+      <button class="btn btn-secondary btn-sm" onclick="addAssessment('${g.id}')">➕ إضافة</button>
+    </div>`;
+}
+async function addAssessment(gradeId) {
+  const name = document.getElementById('newAsName').value.trim();
+  const max = parseFloat(document.getElementById('newAsMax').value);
+  if (!name) return alert('الاسم مطلوب');
+  if (isNaN(max) || max <= 0) return alert('الدرجة يجب أن تكون رقماً موجباً');
+  const g = teacherData.grades.find(x => x.id === gradeId);
+  if (!g.assessments) g.assessments = [];
+  g.assessments.push({ id: uid('a'), name, max });
+  await saveData(); renderAssessmentsManage(); renderGradesTable(); updateTemplateVariablesHint();
+}
+async function deleteAssessment(gradeId, aid) {
+  const g = teacherData.grades.find(x => x.id === gradeId); if (!g) return;
+  const a = (g.assessments || []).find(x => x.id === aid); if (!a) return;
+  if (!confirm(`حذف "${a.name}"؟ ستحذف الدرجات المسجلة لها.`)) return;
+  g.assessments = g.assessments.filter(x => x.id !== aid);
+  teacherData.students.forEach(s => { if (s.grade_id === gradeId && s.scores) delete s.scores[aid]; });
+  await saveData(); renderAssessmentsManage(); renderGradesTable(); updateTemplateVariablesHint();
+}
+
+function computeTotal(s) {
+  const g = teacherData.grades.find(x => x.id === s.grade_id);
+  if (!g || !g.assessments) return null;
+  let t = 0, any = false;
+  g.assessments.forEach(a => { const v = num(s.scores?.[a.id]); if (v !== null) { t += v; any = true; } });
+  return any ? t : null;
+}
+function gradeTotal(gradeId) {
+  const g = teacherData.grades.find(x => x.id === gradeId);
+  return (g?.assessments || []).reduce((s,a) => s + (parseFloat(a.max) || 0), 0);
+}
+function chipClass(t, maxT) {
+  if (t === null || t === undefined || isNaN(t) || !maxT) return 'grade-empty';
+  const pct = (t / maxT) * 100;
+  if (pct >= 90) return 'grade-excellent';
+  if (pct >= 75) return 'grade-good';
+  if (pct >= 60) return 'grade-average';
+  return 'grade-poor';
+}
+
+function renderGradesTable() {
+  const wrap = document.getElementById('gradesTableWrap');
+  if (!wrap) return;
+  const gradeId = document.getElementById('grFilterGrade').value;
+  const secId = document.getElementById('grFilterSection').value;
+  const search = document.getElementById('grFilterSearch').value.trim();
+  const list = filterStudents(gradeId, secId, search);
+  // Stats
+  const maxT = gradeId ? gradeTotal(gradeId) : 100;
+  const totals = list.map(computeTotal).filter(t => t !== null);
+  const avg = totals.length ? (totals.reduce((a,b)=>a+b,0)/totals.length).toFixed(1) : '—';
+  document.getElementById('gradesStatsRow').innerHTML = `
+    <div class="stat-tile"><div class="label">الطلاب</div><div class="value">${list.length}</div></div>
+    <div class="stat-tile"><div class="label">متوسط</div><div class="value">${avg}</div></div>
+    <div class="stat-tile"><div class="label">ناجحون</div><div class="value">${totals.filter(t => t >= maxT*0.6).length}</div></div>
+    <div class="stat-tile"><div class="label">متفوقون</div><div class="value">${totals.filter(t => t >= maxT*0.9).length}</div></div>`;
+
+  if (!gradeId) { wrap.innerHTML = `<div class="empty-state"><h4>📊 اختر صفاً لعرض الدرجات</h4></div>`; return; }
+  if (!list.length) { wrap.innerHTML = `<div class="empty-state"><h4>📭 لا يوجد طلاب</h4></div>`; return; }
+  const g = teacherData.grades.find(x => x.id === gradeId);
+  const assessments = g?.assessments || [];
+  if (!assessments.length) {
+    wrap.innerHTML = `<div class="warn-box">⚠️ لا توجد أدوات تقويم لهذا الصف. أضفها من أعلى هذه الصفحة.</div>`;
+    return;
+  }
+  wrap.innerHTML = `<table><thead><tr>
+    <th>اسم الطالب</th><th>الرقم</th>
+    ${assessments.map(a => `<th>${esc(a.name)}<br><small>(من ${a.max})</small></th>`).join('')}
+    <th>المجموع<br><small>(من ${maxT})</small></th>
+  </tr></thead><tbody>
+    ${list.map(s => {
+      const t = computeTotal(s);
+      const td = t === null ? '—' : t.toFixed(1);
+      return `<tr>
+        <td><div class="student-name">${esc(s.name)}</div></td>
+        <td><code>${esc(s.student_id || '')}</code></td>
+        ${assessments.map(a => `<td><input type="number" step="0.5" min="0" max="${a.max}" value="${s.scores?.[a.id] != null ? s.scores[a.id] : ''}" onchange="updateScore('${s.id}','${a.id}',this.value,${a.max},this)" style="width:70px;padding:5px 7px;border:1px solid #d1d5db;border-radius:5px;font-family:inherit;font-size:12px;text-align:center"></td>`).join('')}
+        <td><span class="grade-chip ${chipClass(t, maxT)}">${td}</span></td>
+      </tr>`;
+    }).join('')}
+  </tbody></table>`;
+}
+
+async function updateScore(studentId, assessmentId, value, max, inputEl) {
+  const s = teacherData.students.find(x => x.id === studentId); if (!s) return;
+  const v = value === '' ? null : parseFloat(value);
+  if (value !== '' && (isNaN(v) || v < 0 || v > max)) {
+    inputEl.style.borderColor = '#ef4444';
+    alert(`القيمة يجب أن تكون بين 0 و ${max}`);
+    return;
+  }
+  inputEl.style.borderColor = '#10b981';
+  if (!s.scores) s.scores = {};
+  if (v === null) delete s.scores[assessmentId]; else s.scores[assessmentId] = v;
+  await saveData();
+  renderGradesTable();
+}
+
+// ========= ATTENDANCE =========
+function onAttFilterGradeChange() { fillSectionSelect('attFilterSection', document.getElementById('attFilterGrade').value); renderAttendance(); }
+function renderAttendance() {
+  const body = document.getElementById('attendanceBody');
+  const gradeId = document.getElementById('attFilterGrade').value;
+  const secId = document.getElementById('attFilterSection').value;
+  const date = document.getElementById('attDate').value;
+  if (!body) return;
+  if (!gradeId || !secId || !date) {
+    body.innerHTML = `<div class="empty-state"><h4>📅 اختر الصف والشعبة والتاريخ</h4></div>`;
+    renderAttendanceSummary();
+    return;
+  }
+  const list = filterStudents(gradeId, secId, '');
+  if (!list.length) { body.innerHTML = `<div class="empty-state"><h4>📭 لا يوجد طلاب</h4></div>`; renderAttendanceSummary(); return; }
+  if (!teacherData.attendance[date]) teacherData.attendance[date] = {};
+  const day = teacherData.attendance[date];
+  body.innerHTML = `<div class="attendance-grid">${list.map(s => {
+    const status = day[s.id] || '';
+    return `<div class="attendance-row">
+      <div class="stu-info"><div><div class="name">${esc(s.name)}</div><div class="sid">${esc(s.student_id || '')}</div></div></div>
+      <div class="attendance-buttons">
+        <button class="att-btn present ${status === 'present' ? 'selected' : ''}" onclick="setAttendance('${s.id}','present')">✅ حاضر</button>
+        <button class="att-btn absent ${status === 'absent' ? 'selected' : ''}" onclick="setAttendance('${s.id}','absent')">❌ غائب</button>
+        <button class="att-btn late ${status === 'late' ? 'selected' : ''}" onclick="setAttendance('${s.id}','late')">⏰ متأخر</button>
+        <button class="att-btn excused ${status === 'excused' ? 'selected' : ''}" onclick="setAttendance('${s.id}','excused')">📋 مأذون</button>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+  renderAttendanceSummary();
+}
+async function setAttendance(studentId, status) {
+  const date = document.getElementById('attDate').value;
+  if (!date) return;
+  if (!teacherData.attendance[date]) teacherData.attendance[date] = {};
+  if (teacherData.attendance[date][studentId] === status) {
+    delete teacherData.attendance[date][studentId]; // toggle off
+  } else {
+    teacherData.attendance[date][studentId] = status;
+  }
+  await saveData();
+  renderAttendance();
+}
+async function markAllAttendance(status) {
+  const gradeId = document.getElementById('attFilterGrade').value;
+  const secId = document.getElementById('attFilterSection').value;
+  const date = document.getElementById('attDate').value;
+  if (!gradeId || !secId || !date) return alert('اختر الصف والشعبة والتاريخ');
+  const list = filterStudents(gradeId, secId, '');
+  if (!teacherData.attendance[date]) teacherData.attendance[date] = {};
+  list.forEach(s => { teacherData.attendance[date][s.id] = status; });
+  await saveData();
+  renderAttendance();
+}
+async function clearAttendance() {
+  const date = document.getElementById('attDate').value;
+  const gradeId = document.getElementById('attFilterGrade').value;
+  const secId = document.getElementById('attFilterSection').value;
+  if (!date) return;
+  if (!confirm(`مسح غياب تاريخ ${date} للشعبة المختارة؟`)) return;
+  const list = filterStudents(gradeId, secId, '');
+  if (teacherData.attendance[date]) list.forEach(s => delete teacherData.attendance[date][s.id]);
+  await saveData();
+  renderAttendance();
+}
+
+function renderAttendanceSummary() {
+  const wrap = document.getElementById('attendanceSummaryWrap');
+  const gradeId = document.getElementById('attFilterGrade').value;
+  const secId = document.getElementById('attFilterSection').value;
+  const list = filterStudents(gradeId, secId, '');
+  if (!list.length) { wrap.innerHTML = `<div class="empty-state"><p>اختر الصف والشعبة</p></div>`; return; }
+  const summary = list.map(s => {
+    let p=0, a=0, l=0, e=0;
+    Object.values(teacherData.attendance).forEach(day => {
+      const st = day[s.id];
+      if (st === 'present') p++; else if (st === 'absent') a++; else if (st === 'late') l++; else if (st === 'excused') e++;
+    });
+    return { s, p, a, l, e, total: p+a+l+e };
+  });
+  wrap.innerHTML = `<table><thead><tr><th>الطالب</th><th>الرقم</th><th>حاضر</th><th>غائب</th><th>متأخر</th><th>مأذون</th><th>نسبة الحضور</th></tr></thead><tbody>
+    ${summary.map(r => {
+      const rate = r.total ? ((r.p / r.total) * 100).toFixed(0) + '%' : '—';
+      return `<tr>
+        <td><div class="student-name">${esc(r.s.name)}</div></td>
+        <td><code>${esc(r.s.student_id || '')}</code></td>
+        <td><span class="pill pill-green">${r.p}</span></td>
+        <td><span class="pill pill-red">${r.a}</span></td>
+        <td><span class="pill pill-yellow">${r.l}</span></td>
+        <td><span class="pill">${r.e}</span></td>
+        <td><b>${rate}</b></td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+}
+
+// ========= NOTES =========
+function onNoteFilterGradeChange() { fillSectionSelect('noteFilterSection', document.getElementById('noteFilterGrade').value); renderNotesStudents(); }
+function renderNotesStudents() {
+  const gradeId = document.getElementById('noteFilterGrade').value;
+  const secId = document.getElementById('noteFilterSection').value;
+  const list = filterStudents(gradeId, secId, '');
+  const sel = document.getElementById('noteStudent');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">-- اختر طالباً --</option>' + list.map(s => `<option value="${s.id}">${esc(s.name)} (${esc(s.student_id)})</option>`).join('');
+  if (cur && list.find(s => s.id === cur)) sel.value = cur;
+  renderStudentNotes();
+}
+function renderStudentNotes() {
+  const sid = document.getElementById('noteStudent').value;
+  const body = document.getElementById('notesBody');
+  const title = document.getElementById('notesCardTitle');
+  const addBtn = document.getElementById('addNoteBtn');
+  if (!sid) {
+    title.textContent = 'الملاحظات';
+    addBtn.disabled = true;
+    body.innerHTML = `<div class="empty-state"><h4>📝 اختر طالباً لعرض ملاحظاته</h4></div>`;
+    return;
+  }
+  const s = teacherData.students.find(x => x.id === sid);
+  title.textContent = `ملاحظات الطالب: ${s?.name || ''}`;
+  addBtn.disabled = false;
+  const notes = (teacherData.notes[sid] || []).slice().sort((a,b) => (b.date || '').localeCompare(a.date || ''));
+  if (!notes.length) { body.innerHTML = `<div class="empty-state"><h4>لا توجد ملاحظات</h4><p>اضغط "إضافة ملاحظة"</p></div>`; return; }
+  body.innerHTML = `<div style="display:flex;flex-direction:column;gap:6px">${notes.map(n => `
+    <div class="note-item ${n.type}" style="padding:10px 12px">
+      <div><div style="font-size:11px;color:#6b7280;margin-bottom:3px">${n.type === 'positive' ? '✅ إيجابية' : '⚠️ سلبية'} · ${esc(n.date || '')}</div><div>${esc(n.text)}</div></div>
+      <button class="note-remove" onclick="deleteNote('${sid}','${n.id}')">×</button>
+    </div>`).join('')}</div>`;
+}
+function openNoteModal() {
+  const sid = document.getElementById('noteStudent').value;
+  if (!sid) return;
+  const s = teacherData.students.find(x => x.id === sid);
+  document.getElementById('noteModalStudentName').textContent = s?.name || '';
+  document.getElementById('noteModalType').value = 'positive';
+  document.getElementById('noteModalDate').value = todayStr();
+  document.getElementById('noteModalText').value = '';
+  document.getElementById('noteModalError').classList.add('hidden');
+  document.getElementById('noteModal').classList.remove('hidden');
+}
+async function saveNote() {
+  const err = document.getElementById('noteModalError'); err.classList.add('hidden');
+  const sid = document.getElementById('noteStudent').value;
+  const type = document.getElementById('noteModalType').value;
+  const date = document.getElementById('noteModalDate').value;
+  const text = document.getElementById('noteModalText').value.trim();
+  if (!text) { err.textContent = 'النص مطلوب'; err.classList.remove('hidden'); return; }
+  if (!teacherData.notes[sid]) teacherData.notes[sid] = [];
+  teacherData.notes[sid].push({ id: uid('n'), type, text, date: date || todayStr() });
+  await saveData();
+  closeModal('noteModal');
+  renderStudentNotes();
+}
+async function deleteNote(sid, noteId) {
+  if (!confirm('حذف هذه الملاحظة؟')) return;
+  if (!teacherData.notes[sid]) return;
+  teacherData.notes[sid] = teacherData.notes[sid].filter(n => n.id !== noteId);
+  await saveData(); renderStudentNotes();
+}
+
+// ========= EVALUATION =========
+function onEvalFilterGradeChange() { fillSectionSelect('evalFilterSection', document.getElementById('evalFilterGrade').value); renderEvalStudents(); }
+function renderEvalMain() {
+  if (!teacherData.rubric || !teacherData.rubric.length) {
+    document.getElementById('evalNoRubric').classList.remove('hidden');
+    document.getElementById('evalMain').classList.add('hidden');
+    return;
+  }
+  document.getElementById('evalNoRubric').classList.add('hidden');
+  document.getElementById('evalMain').classList.remove('hidden');
+  renderEvalStudents();
+}
+function renderEvalStudents() {
+  const gradeId = document.getElementById('evalFilterGrade').value;
+  const secId = document.getElementById('evalFilterSection').value;
+  const list = filterStudents(gradeId, secId, '');
+  const sel = document.getElementById('evalStudent');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">-- اختر طالباً --</option>' + list.map(s => `<option value="${s.id}">${esc(s.name)} (${esc(s.student_id)})</option>`).join('');
+  if (cur && list.find(s => s.id === cur)) sel.value = cur;
+  renderEvalForm();
+}
+function renderEvalForm() {
+  const sid = document.getElementById('evalStudent').value;
+  const period = document.getElementById('evalPeriod').value.trim();
+  const card = document.getElementById('evalFormCard');
+  if (!sid || !period) { card.classList.add('hidden'); return; }
+  card.classList.remove('hidden');
+  const s = teacherData.students.find(x => x.id === sid);
+  document.getElementById('evalFormTitle').textContent = `تقييم ${s?.name || ''} · ${period}`;
+  // Check if existing evaluation for this student+period exists
+  const existing = teacherData.evaluations.find(e => e.student_id === sid && e.period === period);
+  evalBuffer = existing ? JSON.parse(JSON.stringify(existing.scores || {})) : {};
+  const body = document.getElementById('evalFormBody');
+  body.innerHTML = teacherData.rubric.map((axis, idx) => {
+    const selected = evalBuffer[axis.id];
+    const previewText = selected ? axis.ranks[selected - 1] || '' : '';
+    return `<div class="eval-axis">
+      <div class="eval-axis-header">
+        <h4><span class="axis-num">${idx+1}</span> ${esc(axis.name)}</h4>
+        <div class="eval-rank-buttons">
+          ${[1,2,3,4,5].map(r => `<button class="rank-btn rank-${r} ${selected === r ? 'selected' : ''}" onclick="setEvalRank('${axis.id}',${r})">${r}</button>`).join('')}
+        </div>
+      </div>
+      <div class="eval-rank-preview ${!previewText ? 'empty' : ''}" id="preview_${axis.id}">${previewText ? esc(previewText) : 'اضغط رقماً لعرض التقدير'}</div>
+    </div>`;
+  }).join('');
+  renderEvalHistory();
+}
+function setEvalRank(axisId, rank) {
+  evalBuffer[axisId] = rank;
+  const axis = teacherData.rubric.find(a => a.id === axisId);
+  const preview = document.getElementById('preview_' + axisId);
+  if (preview && axis) {
+    preview.textContent = axis.ranks[rank - 1] || '';
+    preview.classList.remove('empty');
+  }
+  // Update button states
+  const buttons = preview?.parentElement?.querySelectorAll('.rank-btn');
+  if (buttons) buttons.forEach((b, i) => b.classList.toggle('selected', (i+1) === rank));
+}
+function clearEvalForm() { evalBuffer = {}; renderEvalForm(); }
+async function saveEvaluation() {
+  const sid = document.getElementById('evalStudent').value;
+  const period = document.getElementById('evalPeriod').value.trim();
+  if (!sid || !period) return alert('اختر الطالب والفترة');
+  if (Object.keys(evalBuffer).length === 0) return alert('لم تقم بالتقييم بعد');
+  const existing = teacherData.evaluations.findIndex(e => e.student_id === sid && e.period === period);
+  const record = { id: existing >= 0 ? teacherData.evaluations[existing].id : uid('ev'), student_id: sid, period, scores: evalBuffer, date: todayStr() };
+  if (existing >= 0) teacherData.evaluations[existing] = record;
+  else teacherData.evaluations.push(record);
+  await saveData();
+  alert('✅ حُفظ التقييم بنجاح');
+  renderEvalForm();
+}
+function renderEvalHistory() {
+  const sid = document.getElementById('evalStudent').value;
+  const body = document.getElementById('evalHistoryBody');
+  const list = teacherData.evaluations.filter(e => e.student_id === sid).slice().sort((a,b) => (b.date || '').localeCompare(a.date || ''));
+  if (!list.length) { body.innerHTML = `<div class="empty-state" style="padding:20px"><p>لا توجد تقييمات سابقة</p></div>`; return; }
+  body.innerHTML = `<div class="table-wrap"><table><thead><tr><th>الفترة</th><th>التاريخ</th>${teacherData.rubric.map(a => `<th>${esc(a.name)}</th>`).join('')}<th>إجراءات</th></tr></thead><tbody>
+    ${list.map(e => `<tr>
+      <td><b>${esc(e.period)}</b></td>
+      <td>${esc(e.date)}</td>
+      ${teacherData.rubric.map(a => { const r = e.scores[a.id]; return `<td>${r ? `<span class="grade-chip grade-${r <= 2 ? 'excellent' : r === 3 ? 'good' : r === 4 ? 'average' : 'poor'}">${r}</span>` : '—'}</td>`; }).join('')}
+      <td><button class="btn btn-danger btn-sm" onclick="deleteEvaluation('${e.id}')">🗑️</button></td>
+    </tr>`).join('')}
+  </tbody></table></div>`;
+}
+async function deleteEvaluation(id) {
+  if (!confirm('حذف هذا التقييم؟')) return;
+  teacherData.evaluations = teacherData.evaluations.filter(e => e.id !== id);
+  await saveData(); renderEvalForm();
+}
+
+// ========= RUBRIC (Settings) =========
+function renderRubric() {
+  const body = document.getElementById('rubricAxesBody');
+  if (!body) return;
+  if (!teacherData.rubric || !teacherData.rubric.length) {
+    body.innerHTML = `<div class="empty-state"><h4>لم تُضف محاور بعد</h4><p>اضغط "إضافة محور" للبدء</p></div>`;
+    return;
+  }
+  body.innerHTML = teacherData.rubric.map((axis, idx) => `
+    <div class="rubric-axis">
+      <div class="rubric-axis-header">
+        <span style="background:#4f46e5;color:white;width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">${idx+1}</span>
+        <input type="text" placeholder="اسم المحور (مثل: المستوى التحصيلي)" value="${esc(axis.name)}" onchange="updateRubricAxisName('${axis.id}',this.value)">
+        <button class="btn btn-danger btn-sm" onclick="deleteRubricAxis('${axis.id}')">🗑️</button>
+      </div>
+      <div class="rubric-ranks">
+        ${[0,1,2,3,4].map(i => `<div class="rubric-rank-row">
+          <span class="num">${i+1}</span>
+          <input type="text" placeholder="وصف التقدير ${i+1}" value="${esc(axis.ranks[i] || '')}" onchange="updateRubricRank('${axis.id}',${i},this.value)">
+        </div>`).join('')}
       </div>
     </div>`).join('');
 }
+function addRubricAxis() {
+  if (!teacherData.rubric) teacherData.rubric = [];
+  teacherData.rubric.push({ id: uid('rx'), name: '', ranks: ['','','','',''] });
+  renderRubric();
+}
+function updateRubricAxisName(id, value) {
+  const a = teacherData.rubric.find(x => x.id === id); if (a) a.name = value;
+}
+function updateRubricRank(axisId, idx, value) {
+  const a = teacherData.rubric.find(x => x.id === axisId); if (a) a.ranks[idx] = value;
+}
+async function deleteRubricAxis(id) {
+  if (!confirm('حذف هذا المحور؟ ستُحذف كل التقييمات السابقة المرتبطة به.')) return;
+  teacherData.rubric = teacherData.rubric.filter(x => x.id !== id);
+  // Remove axis from existing evaluations
+  teacherData.evaluations.forEach(e => { if (e.scores) delete e.scores[id]; });
+  await saveData(); renderRubric();
+}
+async function saveRubric() {
+  const msg = document.getElementById('rubricMessage'); msg.innerHTML = '';
+  // Validate
+  for (const axis of teacherData.rubric) {
+    if (!axis.name || !axis.name.trim()) {
+      msg.innerHTML = '<div class="error">يجب تسمية كل المحاور</div>';
+      return;
+    }
+  }
+  await saveData();
+  msg.innerHTML = '<div class="success">✅ حُفظت بنود التقييم</div>';
+  setTimeout(() => msg.innerHTML = '', 3000);
+}
 
+// ========= TEMPLATES =========
+function updateTemplateVariablesHint() {
+  const assessments = new Set();
+  teacherData.grades.forEach(g => (g.assessments || []).forEach(a => assessments.add(a.name)));
+  const aVars = [...assessments].map(n => `<code>{{درجة_${varKey(n)}}}</code>`).join(' ');
+  const html = `💡 المتغيرات: <code>{{اسم_الطالب}}</code> <code>{{الرقم_المدرسي}}</code> <code>{{الجنسية}}</code>
+    <code>{{الصف}}</code> <code>{{الشعبة}}</code> <code>{{المجموع}}</code>
+    <code>{{نسبة_الحضور}}</code> <code>{{عدد_الغياب}}</code>
+    <code>{{اسم_المدرسة}}</code> <code>{{اسم_المعلم}}</code> <code>{{المادة}}</code> <code>{{العام_الدراسي}}</code> <code>{{الفصل_الدراسي}}</code>
+    ${aVars ? `<br><b>أدوات:</b> ${aVars}` : ''}`;
+  const hint1 = document.getElementById('tplVariablesHint');
+  const hint2 = document.getElementById('tplVariablesHintHome');
+  if (hint1) hint1.innerHTML = html;
+  if (hint2) hint2.innerHTML = html;
+}
+function renderTemplates() {
+  const grid = document.getElementById('templatesGrid');
+  if (!grid) return;
+  if (!teacherData.templates.length) { grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><h4>📬 لا قوالب</h4></div>`; return; }
+  grid.innerHTML = teacherData.templates.map(t => `<div class="template-card">
+    <h4>📝 ${esc(t.name)}</h4>
+    <div class="template-body">${esc(t.body)}</div>
+    <div class="actions" style="justify-content:flex-end">
+      <button class="btn btn-secondary btn-sm" onclick="editTemplate('${t.id}')">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteTemplate('${t.id}')">🗑️</button>
+    </div>
+  </div>`).join('');
+}
 function openTemplateModal() {
   editingTemplateId = null;
   document.getElementById('templateModalTitle').textContent = 'قالب جديد';
@@ -1597,10 +1745,8 @@ function openTemplateModal() {
   updateTemplateVariablesHint();
   document.getElementById('templateModal').classList.remove('hidden');
 }
-
 function editTemplate(id) {
-  const t = teacherData.templates.find(x => x.id === id);
-  if (!t) return;
+  const t = teacherData.templates.find(x => x.id === id); if (!t) return;
   editingTemplateId = id;
   document.getElementById('templateModalTitle').textContent = 'تعديل: ' + t.name;
   document.getElementById('tplName').value = t.name;
@@ -1609,105 +1755,71 @@ function editTemplate(id) {
   updateTemplateVariablesHint();
   document.getElementById('templateModal').classList.remove('hidden');
 }
-
 async function saveTemplate() {
-  const err = document.getElementById('templateError');
-  err.classList.add('hidden');
+  const err = document.getElementById('templateError'); err.classList.add('hidden');
   const name = document.getElementById('tplName').value.trim();
   const body = document.getElementById('tplBody').value.trim();
-  if (!name || !body) { err.textContent = 'اسم القالب والنص مطلوبان'; err.classList.remove('hidden'); return; }
-  if (editingTemplateId) {
-    const t = teacherData.templates.find(x => x.id === editingTemplateId);
-    if (t) { t.name = name; t.body = body; }
-  } else {
-    teacherData.templates.push({ id: uid('tpl'), name, body });
-  }
-  await saveTeacherData();
-  closeModal('templateModal');
-  renderTemplates();
-  refreshSendTemplates();
+  if (!name || !body) { err.textContent = 'الاسم والنص مطلوبان'; err.classList.remove('hidden'); return; }
+  if (editingTemplateId) { const t = teacherData.templates.find(x => x.id === editingTemplateId); if (t) { t.name = name; t.body = body; } }
+  else teacherData.templates.push({ id: uid('tpl'), name, body });
+  await saveData();
+  closeModal('templateModal'); renderTemplates(); refreshSendTemplates();
 }
-
 async function deleteTemplate(id) {
-  const t = teacherData.templates.find(x => x.id === id);
-  if (!t) return;
-  if (!confirm(`حذف القالب "${t.name}"؟`)) return;
+  const t = teacherData.templates.find(x => x.id === id); if (!t) return;
+  if (!confirm(`حذف "${t.name}"؟`)) return;
   teacherData.templates = teacherData.templates.filter(x => x.id !== id);
-  await saveTeacherData();
-  renderTemplates(); refreshSendTemplates();
+  await saveData(); renderTemplates(); refreshSendTemplates();
 }
 
-// ============ WHATSAPP ============
-function refreshSendFilters() {
-  const g = document.getElementById('sendFilterGrade');
-  g.innerHTML = '<option value="">-- كل الصفوف --</option>' +
-    teacherData.grades.map(x => `<option value="${x.id}">${esc(x.name)}</option>`).join('');
-  refreshSendStudents();
-  refreshSendTemplates();
-}
-
+// ========= WHATSAPP =========
+function refreshSendFilters() { fillGradeSelect('sendFilterGrade'); refreshSendStudents(); refreshSendTemplates(); }
 function refreshSendStudents() {
-  const gradeId = document.getElementById('sendFilterGrade').value;
-  const secSel = document.getElementById('sendFilterSection');
-  secSel.innerHTML = '<option value="">-- كل الشعب --</option>';
-  if (gradeId) {
-    const g = teacherData.grades.find(x => x.id === gradeId);
-    secSel.innerHTML += (g?.sections || []).map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
-  }
-  const sectionId = secSel.value;
+  const g = document.getElementById('sendFilterGrade').value;
+  fillSectionSelect('sendFilterSection', g);
+  const sec = document.getElementById('sendFilterSection').value;
+  const list = filterStudents(g, sec, '');
   const ss = document.getElementById('sendStudent');
-  const filtered = teacherData.students.filter(s =>
-    (!gradeId || s.grade_id === gradeId) && (!sectionId || s.section_id === sectionId)
-  );
-  ss.innerHTML = '<option value="">-- بدون اختيار --</option>' +
-    filtered.map(s => `<option value="${s.id}">${esc(s.name)} (${esc(s.student_id)})</option>`).join('');
+  ss.innerHTML = '<option value="">-- بدون اختيار --</option>' + list.map(s => `<option value="${s.id}">${esc(s.name)} (${esc(s.student_id)})</option>`).join('');
 }
-
 function refreshSendTemplates() {
   const ts = document.getElementById('sendTemplate');
-  ts.innerHTML = '<option value="">-- بدون قالب --</option>' +
-    teacherData.templates.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
+  if (!ts) return;
+  ts.innerHTML = '<option value="">-- بدون قالب --</option>' + teacherData.templates.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
 }
-
 function fillTemplate(body, student) {
   const g = student ? teacherData.grades.find(x => x.id === student.grade_id) : null;
   const sec = g && student ? g.sections?.find(x => x.id === student.section_id) : null;
-  const notes = student && Array.isArray(student.notes) ? student.notes : [];
-  const pos = notes.filter(n => n.type === 'positive').map(n => '• ' + n.text).join('\n') || 'لا يوجد';
-  const neg = notes.filter(n => n.type === 'negative').map(n => '• ' + n.text).join('\n') || 'لا يوجد';
-  const total = student ? computeStudentTotal(student) : null;
+  const total = student ? computeTotal(student) : null;
+  // Attendance
+  let attRate = '—', absCount = '—';
+  if (student) {
+    let p=0, a=0, l=0, e=0;
+    Object.values(teacherData.attendance).forEach(day => { const st = day[student.id]; if(st==='present')p++;else if(st==='absent')a++;else if(st==='late')l++;else if(st==='excused')e++; });
+    const total = p+a+l+e;
+    if (total) attRate = ((p/total)*100).toFixed(0) + '%';
+    absCount = String(a);
+  }
   const map = {
-    'اسم_الطالب': student?.name || '',
-    'الرقم_المدرسي': student?.student_id || '',
-    'الجنسية': student?.nationality || '',
-    'الصف': g?.name || '',
-    'الشعبة': sec?.name || '',
+    'اسم_الطالب': student?.name || '', 'الرقم_المدرسي': student?.student_id || '',
+    'الجنسية': student?.nationality || '', 'الصف': g?.name || '', 'الشعبة': sec?.name || '',
     'المجموع': total != null ? total.toFixed(1) : '—',
-    'الملاحظات_الإيجابية': pos,
-    'الملاحظات_السلبية': neg,
+    'نسبة_الحضور': attRate, 'عدد_الغياب': absCount,
     'اسم_المدرسة': teacherInfo?.school?.name || '',
     'اسم_المعلم': teacherInfo?.full_name || teacherInfo?.username || '',
     'المادة': teacherInfo?.subject || '',
     'العام_الدراسي': teacherInfo?.academic_year || '',
     'الفصل_الدراسي': teacherInfo?.academic_term || ''
   };
-  // Add per-assessment variables: {{درجة_اسم_الأداة}}
-  if (g && g.assessments) {
-    g.assessments.forEach(a => {
-      const v = student?.scores?.[a.id];
-      map['درجة_' + varKey(a.name)] = v != null ? String(v) : '—';
-    });
-  }
+  if (g && g.assessments) g.assessments.forEach(a => { const v = student?.scores?.[a.id]; map['درجة_' + varKey(a.name)] = v != null ? String(v) : '—'; });
   return body.replace(/\{\{([^}]+)\}\}/g, (m, k) => map[k.trim()] ?? m);
 }
-
 function onSendStudentChange() {
   const sid = document.getElementById('sendStudent').value;
   const s = teacherData.students.find(x => x.id === sid);
   if (s && s.parent_phone) document.getElementById('sendTo').value = s.parent_phone;
   onSendTemplateChange();
 }
-
 function onSendTemplateChange() {
   const tid = document.getElementById('sendTemplate').value;
   const sid = document.getElementById('sendStudent').value;
@@ -1715,44 +1827,22 @@ function onSendTemplateChange() {
   const s = teacherData.students.find(x => x.id === sid);
   if (t) document.getElementById('sendMessage').value = fillTemplate(t.body, s);
 }
-
-function quickSend(studentId) {
-  const s = teacherData.students.find(x => x.id === studentId);
-  if (!s) return;
-  switchTab('whatsapp');
-  if (s.grade_id) document.getElementById('sendFilterGrade').value = s.grade_id;
-  refreshSendStudents();
-  if (s.section_id) document.getElementById('sendFilterSection').value = s.section_id;
-  refreshSendStudents();
-  document.getElementById('sendStudent').value = studentId;
-  onSendStudentChange();
-  window.scrollTo({top:0, behavior:'smooth'});
-}
-
 async function sendWhatsApp() {
   const to = document.getElementById('sendTo').value.trim();
   const message = document.getElementById('sendMessage').value.trim();
-  const resultDiv = document.getElementById('sendResult');
-  const btn = document.getElementById('sendBtn');
-  resultDiv.innerHTML = '';
-  if (!to || !message) { resultDiv.innerHTML = '<div class="error">رقم ولي الأمر ونص الرسالة مطلوبان</div>'; return; }
-  btn.disabled = true; btn.textContent = 'جاري الإرسال...';
+  const rd = document.getElementById('sendResult'); rd.innerHTML = '';
+  if (!to || !message) { rd.innerHTML = '<div class="error">الرقم والرسالة مطلوبان</div>'; return; }
+  const btn = document.getElementById('sendBtn'); btn.disabled = true; btn.textContent = 'جاري الإرسال...';
   try {
-    const r = await fetch('/api/bot/send', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ to, message })
-    });
+    const r = await fetch('/api/bot/send', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ to, message }) });
     const data = await r.json();
-    if (!r.ok) throw new Error(data.error || 'فشل الإرسال');
-    resultDiv.innerHTML = `<div class="success">✅ تم إرسال الرسالة بنجاح (SID: ${esc(data.sid || '')})</div>`;
-  } catch (e) {
-    resultDiv.innerHTML = `<div class="error">❌ ${esc(e.message)}</div>`;
-  } finally {
-    btn.disabled = false; btn.textContent = '📤 إرسال الرسالة';
-  }
+    if (!r.ok) throw new Error(data.error);
+    rd.innerHTML = `<div class="success">✅ أُرسلت (SID: ${esc(data.sid || '')})</div>`;
+  } catch (e) { rd.innerHTML = `<div class="error">❌ ${esc(e.message)}</div>`; }
+  finally { btn.disabled = false; btn.textContent = '📤 إرسال الرسالة'; }
 }
 
-// ============ SETTINGS ============
+// ========= PROFILE & SECURITY =========
 function loadProfileForm() {
   document.getElementById('profFullName').value = teacherInfo.full_name || '';
   document.getElementById('profUsername').value = teacherInfo.username || '';
@@ -1761,23 +1851,17 @@ function loadProfileForm() {
   document.getElementById('profSubject').value = teacherInfo.subject || '';
   document.getElementById('profAcademicYear').value = teacherInfo.academic_year || '';
   document.getElementById('profAcademicTerm').value = teacherInfo.academic_term || '';
-  // security question status
+  const info = document.getElementById('currentSecQuestionInfo');
   if (teacherInfo.security_question) {
-    document.getElementById('currentSecQuestionInfo').innerHTML =
-      `✅ السؤال الحالي: <b>${esc(teacherInfo.security_question)}</b>`;
+    info.innerHTML = `✅ السؤال الحالي: <b>${esc(teacherInfo.security_question)}</b>`;
     const sel = document.getElementById('sqQuestion');
-    if ([...sel.options].some(o => o.value === teacherInfo.security_question)) {
-      sel.value = teacherInfo.security_question;
-    }
+    if ([...sel.options].some(o => o.value === teacherInfo.security_question)) sel.value = teacherInfo.security_question;
   } else {
-    document.getElementById('currentSecQuestionInfo').innerHTML =
-      `⚠️ لم تعيّن سؤال أمان بعد. يُنصح بتعيينه لتستطيع استرجاع كلمة المرور بنفسك.`;
+    info.innerHTML = '⚠️ لم تعيّن سؤال أمان بعد.';
   }
 }
-
 async function saveProfile() {
-  const msg = document.getElementById('profileMessage');
-  msg.innerHTML = '';
+  const msg = document.getElementById('profileMessage'); msg.innerHTML = '';
   try {
     const payload = {
       full_name: document.getElementById('profFullName').value.trim(),
@@ -1787,103 +1871,68 @@ async function saveProfile() {
       academic_year: document.getElementById('profAcademicYear').value.trim(),
       academic_term: document.getElementById('profAcademicTerm').value
     };
-    const r = await fetch('/api/teacher/profile', {
-      method: 'PUT', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(payload)
-    });
+    const r = await fetch('/api/teacher/profile', { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
     const data = await r.json();
     if (!r.ok) throw new Error(data.error);
     Object.assign(teacherInfo, payload);
     document.getElementById('tName').textContent = teacherInfo.full_name || teacherInfo.username;
     document.getElementById('tGreeting').textContent = teacherInfo.full_name || teacherInfo.username;
-    renderTeacherMeta();
-    msg.innerHTML = '<div class="success">✅ تم حفظ البيانات بنجاح</div>';
-    setTimeout(() => msg.innerHTML = '', 3000);
-  } catch (e) {
-    msg.innerHTML = `<div class="error">❌ ${esc(e.message)}</div>`;
-  }
+    renderMeta();
+    msg.innerHTML = '<div class="success">✅ حُفظت البيانات</div>';
+    setTimeout(() => msg.innerHTML = '', 2500);
+  } catch (e) { msg.innerHTML = `<div class="error">❌ ${esc(e.message)}</div>`; }
 }
-
 async function changePassword() {
-  const msg = document.getElementById('pwMessage');
-  msg.innerHTML = '';
-  const current = document.getElementById('pwCurrent').value;
-  const next = document.getElementById('pwNew').value;
-  const confirm2 = document.getElementById('pwConfirm').value;
-  if (!current || !next) { msg.innerHTML = '<div class="error">جميع الحقول مطلوبة</div>'; return; }
-  if (next !== confirm2) { msg.innerHTML = '<div class="error">كلمتا المرور غير متطابقتين</div>'; return; }
-  if (next.length < 4) { msg.innerHTML = '<div class="error">كلمة المرور قصيرة جداً</div>'; return; }
+  const msg = document.getElementById('pwMessage'); msg.innerHTML = '';
+  const c = document.getElementById('pwCurrent').value;
+  const n = document.getElementById('pwNew').value;
+  const c2 = document.getElementById('pwConfirm').value;
+  if (!c || !n) { msg.innerHTML = '<div class="error">جميع الحقول مطلوبة</div>'; return; }
+  if (n !== c2) { msg.innerHTML = '<div class="error">كلمتا المرور غير متطابقتين</div>'; return; }
+  if (n.length < 4) { msg.innerHTML = '<div class="error">قصيرة جداً</div>'; return; }
   try {
-    const r = await fetch('/api/teacher/change-password', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ current_password: current, new_password: next })
-    });
+    const r = await fetch('/api/teacher/change-password', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ current_password: c, new_password: n }) });
     const data = await r.json();
     if (!r.ok) throw new Error(data.error);
-    msg.innerHTML = '<div class="success">✅ تم تغيير كلمة المرور</div>';
-    document.getElementById('pwCurrent').value = '';
-    document.getElementById('pwNew').value = '';
-    document.getElementById('pwConfirm').value = '';
-    setTimeout(() => msg.innerHTML = '', 3000);
-  } catch (e) {
-    msg.innerHTML = `<div class="error">❌ ${esc(e.message)}</div>`;
-  }
+    msg.innerHTML = '<div class="success">✅ غُيّرت</div>';
+    ['pwCurrent','pwNew','pwConfirm'].forEach(id => document.getElementById(id).value = '');
+    setTimeout(() => msg.innerHTML = '', 2500);
+  } catch (e) { msg.innerHTML = `<div class="error">❌ ${esc(e.message)}</div>`; }
 }
-
 async function saveSecurityQuestion() {
-  const msg = document.getElementById('sqMessage');
-  msg.innerHTML = '';
-  const question = document.getElementById('sqQuestion').value;
-  const answer = document.getElementById('sqAnswer').value.trim();
-  if (!question || !answer) { msg.innerHTML = '<div class="error">السؤال والإجابة مطلوبان</div>'; return; }
+  const msg = document.getElementById('sqMessage'); msg.innerHTML = '';
+  const q = document.getElementById('sqQuestion').value;
+  const a = document.getElementById('sqAnswer').value.trim();
+  if (!q || !a) { msg.innerHTML = '<div class="error">السؤال والإجابة مطلوبان</div>'; return; }
   try {
-    const r = await fetch('/api/teacher/security-question', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ question, answer })
-    });
+    const r = await fetch('/api/teacher/security-question', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ question: q, answer: a }) });
     const data = await r.json();
     if (!r.ok) throw new Error(data.error);
-    teacherInfo.security_question = question;
-    loadProfileForm();
+    teacherInfo.security_question = q; loadProfileForm();
     document.getElementById('sqAnswer').value = '';
-    msg.innerHTML = '<div class="success">✅ تم حفظ سؤال الأمان</div>';
-    setTimeout(() => msg.innerHTML = '', 3000);
-  } catch (e) {
-    msg.innerHTML = `<div class="error">❌ ${esc(e.message)}</div>`;
-  }
+    msg.innerHTML = '<div class="success">✅ حُفظ</div>';
+    setTimeout(() => msg.innerHTML = '', 2500);
+  } catch (e) { msg.innerHTML = `<div class="error">❌ ${esc(e.message)}</div>`; }
 }
 
-// ============ INIT ============
+// ========= INIT =========
 (async () => {
   try {
-    const r = await fetch('/api/teacher/session');
-    const data = await r.json();
+    const r = await fetch('/api/teacher/session'); const data = await r.json();
     if (data.authenticated) {
       initDashboard({
-        id: data.teacher.id,
-        username: data.teacher.username,
-        full_name: data.teacher.full_name,
-        subject: data.teacher.subject,
-        grade_level: data.teacher.grade_level,
-        phone: data.teacher.phone,
-        email: data.teacher.email,
-        academic_year: data.teacher.academic_year,
-        academic_term: data.teacher.academic_term,
+        id: data.teacher.id, username: data.teacher.username, full_name: data.teacher.full_name,
+        subject: data.teacher.subject, grade_level: data.teacher.grade_level,
+        phone: data.teacher.phone, email: data.teacher.email,
+        academic_year: data.teacher.academic_year, academic_term: data.teacher.academic_term,
         security_question: data.teacher.security_question,
         school: { id: data.school.id, name: data.school.name_ar }
       });
     }
   } catch (e) { console.error(e); }
 })();
-
 document.querySelectorAll('#loginScreen input, #recoveryScreen input').forEach(el => {
-  el.addEventListener('keydown', e => {
-    if (e.key === 'Enter') {
-      if (el.closest('#loginScreen')) doLogin();
-      else if (el.closest('#recoveryStep1')) recoveryLookup();
-      else if (el.closest('#recoveryStep2')) recoveryReset();
-    }
-  });
+  el.addEventListener('keydown', e => { if (e.key === 'Enter') { if (el.closest('#loginScreen')) doLogin(); else if (el.closest('#recoveryStep1')) recoveryLookup(); else if (el.closest('#recoveryStep2')) recoveryReset(); } });
 });
 </script>
 </body>
