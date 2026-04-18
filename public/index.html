@@ -218,6 +218,17 @@ tr:hover td{background:#fafbfc}
 .rank-mini-btn.selected{background:#4f46e5;border-color:#4f46e5}
 .eval-selected-label{font-size:10px;color:#4338ca;margin-top:3px;text-align:center;line-height:1.3;min-height:13px}
 
+/* ===== PHRASE ROW ===== */
+.eval-phrase-row td{background:linear-gradient(to bottom, #f0f9ff 0%, #e0f2fe 100%) !important;border-bottom:2px solid #bae6fd !important;padding:10px 14px}
+.eval-phrase-row:hover td{background:linear-gradient(to bottom, #e0f2fe 0%, #bae6fd 100%) !important}
+.eval-phrase-cell{position:sticky;right:0}
+.eval-phrase-header{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:6px}
+.eval-phrase-label{font-size:11px;color:#0c4a6e;font-weight:600}
+.eval-phrase-assess{display:flex;align-items:center;gap:5px;font-size:11px;color:#0c4a6e}
+.eval-phrase-assess label{color:#0c4a6e;font-weight:500}
+.eval-phrase-assess select{padding:4px 8px;border:1px solid #7dd3fc;border-radius:5px;font-family:inherit;font-size:11px;background:white;color:#0c4a6e;max-width:220px}
+.eval-phrase-text{background:white;padding:8px 11px;border-radius:6px;font-size:13px;line-height:1.8;color:#0c4a6e;font-weight:500;border-right:3px solid #0ea5e9;box-shadow:0 1px 2px rgba(0,0,0,0.03)}
+
 .eval-axis{background:white;border:1px solid #e5e7eb;border-radius:9px;padding:14px;margin-bottom:10px}
 .eval-axis-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px}
 .eval-axis-header h4{font-size:14px;color:#111827;display:flex;align-items:center;gap:6px}
@@ -1615,6 +1626,10 @@ function renderEvalTable() {
   }
   titleEl.innerHTML = `جدول التقييم — <b style="color:#4f46e5">${esc(period)}</b> <span class="pill pill-gray">${list.length} طالب</span>`;
 
+  // Grade's assessments for the dropdown
+  const grade = teacherData.grades.find(g => g.id === gradeId);
+  const assessments = grade?.assessments || [];
+
   // Build table
   let html = '<div class="eval-table-wrap"><table class="eval-table"><thead><tr>';
   html += '<th class="student-cell">الطالب</th>';
@@ -1626,6 +1641,9 @@ function renderEvalTable() {
   list.forEach(student => {
     const existing = teacherData.evaluations.find(e => e.student_id === student.id && e.period === period);
     const scores = existing ? existing.scores || {} : {};
+    const hasAnyScore = Object.keys(scores).length > 0;
+    const includedAssessment = existing?.included_assessment || null; // id of assessment to include in phrase
+
     html += '<tr>';
     html += `<td class="student-cell"><div class="student-name">${esc(student.name)}</div><div style="font-size:10px;color:#6b7280">${esc(student.student_id || '')}</div></td>`;
     rubric.forEach(axis => {
@@ -1646,9 +1664,107 @@ function renderEvalTable() {
       html += `</td>`;
     });
     html += '</tr>';
+
+    // Phrase row — only show if student has at least one rank selected
+    if (hasAnyScore) {
+      const phrase = buildEvalPhrase(student, scores, includedAssessment);
+      const colspan = rubric.length + 1;
+      html += `<tr class="eval-phrase-row"><td colspan="${colspan}" class="eval-phrase-cell">`;
+      html += `<div class="eval-phrase-header">
+        <span class="eval-phrase-label">📝 العبارة المجمّعة:</span>`;
+      // Assessment dropdown (only if assessments exist for this grade)
+      if (assessments.length) {
+        html += `<span class="eval-phrase-assess">
+          <label>أضف درجة:</label>
+          <select onchange="setEvalAssessment('${student.id}',this.value)">
+            <option value="">-- بدون --</option>
+            ${assessments.map(a => {
+              const score = student.scores?.[a.id];
+              const hasScore = score != null;
+              const selected = includedAssessment === a.id ? 'selected' : '';
+              const disabled = hasScore ? '' : 'disabled';
+              const suffix = hasScore ? ` (${score}/${a.max})` : ' — لم يُدخل';
+              return `<option value="${a.id}" ${selected} ${disabled}>${esc(a.name)}${suffix}</option>`;
+            }).join('')}
+          </select>
+        </span>`;
+      }
+      html += `<button class="btn btn-info btn-sm" onclick="copyEvalPhrase('${student.id}')" title="نسخ العبارة"><span id="copy_${student.id}">📋 نسخ</span></button>
+      </div>
+      <div class="eval-phrase-text" id="phrase_${student.id}">${esc(phrase)}</div>
+      </td></tr>`;
+    }
   });
   html += '</tbody></table></div>';
   body.innerHTML = html;
+}
+
+// Build evaluation phrase from selected ranks
+function buildEvalPhrase(student, scores, includedAssessmentId) {
+  const rubric = teacherData.rubric;
+  const parts = [];
+  rubric.forEach(axis => {
+    const rank = scores[axis.id];
+    if (rank && axis.ranks && axis.ranks[rank - 1]) {
+      parts.push(axis.ranks[rank - 1]);
+    }
+  });
+  if (!parts.length) return '';
+  const studentName = student.name || '';
+  let phrase = `تم تقييم الطالب/ة ${studentName}: ` + parts.join('، ');
+  // Add assessment score if chosen
+  if (includedAssessmentId) {
+    const grade = teacherData.grades.find(g => g.id === student.grade_id);
+    const assess = grade?.assessments?.find(a => a.id === includedAssessmentId);
+    const score = student.scores?.[includedAssessmentId];
+    if (assess && score != null) {
+      phrase += `، وحصل/ت على ${score} من ${assess.max} في ${assess.name}`;
+    }
+  }
+  phrase += '. أشكر ولي الأمر على المتابعة.';
+  return phrase;
+}
+
+async function setEvalAssessment(studentId, assessmentId) {
+  const period = document.getElementById('evalPeriod').value.trim();
+  if (!period) return;
+  let rec = teacherData.evaluations.find(e => e.student_id === studentId && e.period === period);
+  if (!rec) return;
+  if (assessmentId) rec.included_assessment = assessmentId;
+  else delete rec.included_assessment;
+  await saveData();
+  renderEvalTable();
+}
+
+function copyEvalPhrase(studentId) {
+  const el = document.getElementById('phrase_' + studentId);
+  const copyLabel = document.getElementById('copy_' + studentId);
+  if (!el) return;
+  const text = el.textContent;
+  const setCopied = () => {
+    if (copyLabel) {
+      const orig = copyLabel.textContent;
+      copyLabel.textContent = '✅ تم النسخ';
+      setTimeout(() => { copyLabel.textContent = orig; }, 1800);
+    }
+  };
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(setCopied).catch(() => {
+      fallbackCopy(text); setCopied();
+    });
+  } else {
+    fallbackCopy(text); setCopied();
+  }
+}
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
 }
 
 async function setEvalCell(studentId, axisId, rank) {
