@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stutracker — إدارة المدرسة</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Cairo', sans-serif; background: #f5f7fa; color: #1f2937; min-height: 100vh; }
+.hidden { display: none !important; }
+
+.login-wrap { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+.login-card { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); width: 100%; max-width: 420px; }
+.login-card h1 { color: #10b981; margin-bottom: 8px; font-size: 26px; }
+.login-card .subtitle { color: #6b7280; margin-bottom: 32px; font-size: 14px; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px; }
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%; padding: 12px 14px; border: 1px solid #d1d5db; border-radius: 10px;
+  font-family: inherit; font-size: 15px;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  outline: none; border-color: #10b981;
+}
+.btn { padding: 12px 24px; border: none; border-radius: 10px; font-family: inherit;
+  font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-primary { background: #10b981; color: white; }
+.btn-primary:hover { background: #059669; }
+.btn-secondary { background: #e5e7eb; color: #374151; }
+.btn-danger { background: #ef4444; color: white; }
+.btn-small { padding: 6px 12px; font-size: 13px; }
+.btn-full { width: 100%; }
+.error { background: #fef2f2; color: #991b1b; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; }
+.success { background: #f0fdf4; color: #166534; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; }
+
+.topbar { background: #064e3b; color: white; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; }
+.topbar h1 { font-size: 20px; font-weight: 600; }
+.topbar .user-info { display: flex; gap: 16px; align-items: center; font-size: 14px; }
+.topbar button { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); }
+.container { max-width: 1200px; margin: 0 auto; padding: 32px; }
+
+.tabs { display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; margin-bottom: 24px; }
+.tab { padding: 12px 20px; background: none; border: none; cursor: pointer; font-family: inherit; font-size: 15px; font-weight: 500; color: #6b7280; position: relative; }
+.tab.active { color: #10b981; }
+.tab.active::after { content: ''; position: absolute; bottom: -2px; right: 0; left: 0; height: 2px; background: #10b981; }
+
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.page-header h2 { font-size: 22px; color: #111827; }
+
+.card { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 24px; margin-bottom: 16px; }
+.card-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #111827; }
+
+table { width: 100%; border-collapse: collapse; }
+th { background: #f9fafb; padding: 12px 16px; text-align: right; font-weight: 600; font-size: 13px; color: #374151; border-bottom: 1px solid #e5e7eb; }
+td { padding: 14px 16px; border-bottom: 1px solid #f3f4f6; font-size: 14px; }
+tr:hover td { background: #fafbfc; }
+.actions-cell { display: flex; gap: 8px; }
+
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+.modal { background: white; border-radius: 16px; max-width: 560px; width: 100%; max-height: 90vh; overflow-y: auto; }
+.modal-header { padding: 20px 28px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
+.modal-body { padding: 28px; }
+.modal-footer { padding: 20px 28px; border-top: 1px solid #e5e7eb; display: flex; gap: 12px; justify-content: flex-end; }
+.modal-header button { background: transparent; font-size: 24px; color: #6b7280; cursor: pointer; padding: 0; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-section { margin-bottom: 24px; }
+.form-section-title { font-size: 13px; color: #10b981; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb; }
+
+.setting-row { display: grid; grid-template-columns: 200px 1fr; gap: 16px; align-items: center; margin-bottom: 16px; }
+.setting-row label { font-weight: 500; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="loginScreen" class="login-wrap">
+  <div class="login-card">
+    <h1>🏫 إدارة المدرسة</h1>
+    <p class="subtitle">لوحة تحكم مدير المدرسة</p>
+    <div id="loginError" class="error hidden"></div>
+    <div class="form-group">
+      <label>رمز المدرسة</label>
+      <input type="text" id="loginSchoolCode" placeholder="مثل: Khalili4314">
+    </div>
+    <div class="form-group">
+      <label>اسم المستخدم</label>
+      <input type="text" id="loginUsername">
+    </div>
+    <div class="form-group">
+      <label>كلمة المرور</label>
+      <input type="password" id="loginPassword">
+    </div>
+    <button class="btn btn-primary btn-full" onclick="doLogin()">دخول</button>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard" class="hidden">
+  <div class="topbar">
+    <h1>🏫 <span id="schoolName"></span></h1>
+    <div class="user-info">
+      <span>رمز المدرسة: <b id="schoolCode"></b></span>
+      <button class="btn btn-small" onclick="doLogout()">خروج</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="tabs">
+      <button class="tab active" data-tab="teachers" onclick="switchTab('teachers')">👨‍🏫 المعلمون</button>
+      <button class="tab" data-tab="settings" onclick="switchTab('settings')">⚙️ إعدادات الإرسال والذكاء الاصطناعي</button>
+    </div>
+
+    <!-- Teachers Tab -->
+    <div id="tab-teachers">
+      <div class="page-header">
+        <h2>المعلمون المسجلون</h2>
+        <button class="btn btn-primary" onclick="openTeacherModal()">➕ إضافة معلم</button>
+      </div>
+      <div class="card" style="padding:0">
+        <table>
+          <thead>
+            <tr>
+              <th>اسم المستخدم</th>
+              <th>الاسم الكامل</th>
+              <th>المادة</th>
+              <th>الصف</th>
+              <th>الهاتف</th>
+              <th>آخر دخول</th>
+              <th>إجراءات</th>
+            </tr>
+          </thead>
+          <tbody id="teachersTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Settings Tab -->
+    <div id="tab-settings" class="hidden">
+      <div id="settingsSuccess" class="success hidden">✅ تم حفظ الإعدادات بنجاح</div>
+      <div id="settingsError" class="error hidden"></div>
+
+      <div class="card">
+        <div class="card-title">📱 إعدادات Twilio WhatsApp</div>
+        <div class="setting-row">
+          <label>Account SID</label>
+          <input type="text" id="sTwilioSid" placeholder="ACxxxxxxxxxxxxx">
+        </div>
+        <div class="setting-row">
+          <label>Auth Token</label>
+          <input type="text" id="sTwilioToken">
+        </div>
+        <div class="setting-row">
+          <label>WhatsApp Number</label>
+          <input type="text" id="sTwilioFrom" placeholder="+15559188586">
+        </div>
+        <div class="setting-row">
+          <label>Content SID</label>
+          <input type="text" id="sContentSid" placeholder="HXxxxxxxxxxxxxx">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🤖 إعدادات الذكاء الاصطناعي</div>
+        <div class="setting-row">
+          <label>OpenAI API Key</label>
+          <input type="text" id="sOpenaiKey" placeholder="sk-proj-...">
+        </div>
+        <div class="setting-row">
+          <label>النموذج</label>
+          <select id="sOpenaiModel">
+            <option value="gpt-4o-mini">gpt-4o-mini (اقتصادي)</option>
+            <option value="gpt-4o">gpt-4o (الأفضل)</option>
+            <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+          </select>
+        </div>
+        <div class="setting-row" style="align-items:flex-start">
+          <label style="padding-top:12px">توجيه النظام</label>
+          <textarea id="sAiPrompt" rows="4" placeholder="أنت مساعد ذكي لمدرسة..."></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="saveSettings()">حفظ الإعدادات</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Teacher Modal -->
+<div id="teacherModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">إضافة معلم</h3>
+      <button onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="modalError" class="error hidden"></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>اسم المستخدم *</label>
+          <input type="text" id="tUsername">
+        </div>
+        <div class="form-group">
+          <label>كلمة المرور <span id="tPwdHint" style="font-size:11px;color:#6b7280">*</span></label>
+          <input type="text" id="tPassword">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>الاسم الكامل</label>
+        <input type="text" id="tFullName">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>المادة</label>
+          <input type="text" id="tSubject" placeholder="الكيمياء، الرياضيات، ...">
+        </div>
+        <div class="form-group">
+          <label>الصف</label>
+          <input type="text" id="tGradeLevel" placeholder="الصف 11، ...">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>الهاتف</label>
+          <input type="text" id="tPhone" placeholder="+968...">
+        </div>
+        <div class="form-group">
+          <label>البريد</label>
+          <input type="email" id="tEmail">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveTeacher()" id="saveTeacherBtn">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let editingTeacherId = null;
+
+async function doLogin() {
+  const school_code = document.getElementById('loginSchoolCode').value.trim();
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errDiv = document.getElementById('loginError');
+  errDiv.classList.add('hidden');
+
+  try {
+    const r = await fetch('/api/school/login', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ school_code, username, password })
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error);
+    initDashboard(data.school);
+  } catch (e) {
+    errDiv.textContent = e.message;
+    errDiv.classList.remove('hidden');
+  }
+}
+
+async function doLogout() {
+  await fetch('/api/school/logout', { method: 'POST' });
+  location.reload();
+}
+
+function initDashboard(school) {
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('dashboard').classList.remove('hidden');
+  document.getElementById('schoolName').textContent = school.name;
+  document.getElementById('schoolCode').textContent = school.code;
+  loadTeachers();
+  loadSettings();
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.getElementById('tab-teachers').classList.toggle('hidden', name !== 'teachers');
+  document.getElementById('tab-settings').classList.toggle('hidden', name !== 'settings');
+}
+
+async function loadTeachers() {
+  const r = await fetch('/api/school/teachers');
+  const data = await r.json();
+  const tbody = document.getElementById('teachersTable');
+  if (!data.teachers?.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#9ca3af;padding:40px">لا يوجد معلمون. اضغط "إضافة معلم" للبدء.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.teachers.map(t => `
+    <tr>
+      <td><b>${esc(t.username)}</b></td>
+      <td>${esc(t.full_name || '—')}</td>
+      <td>${esc(t.subject || '—')}</td>
+      <td>${esc(t.grade_level || '—')}</td>
+      <td>${esc(t.phone || '—')}</td>
+      <td>${t.last_login ? new Date(t.last_login).toLocaleDateString('ar-OM') : 'لم يدخل بعد'}</td>
+      <td class="actions-cell">
+        <button class="btn btn-secondary btn-small" onclick='editTeacher(${JSON.stringify(t).replace(/'/g, "&apos;")})'>✏️</button>
+        <button class="btn btn-danger btn-small" onclick="deleteTeacher(${t.id}, '${esc(t.username)}')">🗑️</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function loadSettings() {
+  const r = await fetch('/api/school/session');
+  const data = await r.json();
+  if (!data.authenticated) return;
+  const s = data.school;
+  document.getElementById('sTwilioSid').value = s.twilio_sid || '';
+  document.getElementById('sTwilioFrom').value = s.twilio_from || '';
+  document.getElementById('sContentSid').value = s.content_sid || '';
+  document.getElementById('sOpenaiModel').value = s.openai_model || 'gpt-4o-mini';
+  document.getElementById('sAiPrompt').value = s.ai_system_prompt || '';
+  // لا نعرض التوكنات لأسباب أمنية
+  document.getElementById('sTwilioToken').placeholder = '••• (محفوظ، أدخل قيمة جديدة للتغيير)';
+  document.getElementById('sOpenaiKey').placeholder = '••• (محفوظ، أدخل قيمة جديدة للتغيير)';
+}
+
+async function saveSettings() {
+  const payload = {
+    twilio_sid: document.getElementById('sTwilioSid').value.trim(),
+    twilio_from: document.getElementById('sTwilioFrom').value.trim(),
+    content_sid: document.getElementById('sContentSid').value.trim(),
+    openai_model: document.getElementById('sOpenaiModel').value,
+    ai_system_prompt: document.getElementById('sAiPrompt').value.trim()
+  };
+  const twilioToken = document.getElementById('sTwilioToken').value.trim();
+  const openaiKey = document.getElementById('sOpenaiKey').value.trim();
+  if (twilioToken) payload.twilio_token = twilioToken;
+  if (openaiKey) payload.openai_key = openaiKey;
+
+  try {
+    const r = await fetch('/api/school/settings', {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    if (!r.ok) throw new Error((await r.json()).error);
+    const ok = document.getElementById('settingsSuccess');
+    ok.classList.remove('hidden');
+    setTimeout(() => ok.classList.add('hidden'), 3000);
+  } catch (e) {
+    const err = document.getElementById('settingsError');
+    err.textContent = e.message;
+    err.classList.remove('hidden');
+  }
+}
+
+function esc(s) { return String(s || '').replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function openTeacherModal() {
+  editingTeacherId = null;
+  document.getElementById('modalTitle').textContent = 'إضافة معلم';
+  document.getElementById('tPwdHint').textContent = '*';
+  ['tUsername','tPassword','tFullName','tSubject','tGradeLevel','tPhone','tEmail'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('tUsername').disabled = false;
+  document.getElementById('modalError').classList.add('hidden');
+  document.getElementById('teacherModal').classList.remove('hidden');
+}
+
+function editTeacher(t) {
+  editingTeacherId = t.id;
+  document.getElementById('modalTitle').textContent = 'تعديل: ' + (t.full_name || t.username);
+  document.getElementById('tPwdHint').textContent = '(اتركها فارغة للإبقاء)';
+  document.getElementById('tUsername').value = t.username;
+  document.getElementById('tPassword').value = '';
+  document.getElementById('tFullName').value = t.full_name || '';
+  document.getElementById('tSubject').value = t.subject || '';
+  document.getElementById('tGradeLevel').value = t.grade_level || '';
+  document.getElementById('tPhone').value = t.phone || '';
+  document.getElementById('tEmail').value = t.email || '';
+  document.getElementById('modalError').classList.add('hidden');
+  document.getElementById('teacherModal').classList.remove('hidden');
+}
+
+function closeModal() {
+  document.getElementById('teacherModal').classList.add('hidden');
+}
+
+async function saveTeacher() {
+  const payload = {
+    username: document.getElementById('tUsername').value.trim(),
+    password: document.getElementById('tPassword').value,
+    full_name: document.getElementById('tFullName').value.trim(),
+    subject: document.getElementById('tSubject').value.trim(),
+    grade_level: document.getElementById('tGradeLevel').value.trim(),
+    phone: document.getElementById('tPhone').value.trim(),
+    email: document.getElementById('tEmail').value.trim()
+  };
+  if (editingTeacherId && !payload.password) delete payload.password;
+  const btn = document.getElementById('saveTeacherBtn');
+  btn.disabled = true; btn.textContent = 'جاري الحفظ...';
+  try {
+    const url = editingTeacherId ? `/api/school/teachers/${editingTeacherId}` : '/api/school/teachers';
+    const method = editingTeacherId ? 'PUT' : 'POST';
+    const r = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error);
+    closeModal();
+    loadTeachers();
+  } catch (e) {
+    const err = document.getElementById('modalError');
+    err.textContent = e.message;
+    err.classList.remove('hidden');
+  } finally {
+    btn.disabled = false; btn.textContent = 'حفظ';
+  }
+}
+
+async function deleteTeacher(id, username) {
+  if (!confirm(`حذف المعلم "${username}"؟ سيتم حذف جميع بياناته.`)) return;
+  const r = await fetch(`/api/school/teachers/${id}`, { method: 'DELETE' });
+  if (r.ok) loadTeachers();
+}
+
+// Init
+(async () => {
+  const r = await fetch('/api/school/session');
+  const data = await r.json();
+  if (data.authenticated) initDashboard({
+    id: data.school.id,
+    code: data.school.school_code,
+    name: data.school.name_ar
+  });
+})();
+</script>
+</body>
+</html>

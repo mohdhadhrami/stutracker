@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stutracker — مدير النظام</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Cairo', sans-serif; background: #f5f7fa; color: #1f2937; min-height: 100vh; }
+.hidden { display: none !important; }
+
+/* Login screen */
+.login-wrap { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+.login-card { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); width: 100%; max-width: 420px; }
+.login-card h1 { color: #6366f1; margin-bottom: 8px; font-size: 28px; }
+.login-card .subtitle { color: #6b7280; margin-bottom: 32px; font-size: 14px; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px; }
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%; padding: 12px 14px; border: 1px solid #d1d5db; border-radius: 10px;
+  font-family: inherit; font-size: 15px; transition: border-color 0.2s;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  outline: none; border-color: #6366f1;
+}
+.btn { padding: 12px 24px; border: none; border-radius: 10px; font-family: inherit;
+  font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-primary { background: #6366f1; color: white; width: 100%; }
+.btn-primary:hover { background: #4f46e5; }
+.btn-secondary { background: #e5e7eb; color: #374151; }
+.btn-danger { background: #ef4444; color: white; }
+.btn-small { padding: 6px 12px; font-size: 13px; }
+.error { background: #fef2f2; color: #991b1b; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; }
+.success { background: #f0fdf4; color: #166534; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; }
+
+/* Dashboard */
+.topbar { background: #1f2937; color: white; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; }
+.topbar h1 { font-size: 20px; font-weight: 600; }
+.topbar .user-info { display: flex; gap: 16px; align-items: center; font-size: 14px; }
+.topbar button { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); }
+.topbar button:hover { background: rgba(255,255,255,0.2); }
+.container { max-width: 1400px; margin: 0 auto; padding: 32px; }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.page-header h2 { font-size: 24px; color: #111827; }
+
+/* Stats */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
+.stat-card { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e5e7eb; }
+.stat-card .label { color: #6b7280; font-size: 13px; margin-bottom: 8px; }
+.stat-card .value { font-size: 32px; font-weight: 700; color: #6366f1; }
+
+/* Schools table */
+.card { background: white; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden; }
+table { width: 100%; border-collapse: collapse; }
+th { background: #f9fafb; padding: 12px 16px; text-align: right; font-weight: 600; font-size: 13px; color: #374151; border-bottom: 1px solid #e5e7eb; }
+td { padding: 14px 16px; border-bottom: 1px solid #f3f4f6; font-size: 14px; }
+tr:hover td { background: #fafbfc; }
+.code-chip { background: #eef2ff; color: #4338ca; padding: 4px 10px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 13px; font-weight: 500; }
+.status-badge { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; }
+.status-active { background: #dcfce7; color: #166534; }
+.status-inactive { background: #fee2e2; color: #991b1b; }
+.actions-cell { display: flex; gap: 8px; }
+
+/* Modal */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+.modal { background: white; border-radius: 16px; max-width: 680px; width: 100%; max-height: 90vh; overflow-y: auto; }
+.modal-header { padding: 20px 28px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
+.modal-header h3 { font-size: 18px; color: #111827; }
+.modal-header button { background: transparent; font-size: 24px; color: #6b7280; cursor: pointer; padding: 0; }
+.modal-body { padding: 28px; }
+.modal-footer { padding: 20px 28px; border-top: 1px solid #e5e7eb; display: flex; gap: 12px; justify-content: flex-end; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-section { margin-bottom: 24px; }
+.form-section-title { font-size: 13px; color: #6366f1; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb; }
+.hint { font-size: 12px; color: #6b7280; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div id="loginScreen" class="login-wrap">
+  <div class="login-card">
+    <h1>🏢 مدير النظام</h1>
+    <p class="subtitle">لوحة تحكم Stutracker المركزية</p>
+    <div id="loginError" class="error hidden"></div>
+    <div class="form-group">
+      <label>البريد الإلكتروني</label>
+      <input type="email" id="loginEmail" value="admin@stutracker.com">
+    </div>
+    <div class="form-group">
+      <label>كلمة المرور</label>
+      <input type="password" id="loginPassword" placeholder="كلمة المرور الافتراضية: admin123">
+    </div>
+    <button class="btn btn-primary" onclick="doLogin()">دخول</button>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard" class="hidden">
+  <div class="topbar">
+    <h1>🏢 Stutracker — مدير النظام</h1>
+    <div class="user-info">
+      <span id="userName"></span>
+      <button class="btn btn-small" onclick="doLogout()">تسجيل الخروج</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="label">إجمالي المدارس</div>
+        <div class="value" id="statSchools">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">إجمالي المعلمين</div>
+        <div class="value" id="statTeachers">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">المدارس النشطة</div>
+        <div class="value" id="statActive">0</div>
+      </div>
+    </div>
+
+    <div class="page-header">
+      <h2>المدارس المسجلة</h2>
+      <button class="btn btn-primary" onclick="openSchoolModal()">➕ إضافة مدرسة جديدة</button>
+    </div>
+
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>الرمز</th>
+            <th>الاسم</th>
+            <th>مدير المدرسة</th>
+            <th>المعلمون</th>
+            <th>الحالة</th>
+            <th>Twilio</th>
+            <th>OpenAI</th>
+            <th>إجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="schoolsTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- School Modal -->
+<div id="schoolModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">إضافة مدرسة جديدة</h3>
+      <button onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="modalError" class="error hidden"></div>
+
+      <div class="form-section">
+        <div class="form-section-title">معلومات المدرسة</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>رمز المدرسة * <span style="font-size:11px;color:#6b7280">(3-32 حرف/رقم)</span></label>
+            <input type="text" id="fSchoolCode" placeholder="Khalili4314">
+            <div class="hint">سيستخدمه المعلمون لتسجيل الدخول</div>
+          </div>
+          <div class="form-group">
+            <label>الحالة</label>
+            <select id="fStatus">
+              <option value="active">نشطة</option>
+              <option value="inactive">موقوفة</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>اسم المدرسة (عربي) *</label>
+            <input type="text" id="fNameAr" placeholder="مدرسة الإمام محمد الخليلي">
+          </div>
+          <div class="form-group">
+            <label>اسم المدرسة (إنجليزي)</label>
+            <input type="text" id="fNameEn" placeholder="Al-Khalili School">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">حساب مدير المدرسة</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>اسم المستخدم *</label>
+            <input type="text" id="fAdminUsername" placeholder="admin">
+          </div>
+          <div class="form-group">
+            <label>كلمة المرور <span id="fPasswordHint" style="font-size:11px;color:#6b7280">*</span></label>
+            <input type="text" id="fAdminPassword" placeholder="كلمة مرور قوية">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>اسم المدير</label>
+            <input type="text" id="fAdminName">
+          </div>
+          <div class="form-group">
+            <label>البريد</label>
+            <input type="email" id="fAdminEmail">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">إعدادات Twilio</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Account SID</label>
+            <input type="text" id="fTwilioSid" placeholder="ACxxxxxxxxxxxxx">
+          </div>
+          <div class="form-group">
+            <label>Auth Token</label>
+            <input type="text" id="fTwilioToken">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>WhatsApp From Number</label>
+            <input type="text" id="fTwilioFrom" placeholder="+15559188586">
+          </div>
+          <div class="form-group">
+            <label>Content Template SID</label>
+            <input type="text" id="fContentSid" placeholder="HXxxxxxxxxxxxxx">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">إعدادات OpenAI</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>API Key</label>
+            <input type="text" id="fOpenaiKey" placeholder="sk-proj-...">
+          </div>
+          <div class="form-group">
+            <label>النموذج</label>
+            <select id="fOpenaiModel">
+              <option value="gpt-4o-mini">gpt-4o-mini</option>
+              <option value="gpt-4o">gpt-4o</option>
+              <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>توجيه النظام (System Prompt)</label>
+          <textarea id="fAiPrompt" rows="3" placeholder="أنت مساعد ذكي لمدرسة..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveSchool()" id="saveBtn">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let editingSchoolId = null;
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value;
+  const password = document.getElementById('loginPassword').value;
+  const errDiv = document.getElementById('loginError');
+  errDiv.classList.add('hidden');
+
+  try {
+    const r = await fetch('/api/super/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ email, password })
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error);
+    showDashboard(data.name);
+  } catch (e) {
+    errDiv.textContent = e.message;
+    errDiv.classList.remove('hidden');
+  }
+}
+
+async function doLogout() {
+  await fetch('/api/super/logout', { method: 'POST' });
+  location.reload();
+}
+
+function showDashboard(name) {
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('dashboard').classList.remove('hidden');
+  document.getElementById('userName').textContent = '👤 ' + name;
+  loadSchools();
+}
+
+async function loadSchools() {
+  try {
+    const r = await fetch('/api/super/schools');
+    const data = await r.json();
+    const schools = data.schools || [];
+
+    document.getElementById('statSchools').textContent = schools.length;
+    document.getElementById('statTeachers').textContent = schools.reduce((a, s) => a + (s.teacher_count || 0), 0);
+    document.getElementById('statActive').textContent = schools.filter(s => s.status === 'active').length;
+
+    const tbody = document.getElementById('schoolsTable');
+    if (!schools.length) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#9ca3af;padding:40px">لا توجد مدارس. اضغط "إضافة مدرسة جديدة" للبدء.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = schools.map(s => `
+      <tr>
+        <td><span class="code-chip">${esc(s.school_code)}</span></td>
+        <td><b>${esc(s.name_ar)}</b>${s.name_en ? '<br><small style="color:#6b7280">' + esc(s.name_en) + '</small>' : ''}</td>
+        <td>${esc(s.admin_name || '—')}<br><small style="color:#6b7280">${esc(s.admin_username)}</small></td>
+        <td style="text-align:center">${s.teacher_count || 0}</td>
+        <td><span class="status-badge status-${s.status}">${s.status === 'active' ? 'نشطة' : 'موقوفة'}</span></td>
+        <td>${s.twilio_sid ? '✅' : '❌'}</td>
+        <td>${s.openai_key ? '✅' : '❌'}</td>
+        <td class="actions-cell">
+          <button class="btn btn-secondary btn-small" onclick='editSchool(${JSON.stringify(s).replace(/'/g, "&apos;")})'>✏️</button>
+          <button class="btn btn-danger btn-small" onclick="deleteSchool(${s.id}, '${esc(s.school_code)}')">🗑️</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function esc(s) { return String(s || '').replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function openSchoolModal() {
+  editingSchoolId = null;
+  document.getElementById('modalTitle').textContent = 'إضافة مدرسة جديدة';
+  document.getElementById('fPasswordHint').textContent = '*';
+  document.querySelectorAll('#schoolModal input, #schoolModal textarea').forEach(el => el.value = '');
+  document.getElementById('fStatus').value = 'active';
+  document.getElementById('fOpenaiModel').value = 'gpt-4o-mini';
+  document.getElementById('modalError').classList.add('hidden');
+  document.getElementById('fSchoolCode').disabled = false;
+  document.getElementById('schoolModal').classList.remove('hidden');
+}
+
+function editSchool(s) {
+  editingSchoolId = s.id;
+  document.getElementById('modalTitle').textContent = 'تعديل: ' + s.name_ar;
+  document.getElementById('fPasswordHint').textContent = '(اتركها فارغة للإبقاء على الحالية)';
+  document.getElementById('fSchoolCode').value = s.school_code;
+  document.getElementById('fSchoolCode').disabled = true; // لا يمكن تغيير الرمز
+  document.getElementById('fNameAr').value = s.name_ar;
+  document.getElementById('fNameEn').value = s.name_en || '';
+  document.getElementById('fStatus').value = s.status;
+  document.getElementById('fAdminUsername').value = s.admin_username;
+  document.getElementById('fAdminPassword').value = '';
+  document.getElementById('fAdminName').value = s.admin_name || '';
+  document.getElementById('fAdminEmail').value = s.admin_email || '';
+  document.getElementById('fTwilioSid').value = s.twilio_sid || '';
+  document.getElementById('fTwilioToken').value = s.twilio_token || '';
+  document.getElementById('fTwilioFrom').value = s.twilio_from || '';
+  document.getElementById('fContentSid').value = s.content_sid || '';
+  document.getElementById('fOpenaiKey').value = s.openai_key || '';
+  document.getElementById('fOpenaiModel').value = s.openai_model || 'gpt-4o-mini';
+  document.getElementById('fAiPrompt').value = s.ai_system_prompt || '';
+  document.getElementById('modalError').classList.add('hidden');
+  document.getElementById('schoolModal').classList.remove('hidden');
+}
+
+function closeModal() {
+  document.getElementById('schoolModal').classList.add('hidden');
+}
+
+async function saveSchool() {
+  const payload = {
+    school_code: document.getElementById('fSchoolCode').value.trim(),
+    name_ar: document.getElementById('fNameAr').value.trim(),
+    name_en: document.getElementById('fNameEn').value.trim(),
+    status: document.getElementById('fStatus').value,
+    admin_username: document.getElementById('fAdminUsername').value.trim(),
+    admin_password: document.getElementById('fAdminPassword').value,
+    admin_name: document.getElementById('fAdminName').value.trim(),
+    admin_email: document.getElementById('fAdminEmail').value.trim(),
+    twilio_sid: document.getElementById('fTwilioSid').value.trim(),
+    twilio_token: document.getElementById('fTwilioToken').value.trim(),
+    twilio_from: document.getElementById('fTwilioFrom').value.trim(),
+    content_sid: document.getElementById('fContentSid').value.trim(),
+    openai_key: document.getElementById('fOpenaiKey').value.trim(),
+    openai_model: document.getElementById('fOpenaiModel').value,
+    ai_system_prompt: document.getElementById('fAiPrompt').value.trim()
+  };
+
+  const errDiv = document.getElementById('modalError');
+  errDiv.classList.add('hidden');
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = 'جاري الحفظ...';
+
+  try {
+    const url = editingSchoolId ? `/api/super/schools/${editingSchoolId}` : '/api/super/schools';
+    const method = editingSchoolId ? 'PUT' : 'POST';
+    // عند التعديل، لا نرسل الحقول الفارغة للباسورد
+    if (editingSchoolId && !payload.admin_password) delete payload.admin_password;
+
+    const r = await fetch(url, {
+      method, headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error);
+    closeModal();
+    loadSchools();
+  } catch (e) {
+    errDiv.textContent = e.message;
+    errDiv.classList.remove('hidden');
+  } finally {
+    btn.disabled = false; btn.textContent = 'حفظ';
+  }
+}
+
+async function deleteSchool(id, code) {
+  if (!confirm(`هل أنت متأكد من حذف المدرسة "${code}"؟\nسيتم حذف جميع معلميها وبياناتها نهائياً.`)) return;
+  const r = await fetch(`/api/super/schools/${id}`, { method: 'DELETE' });
+  if (r.ok) loadSchools();
+}
+
+// Init
+(async () => {
+  const r = await fetch('/api/super/session');
+  const data = await r.json();
+  if (data.authenticated) showDashboard(data.name);
+})();
+</script>
+</body>
+</html>
