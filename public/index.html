@@ -140,6 +140,21 @@ tr:hover td{background:#fafbfc}
 .note-input-row input{flex:1;padding:7px 9px;border:1px solid #d1d5db;border-radius:5px;font-family:inherit;font-size:12px;background:white}
 .note-input-row select{width:95px;padding:7px 9px;border:1px solid #d1d5db;border-radius:5px;font-family:inherit;font-size:12px;background:white}
 
+/* ===== NOTE ICONS GRID ===== */
+.note-icons-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;padding:4px}
+.note-icon-btn{background:white;border:1.5px solid #e5e7eb;border-radius:9px;padding:12px 14px;cursor:pointer;transition:all .15s;text-align:right;font-family:inherit;font-size:13px;color:#374151;line-height:1.5;display:flex;align-items:center;gap:9px;min-height:56px;font-weight:500}
+.note-icon-btn:hover{border-color:#4f46e5;background:#eef2ff;transform:translateY(-1px);box-shadow:0 3px 8px rgba(79,70,229,.1)}
+.note-icon-btn.positive:hover{border-color:#10b981;background:#ecfdf5;box-shadow:0 3px 8px rgba(16,185,129,.15)}
+.note-icon-btn.negative:hover{border-color:#ef4444;background:#fef2f2;box-shadow:0 3px 8px rgba(239,68,68,.15)}
+.note-icon-btn .icon-text{flex:1;text-align:right}
+.note-icons-empty{grid-column:1/-1;text-align:center;padding:18px;color:#9ca3af;font-size:12px;background:white;border-radius:8px;border:1px dashed #e5e7eb}
+
+/* ===== NOTE BANK (Settings) ===== */
+.bank-item{display:flex;align-items:center;gap:6px;padding:8px;background:white;border-radius:7px;margin-bottom:5px;border:1px solid #e5e7eb}
+.bank-item input{flex:1;padding:7px 10px;border:1px solid #d1d5db;border-radius:5px;font-family:inherit;font-size:13px;background:white}
+.bank-item .handle{background:#f3f4f6;color:#6b7280;width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+.bank-empty{text-align:center;padding:14px;color:#9ca3af;font-size:12px;background:white;border-radius:7px;border:1px dashed #e5e7eb}
+
 /* ===== IMPORT ZONE ===== */
 .import-zone{border:2px dashed #c7d2fe;background:#f5f3ff;border-radius:10px;padding:22px 16px;text-align:center;margin-bottom:12px;cursor:pointer}
 .import-zone .import-icon{font-size:32px;margin-bottom:7px}
@@ -461,7 +476,7 @@ tr:hover td{background:#fafbfc}
       <!-- NOTES -->
       <div id="view-notes" class="hidden">
         <h2 class="page-title">📝 سجل الملاحظات</h2>
-        <p class="page-subtitle">تسجيل الملاحظات الإيجابية والسلبية لكل طالب مع التاريخ.</p>
+        <p class="page-subtitle">اختر طالباً ثم اضغط على أي بند من البنود الإيجابية أو السلبية لإضافته كملاحظة فورية.</p>
         <div class="card">
           <div class="filter-bar">
             <div><label>الصف</label><select id="noteFilterGrade" onchange="onNoteFilterGradeChange()"></select></div>
@@ -469,10 +484,45 @@ tr:hover td{background:#fafbfc}
             <div><label>اختر طالباً</label><select id="noteStudent" onchange="renderStudentNotes()"></select></div>
           </div>
         </div>
+
+        <div id="noteBankNotice" class="hidden">
+          <div class="card">
+            <div class="warn-box">
+              ⚠️ <b>لم تُضف بنود ملاحظات بعد.</b><br>
+              لتسريع تسجيل الملاحظات، يمكنك إضافة بنود جاهزة من الإعدادات → بنود الملاحظات.
+            </div>
+            <button class="btn btn-primary" onclick="switchView('settings');setTimeout(()=>switchSettingsSub('noteBank'),50)">⚙️ الإعدادات → بنود الملاحظات</button>
+          </div>
+        </div>
+
+        <div id="noteBankPicker" class="card hidden">
+          <div class="card-header">
+            <h3 id="noteBankPickerTitle">اختر بنداً لإضافته</h3>
+            <div style="display:flex;gap:5px">
+              <button class="btn btn-secondary btn-sm" onclick="openNoteModal()" title="إضافة ملاحظة نصية مخصصة">✏️ كتابة ملاحظة مخصصة</button>
+            </div>
+          </div>
+          <div class="section-title">✅ بنود إيجابية</div>
+          <div id="positiveNoteIcons" class="note-icons-grid"></div>
+          <div class="section-title">⚠️ بنود سلبية</div>
+          <div id="negativeNoteIcons" class="note-icons-grid"></div>
+
+          <div id="extraTextArea" class="hidden" style="margin-top:14px;padding:12px;background:#fffbeb;border-radius:9px;border:1px solid #fde68a">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <b style="font-size:13px;color:#92400e" id="extraTextHeader">📎 البند المختار: </b>
+              <button class="btn btn-secondary btn-sm" onclick="cancelExtraText()">❌ إلغاء</button>
+            </div>
+            <textarea id="extraTextInput" placeholder="(اختياري) أضف تفاصيل أو شرحاً للبند..." rows="2" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px;font-family:inherit;font-size:13px;background:white;resize:vertical"></textarea>
+            <div style="margin-top:8px;display:flex;gap:6px;justify-content:flex-end">
+              <button class="btn btn-success btn-sm" onclick="confirmNoteWithExtra()">💾 حفظ</button>
+              <button class="btn btn-info btn-sm" onclick="confirmNoteWithoutExtra()">✓ حفظ بدون تفاصيل</button>
+            </div>
+          </div>
+        </div>
+
         <div class="card" id="notesCard">
           <div class="card-header">
-            <h3 id="notesCardTitle">الملاحظات</h3>
-            <button class="btn btn-primary btn-sm" onclick="openNoteModal()" id="addNoteBtn" disabled>➕ إضافة ملاحظة</button>
+            <h3 id="notesCardTitle">الملاحظات السابقة</h3>
           </div>
           <div id="notesBody"></div>
         </div>
@@ -552,6 +602,7 @@ tr:hover td{background:#fafbfc}
           <button class="settings-tab active" data-sub="profile" onclick="switchSettingsSub('profile')">👤 الملف الشخصي</button>
           <button class="settings-tab" data-sub="security" onclick="switchSettingsSub('security')">🔐 الأمان</button>
           <button class="settings-tab" data-sub="rubric" onclick="switchSettingsSub('rubric')">⭐ بنود التقييم</button>
+          <button class="settings-tab" data-sub="noteBank" onclick="switchSettingsSub('noteBank')">📝 بنود الملاحظات</button>
         </div>
 
         <div id="settings-profile">
@@ -623,6 +674,36 @@ tr:hover td{background:#fafbfc}
             <div id="rubricAxesBody"></div>
             <div style="margin-top:12px;text-align:left">
               <button class="btn btn-success" onclick="saveRubric()">💾 حفظ بنود التقييم</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="settings-noteBank" class="hidden">
+          <div class="card">
+            <div class="info-box">
+              💡 أضف بنود <b>جاهزة</b> للملاحظات الإيجابية والسلبية. ستظهر هذه البنود كأيقونات في "سجل الملاحظات"، بحيث تستطيع إضافة ملاحظة لأي طالب بضغطة واحدة.<br>
+              🎨 يمكنك إضافة إيموجي في بداية نص البند مثل: <code>⭐ متفوق في حل الواجبات</code>
+            </div>
+            <div id="noteBankMessage"></div>
+
+            <div class="card" style="background:#f0fdf4;border:1px solid #86efac;margin-bottom:10px">
+              <div class="card-header">
+                <h3>✅ البنود الإيجابية</h3>
+                <button class="btn btn-success btn-sm" onclick="addNoteBankItem('positive')">➕ إضافة بند إيجابي</button>
+              </div>
+              <div id="positiveBankBody"></div>
+            </div>
+
+            <div class="card" style="background:#fef2f2;border:1px solid #fca5a5">
+              <div class="card-header">
+                <h3>⚠️ البنود السلبية</h3>
+                <button class="btn btn-warning btn-sm" onclick="addNoteBankItem('negative')">➕ إضافة بند سلبي</button>
+              </div>
+              <div id="negativeBankBody"></div>
+            </div>
+
+            <div style="margin-top:12px;text-align:left">
+              <button class="btn btn-success" onclick="saveNoteBank()">💾 حفظ بنود الملاحظات</button>
             </div>
           </div>
         </div>
@@ -746,10 +827,11 @@ tr:hover td{background:#fafbfc}
 <script>
 // ========= STATE =========
 let teacherInfo = null;
-let teacherData = { profile:{}, grades:[], students:[], templates:[], attendance:{}, notes:{}, evaluations:[], rubric:[] };
+let teacherData = { profile:{}, grades:[], students:[], templates:[], attendance:{}, notes:{}, evaluations:[], rubric:[], noteBank:{positive:[],negative:[]} };
 let editingStudentId = null, editingTemplateId = null, editingGradeId = null;
 let pendingImportRows = [];
 let evalBuffer = {};
+let pendingNoteBankItem = null; // {type, text} for the extra-text confirmation
 
 const uid = p => p + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
 const esc = s => String(s == null ? '' : s).replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
@@ -859,6 +941,9 @@ async function loadData() {
     if (!teacherData.notes || typeof teacherData.notes !== 'object') teacherData.notes = {};
     if (!Array.isArray(teacherData.evaluations)) teacherData.evaluations = [];
     if (!Array.isArray(teacherData.rubric)) teacherData.rubric = [];
+    if (!teacherData.noteBank || typeof teacherData.noteBank !== 'object') teacherData.noteBank = { positive:[], negative:[] };
+    if (!Array.isArray(teacherData.noteBank.positive)) teacherData.noteBank.positive = [];
+    if (!Array.isArray(teacherData.noteBank.negative)) teacherData.noteBank.negative = [];
     migrateLegacy();
     renderAll();
   } catch (e) { console.error(e); }
@@ -909,6 +994,7 @@ function renderAll() {
   renderTemplates();
   updateTemplateVariablesHint();
   renderRubric();
+  renderNoteBank();
 }
 
 // ========= NAVIGATION =========
@@ -927,7 +1013,7 @@ function switchView(v) {
   if (v === 'evaluation') renderEvalMain();
   if (v === 'templates') { renderTemplates(); updateTemplateVariablesHint(); }
   if (v === 'whatsapp') { refreshSendFilters(); }
-  if (v === 'settings') { loadProfileForm(); renderRubric(); }
+  if (v === 'settings') { loadProfileForm(); renderRubric(); renderNoteBank(); }
   toggleSidebar(true);
 }
 
@@ -939,8 +1025,9 @@ function toggleSidebar(forceClose) {
 
 function switchSettingsSub(n) {
   document.querySelectorAll('.settings-tab').forEach(t => t.classList.toggle('active', t.dataset.sub === n));
-  ['profile','security','rubric'].forEach(x => document.getElementById('settings-' + x).classList.toggle('hidden', x !== n));
+  ['profile','security','rubric','noteBank'].forEach(x => document.getElementById('settings-' + x).classList.toggle('hidden', x !== n));
   if (n === 'rubric') renderRubric();
+  if (n === 'noteBank') renderNoteBank();
 }
 
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
@@ -1529,31 +1616,116 @@ function renderNotesStudents() {
   if (cur && list.find(s => s.id === cur)) sel.value = cur;
   renderStudentNotes();
 }
+
 function renderStudentNotes() {
   const sid = document.getElementById('noteStudent').value;
   const body = document.getElementById('notesBody');
   const title = document.getElementById('notesCardTitle');
-  const addBtn = document.getElementById('addNoteBtn');
+  const picker = document.getElementById('noteBankPicker');
+  const notice = document.getElementById('noteBankNotice');
+  const pickerTitle = document.getElementById('noteBankPickerTitle');
+  const extraArea = document.getElementById('extraTextArea');
+
+  // Hide extra text input when switching
+  if (extraArea) extraArea.classList.add('hidden');
+  pendingNoteBankItem = null;
+
   if (!sid) {
-    title.textContent = 'الملاحظات';
-    addBtn.disabled = true;
+    title.textContent = 'الملاحظات السابقة';
     body.innerHTML = `<div class="empty-state"><h4>📝 اختر طالباً لعرض ملاحظاته</h4></div>`;
+    if (picker) picker.classList.add('hidden');
+    if (notice) notice.classList.add('hidden');
     return;
   }
   const s = teacherData.students.find(x => x.id === sid);
-  title.textContent = `ملاحظات الطالب: ${s?.name || ''}`;
-  addBtn.disabled = false;
+  const studentName = s?.name || '';
+  title.textContent = `ملاحظات الطالب/ة: ${studentName}`;
+
+  // Show note bank picker if bank has any items, else show notice
+  const hasBank = (teacherData.noteBank?.positive?.length > 0) || (teacherData.noteBank?.negative?.length > 0);
+  if (hasBank) {
+    picker.classList.remove('hidden');
+    notice.classList.add('hidden');
+    pickerTitle.textContent = `اضغط بنداً لإضافته إلى "${studentName}":`;
+    renderNoteBankIcons();
+  } else {
+    picker.classList.add('hidden');
+    notice.classList.remove('hidden');
+  }
+
+  // Render previous notes list
   const notes = (teacherData.notes[sid] || []).slice().sort((a,b) => (b.date || '').localeCompare(a.date || ''));
-  if (!notes.length) { body.innerHTML = `<div class="empty-state"><h4>لا توجد ملاحظات</h4><p>اضغط "إضافة ملاحظة"</p></div>`; return; }
+  if (!notes.length) {
+    body.innerHTML = `<div class="empty-state"><h4>لا توجد ملاحظات</h4><p>اضغط بنداً من الأعلى أو اكتب ملاحظة مخصصة</p></div>`;
+    return;
+  }
   body.innerHTML = `<div style="display:flex;flex-direction:column;gap:6px">${notes.map(n => `
     <div class="note-item ${n.type}" style="padding:10px 12px">
       <div><div style="font-size:11px;color:#6b7280;margin-bottom:3px">${n.type === 'positive' ? '✅ إيجابية' : '⚠️ سلبية'} · ${esc(n.date || '')}</div><div>${esc(n.text)}</div></div>
       <button class="note-remove" onclick="deleteNote('${sid}','${n.id}')">×</button>
     </div>`).join('')}</div>`;
 }
-function openNoteModal() {
+
+function renderNoteBankIcons() {
+  const posDiv = document.getElementById('positiveNoteIcons');
+  const negDiv = document.getElementById('negativeNoteIcons');
+  const bank = teacherData.noteBank || { positive:[], negative:[] };
+  if (posDiv) {
+    posDiv.innerHTML = bank.positive.length
+      ? bank.positive.map(item => `<button class="note-icon-btn positive" onclick="pickNoteBankItem('positive','${item.id}')"><span class="icon-text">${esc(item.text)}</span></button>`).join('')
+      : '<div class="note-icons-empty">لم تُضف بنود إيجابية بعد. اذهب للإعدادات → بنود الملاحظات.</div>';
+  }
+  if (negDiv) {
+    negDiv.innerHTML = bank.negative.length
+      ? bank.negative.map(item => `<button class="note-icon-btn negative" onclick="pickNoteBankItem('negative','${item.id}')"><span class="icon-text">${esc(item.text)}</span></button>`).join('')
+      : '<div class="note-icons-empty">لم تُضف بنود سلبية بعد.</div>';
+  }
+}
+
+function pickNoteBankItem(type, itemId) {
+  const list = teacherData.noteBank?.[type] || [];
+  const item = list.find(x => x.id === itemId);
+  if (!item) return;
+  pendingNoteBankItem = { type, text: item.text };
+  const extraArea = document.getElementById('extraTextArea');
+  const extraHeader = document.getElementById('extraTextHeader');
+  const extraInput = document.getElementById('extraTextInput');
+  extraHeader.innerHTML = `${type === 'positive' ? '✅' : '⚠️'} البند المختار: <b style="color:${type === 'positive' ? '#166534' : '#991b1b'}">${esc(item.text)}</b>`;
+  extraInput.value = '';
+  extraArea.classList.remove('hidden');
+  setTimeout(() => extraInput.focus(), 50);
+}
+
+function cancelExtraText() {
+  pendingNoteBankItem = null;
+  document.getElementById('extraTextArea').classList.add('hidden');
+}
+
+async function confirmNoteWithExtra() {
+  if (!pendingNoteBankItem) return;
+  const extra = document.getElementById('extraTextInput').value.trim();
+  const combined = extra ? `${pendingNoteBankItem.text} — ${extra}` : pendingNoteBankItem.text;
+  await saveNoteForStudent(pendingNoteBankItem.type, combined);
+}
+
+async function confirmNoteWithoutExtra() {
+  if (!pendingNoteBankItem) return;
+  await saveNoteForStudent(pendingNoteBankItem.type, pendingNoteBankItem.text);
+}
+
+async function saveNoteForStudent(type, text) {
   const sid = document.getElementById('noteStudent').value;
   if (!sid) return;
+  if (!teacherData.notes[sid]) teacherData.notes[sid] = [];
+  teacherData.notes[sid].push({ id: uid('n'), type, text, date: todayStr() });
+  await saveData();
+  cancelExtraText();
+  renderStudentNotes();
+}
+
+function openNoteModal() {
+  const sid = document.getElementById('noteStudent').value;
+  if (!sid) return alert('اختر طالباً أولاً');
   const s = teacherData.students.find(x => x.id === sid);
   document.getElementById('noteModalStudentName').textContent = s?.name || '';
   document.getElementById('noteModalType').value = 'positive';
@@ -1580,6 +1752,60 @@ async function deleteNote(sid, noteId) {
   if (!teacherData.notes[sid]) return;
   teacherData.notes[sid] = teacherData.notes[sid].filter(n => n.id !== noteId);
   await saveData(); renderStudentNotes();
+}
+
+// ========= NOTE BANK (Settings) =========
+function renderNoteBank() {
+  const bank = teacherData.noteBank || { positive:[], negative:[] };
+  const posBody = document.getElementById('positiveBankBody');
+  const negBody = document.getElementById('negativeBankBody');
+  if (posBody) {
+    posBody.innerHTML = bank.positive.length
+      ? bank.positive.map((item, idx) => `<div class="bank-item">
+          <span class="handle">${idx+1}</span>
+          <input type="text" placeholder="⭐ متفوق في حل الواجبات" value="${esc(item.text)}" onchange="updateBankItem('positive','${item.id}',this.value)">
+          <button class="btn btn-danger btn-sm" onclick="deleteBankItem('positive','${item.id}')">🗑️</button>
+        </div>`).join('')
+      : '<div class="bank-empty">لم تُضف بنود إيجابية بعد. اضغط "إضافة بند إيجابي".</div>';
+  }
+  if (negBody) {
+    negBody.innerHTML = bank.negative.length
+      ? bank.negative.map((item, idx) => `<div class="bank-item">
+          <span class="handle">${idx+1}</span>
+          <input type="text" placeholder="📵 استخدام الجوال في الحصة" value="${esc(item.text)}" onchange="updateBankItem('negative','${item.id}',this.value)">
+          <button class="btn btn-danger btn-sm" onclick="deleteBankItem('negative','${item.id}')">🗑️</button>
+        </div>`).join('')
+      : '<div class="bank-empty">لم تُضف بنود سلبية بعد.</div>';
+  }
+}
+function addNoteBankItem(type) {
+  if (!teacherData.noteBank) teacherData.noteBank = { positive:[], negative:[] };
+  if (!Array.isArray(teacherData.noteBank[type])) teacherData.noteBank[type] = [];
+  teacherData.noteBank[type].push({ id: uid('nb'), text: '' });
+  renderNoteBank();
+}
+function updateBankItem(type, id, value) {
+  const item = teacherData.noteBank?.[type]?.find(x => x.id === id);
+  if (item) item.text = value;
+}
+async function deleteBankItem(type, id) {
+  const item = teacherData.noteBank?.[type]?.find(x => x.id === id);
+  if (!item) return;
+  if (!confirm(`حذف البند "${item.text || '(بدون نص)'}"؟`)) return;
+  teacherData.noteBank[type] = teacherData.noteBank[type].filter(x => x.id !== id);
+  await saveData();
+  renderNoteBank();
+}
+async function saveNoteBank() {
+  const msg = document.getElementById('noteBankMessage'); msg.innerHTML = '';
+  // Clean empty items
+  ['positive','negative'].forEach(type => {
+    teacherData.noteBank[type] = (teacherData.noteBank[type] || []).filter(x => x.text && x.text.trim());
+  });
+  await saveData();
+  renderNoteBank();
+  msg.innerHTML = '<div class="success">✅ حُفظت بنود الملاحظات</div>';
+  setTimeout(() => msg.innerHTML = '', 3000);
 }
 
 // ========= EVALUATION =========
