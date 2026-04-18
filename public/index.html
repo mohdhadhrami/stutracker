@@ -7,10 +7,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Cairo', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #1f2937; min-height: 100vh; }
+body { font-family: 'Cairo', sans-serif; background: #f5f7fa; color: #1f2937; min-height: 100vh; }
 .hidden { display: none !important; }
 
-.login-wrap { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+.login-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
 .login-card { background: white; padding: 44px 40px; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); width: 100%; max-width: 440px; }
 .logo { text-align: center; margin-bottom: 32px; }
 .logo .icon { font-size: 56px; margin-bottom: 12px; }
@@ -18,39 +18,87 @@ body { font-family: 'Cairo', sans-serif; background: linear-gradient(135deg, #66
 .logo p { color: #6b7280; font-size: 14px; }
 .form-group { margin-bottom: 18px; }
 .form-group label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px; }
-.form-group input {
+.form-group input, .form-group select, .form-group textarea {
   width: 100%; padding: 14px 16px; border: 1px solid #d1d5db; border-radius: 12px;
-  font-family: inherit; font-size: 15px; transition: border-color 0.2s;
+  font-family: inherit; font-size: 15px;
 }
-.form-group input:focus { outline: none; border-color: #4f46e5; }
-.btn { padding: 14px 24px; border: none; border-radius: 12px; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
-.btn-primary { background: #4f46e5; color: white; width: 100%; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #4f46e5; }
+.btn { padding: 14px 24px; border: none; border-radius: 12px; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-primary { background: #4f46e5; color: white; }
 .btn-primary:hover { background: #4338ca; }
 .btn-primary:disabled { background: #9ca3af; cursor: not-allowed; }
+.btn-secondary { background: #e5e7eb; color: #374151; }
+.btn-secondary:hover { background: #d1d5db; }
+.btn-danger { background: #ef4444; color: white; }
+.btn-success { background: #10b981; color: white; }
+.btn-success:hover { background: #059669; }
+.btn-full { width: 100%; }
+.btn-small { padding: 8px 14px; font-size: 13px; }
 .error { background: #fef2f2; color: #991b1b; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; }
+.success { background: #f0fdf4; color: #166534; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; }
 .portal-links { margin-top: 24px; padding-top: 24px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 13px; color: #6b7280; }
 .portal-links a { color: #4f46e5; text-decoration: none; margin: 0 8px; }
-.portal-links a:hover { text-decoration: underline; }
 
-/* Teacher Dashboard — minimal for now */
-.topbar { background: #4f46e5; color: white; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; }
+.topbar { background: #4f46e5; color: white; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
 .topbar h1 { font-size: 20px; font-weight: 600; }
-.topbar .info { display: flex; gap: 16px; align-items: center; font-size: 14px; }
+.topbar .info { display: flex; gap: 16px; align-items: center; font-size: 14px; flex-wrap: wrap; }
 .topbar button { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 13px; }
-.container { max-width: 1200px; margin: 0 auto; padding: 32px; }
-.welcome-card { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); text-align: center; }
-.welcome-card h2 { color: #4f46e5; margin-bottom: 16px; }
-.welcome-card p { color: #6b7280; margin-bottom: 24px; }
-.features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-top: 32px; }
-.feature { background: #f9fafb; padding: 20px; border-radius: 12px; border: 1px solid #e5e7eb; }
-.feature h3 { color: #1f2937; margin-bottom: 8px; font-size: 16px; }
-.feature p { color: #6b7280; font-size: 13px; margin: 0; }
+.topbar button:hover { background: rgba(255,255,255,0.25); }
+.container { max-width: 1200px; margin: 0 auto; padding: 24px 32px; }
+
+.welcome-banner { background: white; padding: 28px 32px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); margin-bottom: 20px; }
+.welcome-banner h2 { color: #4f46e5; font-size: 22px; margin-bottom: 8px; }
+.welcome-banner p { color: #6b7280; font-size: 15px; line-height: 1.7; }
+
+.tabs { display: flex; gap: 4px; border-bottom: 2px solid #e5e7eb; margin-bottom: 24px; overflow-x: auto; }
+.tab { padding: 14px 22px; background: none; border: none; cursor: pointer; font-family: inherit; font-size: 15px; font-weight: 500; color: #6b7280; position: relative; white-space: nowrap; }
+.tab:hover { color: #4f46e5; }
+.tab.active { color: #4f46e5; }
+.tab.active::after { content: ''; position: absolute; bottom: -2px; right: 0; left: 0; height: 3px; background: #4f46e5; border-radius: 3px 3px 0 0; }
+
+.card { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 24px; margin-bottom: 16px; }
+.card-title { font-size: 17px; font-weight: 600; margin-bottom: 16px; color: #111827; }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+.page-header h2 { font-size: 20px; color: #111827; }
+
+table { width: 100%; border-collapse: collapse; }
+th { background: #f9fafb; padding: 12px 14px; text-align: right; font-weight: 600; font-size: 13px; color: #374151; border-bottom: 1px solid #e5e7eb; }
+td { padding: 12px 14px; border-bottom: 1px solid #f3f4f6; font-size: 14px; }
+tr:hover td { background: #fafbfc; }
+.actions-cell { display: flex; gap: 6px; flex-wrap: wrap; }
+.empty-state { text-align: center; color: #9ca3af; padding: 40px 20px; font-size: 14px; }
+
+.grade-chip { padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; display: inline-block; }
+.grade-excellent { background: #dcfce7; color: #166534; }
+.grade-good { background: #dbeafe; color: #1e40af; }
+.grade-average { background: #fef3c7; color: #92400e; }
+.grade-poor { background: #fee2e2; color: #991b1b; }
+
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: flex-start; justify-content: center; z-index: 100; padding: 40px 20px; overflow-y: auto; }
+.modal { background: white; border-radius: 16px; max-width: 560px; width: 100%; }
+.modal-header { padding: 20px 28px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
+.modal-header h3 { font-size: 18px; color: #111827; }
+.modal-header button { background: transparent; font-size: 24px; color: #6b7280; cursor: pointer; padding: 0; border: none; }
+.modal-body { padding: 28px; }
+.modal-footer { padding: 20px 28px; border-top: 1px solid #e5e7eb; display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+
+.template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.template-card { background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px; }
+.template-card .template-name { font-weight: 600; font-size: 15px; margin-bottom: 6px; color: #111827; }
+.template-card .template-body { font-size: 13px; color: #6b7280; line-height: 1.6; margin-bottom: 14px; max-height: 80px; overflow: hidden; }
+.template-card .template-actions { display: flex; gap: 8px; }
+
+.send-form { max-width: 600px; }
+.send-form textarea { min-height: 120px; font-family: inherit; resize: vertical; }
+.placeholder-hint { background: #eef2ff; border: 1px solid #c7d2fe; color: #3730a3; padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-top: 8px; line-height: 1.6; }
+.placeholder-hint code { background: rgba(255,255,255,0.6); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 12px; }
 </style>
 </head>
 <body>
 
-<!-- Login -->
-<div id="loginScreen" class="login-wrap">
+<div id="loginScreen" class="login-bg">
   <div class="login-card">
     <div class="logo">
       <div class="icon">🎓</div>
@@ -60,17 +108,17 @@ body { font-family: 'Cairo', sans-serif; background: linear-gradient(135deg, #66
     <div id="loginError" class="error hidden"></div>
     <div class="form-group">
       <label>رمز المدرسة</label>
-      <input type="text" id="loginSchoolCode" placeholder="مثل: Khalili4314" autocomplete="organization">
+      <input type="text" id="loginSchoolCode" placeholder="مثل: Khalili4314">
     </div>
     <div class="form-group">
       <label>اسم المستخدم</label>
-      <input type="text" id="loginUsername" autocomplete="username">
+      <input type="text" id="loginUsername">
     </div>
     <div class="form-group">
       <label>كلمة المرور</label>
-      <input type="password" id="loginPassword" autocomplete="current-password">
+      <input type="password" id="loginPassword">
     </div>
-    <button class="btn btn-primary" onclick="doLogin()" id="loginBtn">دخول</button>
+    <button class="btn btn-primary btn-full" onclick="doLogin()" id="loginBtn">دخول</button>
     <div class="portal-links">
       <a href="/school-admin">🏫 دخول مدير المدرسة</a>
       <a href="/admin">🏢 دخول مدير النظام</a>
@@ -78,7 +126,6 @@ body { font-family: 'Cairo', sans-serif; background: linear-gradient(135deg, #66
   </div>
 </div>
 
-<!-- Teacher Dashboard -->
 <div id="dashboard" class="hidden">
   <div class="topbar">
     <h1>🎓 <span id="tSchoolName"></span></h1>
@@ -89,35 +136,130 @@ body { font-family: 'Cairo', sans-serif; background: linear-gradient(135deg, #66
     </div>
   </div>
   <div class="container">
-    <div class="welcome-card">
-      <h2>مرحباً <span id="tGreeting"></span>! 👋</h2>
-      <p>أنت مسجل دخول إلى نظام التقويم الذكي. هذه هي النسخة الثانية متعددة المدارس.</p>
-      <div class="features-grid">
-        <div class="feature">
-          <h3>📊 سجل الدرجات</h3>
-          <p>إدارة درجات الطلاب والأقسام الخاصة بك</p>
-        </div>
-        <div class="feature">
-          <h3>💬 قوالب الرسائل</h3>
-          <p>رسائل جاهزة لأولياء الأمور</p>
-        </div>
-        <div class="feature">
-          <h3>📱 إرسال عبر WhatsApp</h3>
-          <p>يستخدم إعدادات مدرستك</p>
-        </div>
-        <div class="feature">
-          <h3>🤖 مساعد ذكي</h3>
-          <p>يجيب على استفسارات أولياء الأمور تلقائياً</p>
+    <div class="welcome-banner">
+      <h2>مرحبا أستاذ <span id="tGreeting"></span> 👋</h2>
+      <p>أنت مسجل دخول إلى نظام التقويم الذكي الخاص بـ <b id="tSchoolBanner"></b>.</p>
+    </div>
+    <div class="tabs">
+      <button class="tab active" data-tab="grades" onclick="switchTab('grades')">📊 سجل الدرجات</button>
+      <button class="tab" data-tab="templates" onclick="switchTab('templates')">💬 قوالب الرسائل</button>
+      <button class="tab" data-tab="whatsapp" onclick="switchTab('whatsapp')">📱 إرسال عبر WhatsApp</button>
+    </div>
+
+    <div id="tab-grades">
+      <div class="page-header">
+        <h2>📊 سجل الدرجات</h2>
+        <button class="btn btn-primary" onclick="openStudentModal()">➕ إضافة طالب</button>
+      </div>
+      <div class="card" style="padding:0;overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th>الطالب</th><th>ولي الأمر</th><th>رقم الواتساب</th><th>الصف</th><th>الدرجة</th><th>ملاحظات</th><th>إجراءات</th>
+          </tr></thead>
+          <tbody id="studentsTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-templates" class="hidden">
+      <div class="page-header">
+        <h2>💬 قوالب الرسائل</h2>
+        <button class="btn btn-primary" onclick="openTemplateModal()">➕ إضافة قالب</button>
+      </div>
+      <div id="templatesContainer"></div>
+    </div>
+
+    <div id="tab-whatsapp" class="hidden">
+      <div class="page-header">
+        <h2>📱 إرسال رسالة واتساب</h2>
+      </div>
+      <div id="sendSuccess" class="success hidden"></div>
+      <div id="sendError" class="error hidden"></div>
+      <div class="card">
+        <div class="send-form">
+          <div class="form-group">
+            <label>الطالب (اختياري)</label>
+            <select id="sendStudent" onchange="onStudentSelected()"></select>
+          </div>
+          <div class="form-group">
+            <label>رقم الواتساب (مع رمز الدولة)</label>
+            <input type="text" id="sendTo" placeholder="+96899xxxxxxx">
+          </div>
+          <div class="form-group">
+            <label>اختر قالب (اختياري)</label>
+            <select id="sendTemplate" onchange="applyTemplate()"></select>
+          </div>
+          <div class="form-group">
+            <label>نص الرسالة</label>
+            <textarea id="sendMessage" rows="6" placeholder="اكتب رسالتك هنا..."></textarea>
+            <div class="placeholder-hint">
+              💡 المتغيرات المتاحة في القوالب: <code>{{اسم_الطالب}}</code> · <code>{{الدرجة}}</code> · <code>{{الملاحظات}}</code> · <code>{{اسم_ولي_الأمر}}</code> · <code>{{الصف}}</code>
+            </div>
+          </div>
+          <button class="btn btn-success" onclick="sendWhatsApp()" id="sendBtn">📤 إرسال</button>
         </div>
       </div>
-      <p style="margin-top:32px;padding:16px;background:#fef3c7;border-radius:10px;color:#92400e;font-size:14px">
-        ⚠️ واجهة سجل الدرجات الكاملة قيد النقل من النسخة السابقة. ستتوفر قريباً.
-      </p>
+    </div>
+  </div>
+</div>
+
+<div id="studentModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="studentModalTitle">إضافة طالب</h3>
+      <button onclick="closeStudentModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="studentModalError" class="error hidden"></div>
+      <div class="form-row">
+        <div class="form-group"><label>اسم الطالب *</label><input type="text" id="sName"></div>
+        <div class="form-group"><label>الصف</label><input type="text" id="sGrade" placeholder="مثل: الصف 11 أ"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>اسم ولي الأمر</label><input type="text" id="sParent"></div>
+        <div class="form-group"><label>رقم ولي الأمر (واتساب)</label><input type="text" id="sPhone" placeholder="+96899xxxxxxx"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>الدرجة</label><input type="number" id="sScore" min="0" max="100" step="0.5"></div>
+        <div class="form-group"><label>ملاحظات</label><input type="text" id="sNotes"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeStudentModal()">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveStudent()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<div id="templateModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="templateModalTitle">إضافة قالب رسالة</h3>
+      <button onclick="closeTemplateModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="templateModalError" class="error hidden"></div>
+      <div class="form-group"><label>اسم القالب *</label><input type="text" id="tplName" placeholder="مثل: إبلاغ درجة اختبار"></div>
+      <div class="form-group">
+        <label>نص الرسالة *</label>
+        <textarea id="tplBody" rows="6" placeholder="السلام عليكم {{اسم_ولي_الأمر}}&#10;درجة ابنك {{اسم_الطالب}}: {{الدرجة}}&#10;الملاحظات: {{الملاحظات}}"></textarea>
+        <div class="placeholder-hint">
+          💡 استخدم: <code>{{اسم_الطالب}}</code> · <code>{{الدرجة}}</code> · <code>{{الملاحظات}}</code> · <code>{{اسم_ولي_الأمر}}</code> · <code>{{الصف}}</code>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeTemplateModal()">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveTemplate()">حفظ</button>
     </div>
   </div>
 </div>
 
 <script>
+let teacherData = { students: [], templates: [] };
+let editingStudentIdx = null;
+let editingTemplateIdx = null;
+
 async function doLogin() {
   const school_code = document.getElementById('loginSchoolCode').value.trim();
   const username = document.getElementById('loginUsername').value.trim();
@@ -125,13 +267,11 @@ async function doLogin() {
   const errDiv = document.getElementById('loginError');
   const btn = document.getElementById('loginBtn');
   errDiv.classList.add('hidden');
-
   if (!school_code || !username || !password) {
     errDiv.textContent = 'الرجاء تعبئة جميع الحقول';
     errDiv.classList.remove('hidden');
     return;
   }
-
   btn.disabled = true; btn.textContent = 'جاري الدخول...';
   try {
     const r = await fetch('/api/teacher/login', {
@@ -140,7 +280,7 @@ async function doLogin() {
     });
     const data = await r.json();
     if (!r.ok) throw new Error(data.error);
-    initDashboard(data.teacher);
+    await initDashboard(data.teacher);
   } catch (e) {
     errDiv.textContent = e.message;
     errDiv.classList.remove('hidden');
@@ -154,30 +294,311 @@ async function doLogout() {
   location.reload();
 }
 
-function initDashboard(teacher) {
+async function initDashboard(teacher) {
   document.getElementById('loginScreen').classList.add('hidden');
   document.getElementById('dashboard').classList.remove('hidden');
   document.getElementById('tSchoolName').textContent = teacher.school.name;
-  document.getElementById('tName').textContent = teacher.full_name || teacher.username;
-  document.getElementById('tGreeting').textContent = teacher.full_name || teacher.username;
+  document.getElementById('tSchoolBanner').textContent = teacher.school.name;
+  const displayName = teacher.full_name || teacher.username;
+  document.getElementById('tName').textContent = displayName;
+  document.getElementById('tGreeting').textContent = displayName;
   document.getElementById('tSubjectSpan').textContent = teacher.subject ? '· ' + teacher.subject : '';
+  await loadTeacherData();
 }
 
-// Init
-(async () => {
-  const r = await fetch('/api/teacher/session');
-  const data = await r.json();
-  if (data.authenticated) {
-    initDashboard({
-      full_name: data.teacher.full_name,
-      username: data.teacher.username,
-      subject: data.teacher.subject,
-      school: { name: data.school.name_ar }
-    });
+async function loadTeacherData() {
+  try {
+    const r = await fetch('/api/teacher/data');
+    const payload = await r.json();
+    teacherData = payload.data || {};
+    if (!Array.isArray(teacherData.students)) teacherData.students = [];
+    if (!Array.isArray(teacherData.templates)) teacherData.templates = [];
+    renderStudents();
+    renderTemplates();
+    refreshSendSelects();
+  } catch (e) {
+    console.error(e);
+    teacherData = { students: [], templates: [] };
   }
+}
+
+async function saveTeacherData() {
+  try {
+    await fetch('/api/teacher/data', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(teacherData)
+    });
+  } catch (e) { console.error(e); }
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.getElementById('tab-grades').classList.toggle('hidden', name !== 'grades');
+  document.getElementById('tab-templates').classList.toggle('hidden', name !== 'templates');
+  document.getElementById('tab-whatsapp').classList.toggle('hidden', name !== 'whatsapp');
+  if (name === 'whatsapp') refreshSendSelects();
+}
+
+function esc(s) { return String(s ?? '').replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function gradeClass(score) {
+  const n = parseFloat(score);
+  if (isNaN(n)) return '';
+  if (n >= 90) return 'grade-excellent';
+  if (n >= 75) return 'grade-good';
+  if (n >= 60) return 'grade-average';
+  return 'grade-poor';
+}
+
+function renderStudents() {
+  const tbody = document.getElementById('studentsTable');
+  if (!teacherData.students.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">لا يوجد طلاب. اضغط "➕ إضافة طالب" للبدء.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = teacherData.students.map((s, i) => `
+    <tr>
+      <td><b>${esc(s.name)}</b></td>
+      <td>${esc(s.parent || '—')}</td>
+      <td>${esc(s.phone || '—')}</td>
+      <td>${esc(s.grade || '—')}</td>
+      <td>${s.score !== undefined && s.score !== '' ? '<span class="grade-chip ' + gradeClass(s.score) + '">' + esc(s.score) + '</span>' : '—'}</td>
+      <td>${esc(s.notes || '—')}</td>
+      <td class="actions-cell">
+        <button class="btn btn-secondary btn-small" onclick="editStudent(${i})">✏️</button>
+        <button class="btn btn-success btn-small" onclick="quickSend(${i})">📱</button>
+        <button class="btn btn-danger btn-small" onclick="deleteStudent(${i})">🗑️</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openStudentModal() {
+  editingStudentIdx = null;
+  document.getElementById('studentModalTitle').textContent = 'إضافة طالب';
+  ['sName','sGrade','sParent','sPhone','sScore','sNotes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('studentModalError').classList.add('hidden');
+  document.getElementById('studentModal').classList.remove('hidden');
+}
+
+function editStudent(i) {
+  editingStudentIdx = i;
+  const s = teacherData.students[i];
+  document.getElementById('studentModalTitle').textContent = 'تعديل: ' + s.name;
+  document.getElementById('sName').value = s.name || '';
+  document.getElementById('sGrade').value = s.grade || '';
+  document.getElementById('sParent').value = s.parent || '';
+  document.getElementById('sPhone').value = s.phone || '';
+  document.getElementById('sScore').value = s.score ?? '';
+  document.getElementById('sNotes').value = s.notes || '';
+  document.getElementById('studentModalError').classList.add('hidden');
+  document.getElementById('studentModal').classList.remove('hidden');
+}
+
+function closeStudentModal() {
+  document.getElementById('studentModal').classList.add('hidden');
+}
+
+async function saveStudent() {
+  const name = document.getElementById('sName').value.trim();
+  if (!name) {
+    const err = document.getElementById('studentModalError');
+    err.textContent = 'اسم الطالب مطلوب';
+    err.classList.remove('hidden');
+    return;
+  }
+  const student = {
+    name,
+    grade: document.getElementById('sGrade').value.trim(),
+    parent: document.getElementById('sParent').value.trim(),
+    phone: document.getElementById('sPhone').value.trim(),
+    score: document.getElementById('sScore').value.trim(),
+    notes: document.getElementById('sNotes').value.trim()
+  };
+  if (editingStudentIdx !== null) {
+    teacherData.students[editingStudentIdx] = student;
+  } else {
+    teacherData.students.push(student);
+  }
+  await saveTeacherData();
+  renderStudents();
+  refreshSendSelects();
+  closeStudentModal();
+}
+
+async function deleteStudent(i) {
+  if (!confirm('حذف الطالب "' + teacherData.students[i].name + '"؟')) return;
+  teacherData.students.splice(i, 1);
+  await saveTeacherData();
+  renderStudents();
+  refreshSendSelects();
+}
+
+function quickSend(i) {
+  switchTab('whatsapp');
+  document.getElementById('sendStudent').value = String(i);
+  onStudentSelected();
+}
+
+function renderTemplates() {
+  const container = document.getElementById('templatesContainer');
+  if (!teacherData.templates.length) {
+    container.innerHTML = '<div class="card empty-state">لا توجد قوالب. اضغط "➕ إضافة قالب" لإنشاء أول قالب.</div>';
+    return;
+  }
+  container.innerHTML = '<div class="template-grid">' + teacherData.templates.map((t, i) => `
+    <div class="template-card">
+      <div class="template-name">${esc(t.name)}</div>
+      <div class="template-body">${esc(t.body)}</div>
+      <div class="template-actions">
+        <button class="btn btn-secondary btn-small" onclick="editTemplate(${i})">✏️ تعديل</button>
+        <button class="btn btn-danger btn-small" onclick="deleteTemplate(${i})">🗑️ حذف</button>
+      </div>
+    </div>
+  `).join('') + '</div>';
+}
+
+function openTemplateModal() {
+  editingTemplateIdx = null;
+  document.getElementById('templateModalTitle').textContent = 'إضافة قالب رسالة';
+  document.getElementById('tplName').value = '';
+  document.getElementById('tplBody').value = '';
+  document.getElementById('templateModalError').classList.add('hidden');
+  document.getElementById('templateModal').classList.remove('hidden');
+}
+
+function editTemplate(i) {
+  editingTemplateIdx = i;
+  const t = teacherData.templates[i];
+  document.getElementById('templateModalTitle').textContent = 'تعديل: ' + t.name;
+  document.getElementById('tplName').value = t.name || '';
+  document.getElementById('tplBody').value = t.body || '';
+  document.getElementById('templateModalError').classList.add('hidden');
+  document.getElementById('templateModal').classList.remove('hidden');
+}
+
+function closeTemplateModal() {
+  document.getElementById('templateModal').classList.add('hidden');
+}
+
+async function saveTemplate() {
+  const name = document.getElementById('tplName').value.trim();
+  const body = document.getElementById('tplBody').value.trim();
+  if (!name || !body) {
+    const err = document.getElementById('templateModalError');
+    err.textContent = 'الاسم والنص مطلوبان';
+    err.classList.remove('hidden');
+    return;
+  }
+  const tpl = { name, body };
+  if (editingTemplateIdx !== null) {
+    teacherData.templates[editingTemplateIdx] = tpl;
+  } else {
+    teacherData.templates.push(tpl);
+  }
+  await saveTeacherData();
+  renderTemplates();
+  refreshSendSelects();
+  closeTemplateModal();
+}
+
+async function deleteTemplate(i) {
+  if (!confirm('حذف القالب "' + teacherData.templates[i].name + '"؟')) return;
+  teacherData.templates.splice(i, 1);
+  await saveTeacherData();
+  renderTemplates();
+  refreshSendSelects();
+}
+
+function refreshSendSelects() {
+  const studentSel = document.getElementById('sendStudent');
+  if (studentSel) {
+    studentSel.innerHTML = '<option value="">-- اختر طالب لتعبئة رقم ولي أمره --</option>' +
+      teacherData.students.map((s, i) => '<option value="' + i + '">' + esc(s.name) + (s.grade ? ' (' + esc(s.grade) + ')' : '') + '</option>').join('');
+  }
+  const tplSel = document.getElementById('sendTemplate');
+  if (tplSel) {
+    tplSel.innerHTML = '<option value="">-- لا قالب --</option>' +
+      teacherData.templates.map((t, i) => '<option value="' + i + '">' + esc(t.name) + '</option>').join('');
+  }
+}
+
+function onStudentSelected() {
+  const idx = document.getElementById('sendStudent').value;
+  if (idx === '') return;
+  const s = teacherData.students[parseInt(idx)];
+  if (s && s.phone) document.getElementById('sendTo').value = s.phone;
+  applyTemplate();
+}
+
+function fillTemplate(body, student) {
+  if (!student) return body;
+  return body
+    .replace(/\{\{اسم_الطالب\}\}/g, student.name || '')
+    .replace(/\{\{الدرجة\}\}/g, student.score ?? '')
+    .replace(/\{\{الملاحظات\}\}/g, student.notes || '')
+    .replace(/\{\{اسم_ولي_الأمر\}\}/g, student.parent || '')
+    .replace(/\{\{الصف\}\}/g, student.grade || '');
+}
+
+function applyTemplate() {
+  const tplIdx = document.getElementById('sendTemplate').value;
+  if (tplIdx === '') return;
+  const tpl = teacherData.templates[parseInt(tplIdx)];
+  if (!tpl) return;
+  const studentIdx = document.getElementById('sendStudent').value;
+  const student = studentIdx === '' ? null : teacherData.students[parseInt(studentIdx)];
+  document.getElementById('sendMessage').value = fillTemplate(tpl.body, student);
+}
+
+async function sendWhatsApp() {
+  const to = document.getElementById('sendTo').value.trim();
+  const message = document.getElementById('sendMessage').value.trim();
+  const okDiv = document.getElementById('sendSuccess');
+  const errDiv = document.getElementById('sendError');
+  okDiv.classList.add('hidden');
+  errDiv.classList.add('hidden');
+  if (!to || !message) {
+    errDiv.textContent = 'الرقم والرسالة مطلوبان';
+    errDiv.classList.remove('hidden');
+    return;
+  }
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true; btn.textContent = 'جاري الإرسال...';
+  try {
+    const r = await fetch('/api/bot/send', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ to, message })
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error + (data.code ? ' (رمز: ' + data.code + ')' : ''));
+    okDiv.textContent = '✅ تم الإرسال بنجاح. SID: ' + data.sid;
+    okDiv.classList.remove('hidden');
+  } catch (e) {
+    errDiv.textContent = '❌ فشل الإرسال: ' + e.message;
+    errDiv.classList.remove('hidden');
+  } finally {
+    btn.disabled = false; btn.textContent = '📤 إرسال';
+  }
+}
+
+(async () => {
+  try {
+    const r = await fetch('/api/teacher/session');
+    const data = await r.json();
+    if (data.authenticated) {
+      await initDashboard({
+        id: data.teacher.id,
+        username: data.teacher.username,
+        full_name: data.teacher.full_name,
+        subject: data.teacher.subject,
+        grade_level: data.teacher.grade_level,
+        school: { id: data.school.id, name: data.school.name_ar }
+      });
+    }
+  } catch (e) { console.error(e); }
 })();
 
-// Submit on Enter
 document.querySelectorAll('#loginScreen input').forEach(el => {
   el.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 });
