@@ -104,9 +104,11 @@ tbody tr:hover{background:#f9fafb}
 .import-zone h4{font-size:14px;color:#374151;margin-bottom:4px}
 .import-zone p{font-size:12px;color:#6b7280}
 .import-zone input[type="file"]{display:none}
-.period-row{display:grid;grid-template-columns:80px 1fr 1fr 32px;gap:6px;align-items:center;padding:6px;background:#f9fafb;border-radius:6px;margin-bottom:5px}
+.period-row{display:grid;grid-template-columns:110px 1fr 1fr 32px;gap:6px;align-items:center;padding:6px;background:#f9fafb;border-radius:6px;margin-bottom:5px}
 .period-row input{padding:6px 8px;border:1px solid #d1d5db;border-radius:5px;font-family:inherit;font-size:12px}
 .period-label{background:#ecfdf5;color:#059669;font-weight:600;text-align:center;padding:5px;border-radius:5px;font-size:11px}
+.period-name-input{background:#ecfdf5!important;color:#059669;font-weight:600;text-align:center;border:1px solid #d1fae5!important;font-size:11px!important}
+.period-name-input:focus{outline:none;border-color:#059669!important;background:white!important}
 .perms-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;padding:8px;background:#f9fafb;border-radius:8px}
 .perm-item{display:flex;align-items:center;gap:6px;background:white;padding:7px 9px;border-radius:6px;border:1px solid #e5e7eb;cursor:pointer;font-size:12px}
 .perm-item input{width:15px;height:15px;cursor:pointer;accent-color:#059669}
@@ -381,6 +383,9 @@ tbody tr:hover{background:#f9fafb}
           <select id="tStatus"><option value="active">نشط</option><option value="inactive">غير نشط</option></select>
         </div>
       </div>
+      <div class="section-title">🔐 الصلاحيات</div>
+      <div class="info-box" style="font-size:11px">💡 حدّد الصلاحيات الممنوحة لهذا المعلم على مستوى المدرسة.</div>
+      <div class="perms-grid" id="tPermsGrid"></div>
     </div>
     <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('teacherModal')">إلغاء</button><button class="btn btn-primary" onclick="saveTeacher()">حفظ</button></div>
   </div>
@@ -684,7 +689,7 @@ function renderTeachersTable() {
   const wrap = document.getElementById('teachersTableWrap');
   if (!teachersData.length) { wrap.innerHTML = '<div class="empty-state"><h4>👨‍🏫 لا يوجد معلمون</h4><p>ابدأ بإضافة المعلمين</p></div>'; return; }
   wrap.innerHTML = `<table>
-    <thead><tr><th>الاسم</th><th>المستخدم</th><th>المادة</th><th>البريد</th><th>الهاتف</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+    <thead><tr><th>الاسم</th><th>المستخدم</th><th>المادة</th><th>البريد</th><th>الهاتف</th><th>صلاحيات</th><th>الحالة</th><th>إجراءات</th></tr></thead>
     <tbody>${teachersData.map(t => `
       <tr>
         <td><b>${esc(t.full_name || '-')}</b></td>
@@ -692,13 +697,21 @@ function renderTeachersTable() {
         <td>${esc(t.subject || '-')}</td>
         <td style="font-size:11px;color:#6b7280">${esc(t.email || '-')}</td>
         <td style="font-size:11px">${esc(t.phone || '-')}</td>
-        <td>${t.status === 'active' ? '<span class="pill pill-green">نشط</span>' : '<span class="pill pill-gray">غير نشط</span>'}</td>
+        <td><span class="pill pill-blue">${(t.permissions || []).length}</span></td>
+        <td>${t.status === 'inactive' ? '<span class="pill pill-gray">غير نشط</span>' : '<span class="pill pill-green">نشط</span>'}</td>
         <td>
           <button class="btn btn-secondary btn-sm" onclick='editTeacher(${JSON.stringify(t).replace(/'/g,"&#39;")})'>✏️</button>
           <button class="btn btn-warning btn-sm" onclick='openResetPw(${t.id},"teacher",${JSON.stringify(t.full_name||t.username).replace(/'/g,"&#39;")})'>🔑</button>
           <button class="btn btn-danger btn-sm" onclick="deleteTeacher(${t.id})">🗑️</button>
         </td>
       </tr>`).join('')}</tbody></table>`;
+}
+
+function renderTeacherPermsGrid(selected) {
+  const set = new Set(selected || []);
+  document.getElementById('tPermsGrid').innerHTML = PERMISSIONS.map(p => `
+    <label class="perm-item"><input type="checkbox" value="${p.id}" ${set.has(p.id)?'checked':''}>${p.label}</label>
+  `).join('');
 }
 
 function openTeacherModal() {
@@ -708,6 +721,7 @@ function openTeacherModal() {
   document.getElementById('tPasswordGroup').classList.remove('hidden');
   ['tName','tUsername','tPassword','tEmail','tPhone','tSubject','tGradeLevel'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('tStatus').value = 'active';
+  renderTeacherPermsGrid([]);
   document.getElementById('teacherModal').classList.remove('hidden');
 }
 
@@ -723,19 +737,22 @@ function editTeacher(t) {
   document.getElementById('tSubject').value = t.subject || '';
   document.getElementById('tGradeLevel').value = t.grade_level || '';
   document.getElementById('tStatus').value = t.status || 'active';
+  renderTeacherPermsGrid(t.permissions || []);
   document.getElementById('teacherModal').classList.remove('hidden');
 }
 
 async function saveTeacher() {
   const err = document.getElementById('teacherError'); err.classList.add('hidden');
   try {
+    const permissions = [...document.querySelectorAll('#tPermsGrid input:checked')].map(cb => cb.value);
     const payload = {
       full_name: document.getElementById('tName').value.trim(),
       email: document.getElementById('tEmail').value.trim(),
       phone: document.getElementById('tPhone').value.trim(),
       subject: document.getElementById('tSubject').value.trim(),
       grade_level: document.getElementById('tGradeLevel').value.trim(),
-      status: document.getElementById('tStatus').value
+      status: document.getElementById('tStatus').value,
+      permissions
     };
     if (!payload.full_name) throw new Error('الاسم الكامل مطلوب');
     if (!editingTeacherId) {
@@ -1103,9 +1120,9 @@ function renderSchedules() {
           <button class="btn btn-danger btn-sm" onclick="deleteSchedule(${sch.id})">🗑️</button>
         </div>
       </div>
-      ${periods.length ? `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:5px">
-        ${periods.map((p,i) => `<div class="period-row" style="grid-template-columns:70px 1fr">
-          <span class="period-label">الحصة ${i+1}</span>
+      ${periods.length ? `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:5px">
+        ${periods.map((p,i) => `<div class="period-row" style="grid-template-columns:90px 1fr">
+          <span class="period-label">${esc(p.name || `الحصة ${i+1}`)}</span>
           <span style="font-size:11px">${esc(p.start||'--')} ← ${esc(p.end||'--')}</span>
         </div>`).join('')}
       </div>` : '<div style="color:#9ca3af;font-size:11px">لا توجد حصص</div>'}
@@ -1132,18 +1149,19 @@ function editSchedule(id) {
   document.getElementById('schActive').checked = !!sch.is_active;
   document.getElementById('scheduleError').classList.add('hidden');
   document.getElementById('periodsContainer').innerHTML = '';
-  (sch.periods || []).forEach(p => addPeriodRow(p.start, p.end));
+  (sch.periods || []).forEach(p => addPeriodRow(p.start, p.end, p.name));
   if (!(sch.periods || []).length) addPeriodRow();
   document.getElementById('scheduleModal').classList.remove('hidden');
 }
 
-function addPeriodRow(start, end) {
+function addPeriodRow(start, end, name) {
   const container = document.getElementById('periodsContainer');
   const idx = container.children.length + 1;
+  const defaultName = name || `الحصة ${idx}`;
   const div = document.createElement('div');
   div.className = 'period-row';
   div.innerHTML = `
-    <span class="period-label">الحصة ${idx}</span>
+    <input type="text" value="${(defaultName).replace(/"/g,'&quot;')}" class="sch-name period-name-input" placeholder="اسم الحصة">
     <input type="time" value="${start||''}" class="sch-start">
     <input type="time" value="${end||''}" class="sch-end">
     <button type="button" onclick="this.parentElement.remove();reindexPeriods()" style="background:#ef4444;color:white;border:none;border-radius:5px;cursor:pointer;width:28px;height:28px">×</button>`;
@@ -1152,7 +1170,11 @@ function addPeriodRow(start, end) {
 
 function reindexPeriods() {
   [...document.getElementById('periodsContainer').children].forEach((r,i) => {
-    r.querySelector('.period-label').textContent = `الحصة ${i+1}`;
+    const nameInput = r.querySelector('.sch-name');
+    // Only auto-update if the value matches the default pattern "الحصة N"
+    if (nameInput && /^الحصة \d+$/.test(nameInput.value.trim())) {
+      nameInput.value = `الحصة ${i+1}`;
+    }
   });
 }
 
@@ -1162,7 +1184,8 @@ async function saveSchedule() {
     const name = document.getElementById('schName').value.trim();
     const is_active = document.getElementById('schActive').checked;
     if (!name) throw new Error('الاسم مطلوب');
-    const periods = [...document.querySelectorAll('#periodsContainer .period-row')].map(r => ({
+    const periods = [...document.querySelectorAll('#periodsContainer .period-row')].map((r, i) => ({
+      name: (r.querySelector('.sch-name').value.trim() || `الحصة ${i+1}`),
       start: r.querySelector('.sch-start').value,
       end: r.querySelector('.sch-end').value
     })).filter(p => p.start && p.end);
