@@ -208,6 +208,8 @@ ensureColumn('teachers', 'security_answer_hash', 'TEXT');
 // AI Assistant settings per teacher
 ensureColumn('teachers', 'ai_enabled', 'INTEGER DEFAULT 0');
 ensureColumn('teachers', 'ai_system_prompt', 'TEXT');
+// School-level permissions for teachers (same pattern as staff)
+ensureColumn('teachers', 'permissions', 'TEXT DEFAULT "[]"');
 
 // ========== Seed super admin ==========
 const superCount = db.prepare('SELECT COUNT(*) AS c FROM super_admins').get().c;
@@ -378,9 +380,10 @@ app.put('/api/school/settings', requireSchool, (req, res) => {
 app.get('/api/school/teachers', requireSchool, (req, res) => {
   const teachers = db.prepare(`
     SELECT id, username, full_name, subject, grade_level, phone, email,
-           academic_year, academic_term, security_question, last_login, created_at
+           academic_year, academic_term, security_question, last_login, created_at, permissions, status
     FROM teachers WHERE school_id = ? ORDER BY created_at DESC
   `).all(req.session.school_id);
+  teachers.forEach(t => { try { t.permissions = JSON.parse(t.permissions || '[]'); } catch(e) { t.permissions = []; } });
   res.json({ teachers });
 });
 
@@ -389,13 +392,14 @@ app.post('/api/school/teachers', requireSchool, (req, res) => {
     const b = req.body;
     if (!b.username || !b.password) return res.status(400).json({ error: 'اسم المستخدم وكلمة المرور مطلوبان' });
     const hash = bcrypt.hashSync(b.password, 10);
+    const permsStr = JSON.stringify(Array.isArray(b.permissions) ? b.permissions : []);
     const r = db.prepare(`
-      INSERT INTO teachers (school_id, username, password_hash, full_name, subject, grade_level, phone, email, academic_year, academic_term)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO teachers (school_id, username, password_hash, full_name, subject, grade_level, phone, email, academic_year, academic_term, permissions)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       req.session.school_id, b.username, hash,
       b.full_name || '', b.subject || '', b.grade_level || '',
-      b.phone || '', b.email || '', b.academic_year || '', b.academic_term || ''
+      b.phone || '', b.email || '', b.academic_year || '', b.academic_term || '', permsStr
     );
     res.json({ success: true, id: r.lastInsertRowid });
   } catch (e) {
@@ -407,9 +411,13 @@ app.put('/api/school/teachers/:id', requireSchool, (req, res) => {
   try {
     const b = req.body;
     const fields = []; const values = [];
-    ['username','full_name','subject','grade_level','phone','email','academic_year','academic_term'].forEach(f => {
+    ['username','full_name','subject','grade_level','phone','email','academic_year','academic_term','status'].forEach(f => {
       if (b[f] !== undefined) { fields.push(`${f} = ?`); values.push(b[f]); }
     });
+    if (b.permissions !== undefined) {
+      fields.push('permissions = ?');
+      values.push(JSON.stringify(Array.isArray(b.permissions) ? b.permissions : []));
+    }
     if (b.password) {
       fields.push('password_hash = ?');
       values.push(bcrypt.hashSync(b.password, 10));
@@ -533,8 +541,36 @@ app.put('/api/school/grades/:id', requireSchool, (req, res) => {
 });
 
 app.delete('/api/school/grades/:id', requireSchool, (req, res) => {
-  db.prepare(`DELETE FROM school_grades WHERE id = ? AND school_id = ?`).run(req.params.id, req.session.school_id);
-  res.json({ success: true });
+  try {
+    const gradeId = req.params.id;
+    const schoolId = req.session.school_id;
+    // Verify ownership
+    const grade = db.prepare('SELECT id FROM school_grades WHERE id = ? AND school_id = ?').get(gradeId, schoolId);
+    if (!grade) return res.status(404).json({ error: 'الصف غير موجود' });
+    // Manual cascade in transaction to guarantee order
+    const txn = db.transaction(() => {
+      // Delete school_attendance records for students in this grade
+      db.prepare(`DELETE FROM school_attendance WHERE student_id IN 
+                  (SELECT id FROM school_students WHERE grade_id = ?)`).run(gradeId);
+      // Delete school_notes records for students in this grade
+      db.prepare(`DELETE FROM school_notes WHERE student_id IN 
+                  (SELECT id FROM school_students WHERE grade_id = ?)`).run(gradeId);
+      // Delete teacher_students links
+      db.prepare(`DELETE FROM teacher_students WHERE school_student_id IN 
+                  (SELECT id FROM school_students WHERE grade_id = ?)`).run(gradeId);
+      // Delete students
+      db.prepare('DELETE FROM school_students WHERE grade_id = ?').run(gradeId);
+      // Delete sections
+      db.prepare('DELETE FROM school_sections WHERE grade_id = ?').run(gradeId);
+      // Delete grade
+      db.prepare('DELETE FROM school_grades WHERE id = ? AND school_id = ?').run(gradeId, schoolId);
+    });
+    txn();
+    res.json({ success: true });
+  } catch (e) { 
+    console.error('Delete grade error:', e);
+    res.status(500).json({ error: e.message }); 
+  }
 });
 
 app.post('/api/school/grades/:id/sections', requireSchool, (req, res) => {
@@ -550,13 +586,28 @@ app.post('/api/school/grades/:id/sections', requireSchool, (req, res) => {
 });
 
 app.delete('/api/school/sections/:id', requireSchool, (req, res) => {
-  // Verify section belongs to this school's grade
-  const row = db.prepare(`SELECT ss.id FROM school_sections ss 
-                          JOIN school_grades sg ON ss.grade_id = sg.id 
-                          WHERE ss.id = ? AND sg.school_id = ?`).get(req.params.id, req.session.school_id);
-  if (!row) return res.status(404).json({ error: 'الشعبة غير موجودة' });
-  db.prepare(`DELETE FROM school_sections WHERE id = ?`).run(req.params.id);
-  res.json({ success: true });
+  try {
+    const secId = req.params.id;
+    const row = db.prepare(`SELECT ss.id FROM school_sections ss 
+                            JOIN school_grades sg ON ss.grade_id = sg.id 
+                            WHERE ss.id = ? AND sg.school_id = ?`).get(secId, req.session.school_id);
+    if (!row) return res.status(404).json({ error: 'الشعبة غير موجودة' });
+    const txn = db.transaction(() => {
+      db.prepare(`DELETE FROM school_attendance WHERE student_id IN 
+                  (SELECT id FROM school_students WHERE section_id = ?)`).run(secId);
+      db.prepare(`DELETE FROM school_notes WHERE student_id IN 
+                  (SELECT id FROM school_students WHERE section_id = ?)`).run(secId);
+      db.prepare(`DELETE FROM teacher_students WHERE school_student_id IN 
+                  (SELECT id FROM school_students WHERE section_id = ?)`).run(secId);
+      db.prepare('DELETE FROM school_students WHERE section_id = ?').run(secId);
+      db.prepare('DELETE FROM school_sections WHERE id = ?').run(secId);
+    });
+    txn();
+    res.json({ success: true });
+  } catch (e) { 
+    console.error('Delete section error:', e);
+    res.status(500).json({ error: e.message }); 
+  }
 });
 
 // Bulk import grades+sections+students from Excel (client sends parsed JSON)
@@ -646,8 +697,20 @@ app.put('/api/school/students/:id', requireSchool, (req, res) => {
 });
 
 app.delete('/api/school/students/:id', requireSchool, (req, res) => {
-  db.prepare(`DELETE FROM school_students WHERE id = ? AND school_id = ?`).run(req.params.id, req.session.school_id);
-  res.json({ success: true });
+  try {
+    const stuId = req.params.id;
+    const txn = db.transaction(() => {
+      db.prepare('DELETE FROM school_attendance WHERE student_id = ?').run(stuId);
+      db.prepare('DELETE FROM school_notes WHERE student_id = ?').run(stuId);
+      db.prepare('DELETE FROM teacher_students WHERE school_student_id = ?').run(stuId);
+      db.prepare('DELETE FROM school_students WHERE id = ? AND school_id = ?').run(stuId, req.session.school_id);
+    });
+    txn();
+    res.json({ success: true });
+  } catch (e) {
+    console.error('Delete student error:', e);
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // ========================================
