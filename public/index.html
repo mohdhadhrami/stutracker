@@ -399,6 +399,7 @@ tr:hover td{background:#fafbfc}
       <div class="section-label">التواصل</div>
       <button class="nav-item" data-view="templates" onclick="switchView('templates')"><span class="icon">💬</span>قوالب الرسائل</button>
       <button class="nav-item" data-view="whatsapp" onclick="switchView('whatsapp')"><span class="icon">📱</span>إرسال واتساب</button>
+      <button class="nav-item" data-view="assistant" onclick="switchView('assistant')"><span class="icon">🤖</span>المساعد الذكي</button>
 
       <div class="section-label">الإعدادات</div>
       <button class="nav-item" data-view="settings" onclick="switchView('settings')"><span class="icon">⚙️</span>الإعدادات</button>
@@ -728,6 +729,106 @@ tr:hover td{background:#fafbfc}
             <div class="form-group"><label>اختر قالباً (اختياري)</label><select id="sendTemplate" onchange="onSendTemplateChange()"><option value="">-- بدون قالب --</option></select></div>
             <div class="form-group"><label>نص الرسالة *</label><textarea id="sendMessage" placeholder="اكتب الرسالة هنا..."></textarea></div>
             <button class="btn btn-success" onclick="sendWhatsApp()" id="sendBtn">📤 إرسال الرسالة</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ASSISTANT (AI Bot) -->
+      <div id="view-assistant" class="hidden">
+        <h2 class="page-title">🤖 المساعد الذكي</h2>
+        <p class="page-subtitle">مساعد واتساب ذكي للتواصل مع أولياء الأمور. يرد على استفسارات أولياء الأمور حول أبنائهم بشكل آمن ومدعوم بالذكاء الاصطناعي.</p>
+
+        <!-- Status Card -->
+        <div class="card" id="aiStatusCard">
+          <div class="card-header">
+            <h3>⚡ حالة المساعد</h3>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span id="aiStatusBadge" class="pill pill-gray">جاري التحميل...</span>
+            </div>
+          </div>
+          <div id="aiStatusBody"></div>
+        </div>
+
+        <!-- Settings Card -->
+        <div class="card">
+          <div class="card-header">
+            <h3>⚙️ إعدادات المساعد</h3>
+          </div>
+          <div id="aiSettingsMessage"></div>
+
+          <div class="form-group" style="display:flex;align-items:center;gap:10px;background:#f9fafb;padding:12px 14px;border-radius:8px;margin-bottom:14px">
+            <input type="checkbox" id="aiEnabled" style="width:20px;height:20px;cursor:pointer;accent-color:#4f46e5">
+            <label for="aiEnabled" style="margin:0;cursor:pointer;font-weight:600;color:#111827">تفعيل المساعد الذكي لطلابي</label>
+          </div>
+
+          <div class="form-group">
+            <label>📝 توجيهات المساعد (System Prompt)</label>
+            <div class="placeholder-hint">
+              💡 اكتب توجيهات للمساعد حول كيفية الرد على استفسارات أولياء الأمور. مثلاً: أسلوب الرد، الطول، ما يُذكر وما لا يُذكر.<br>
+              <b>ملاحظة:</b> البيانات الأساسية (درجات، غياب، ملاحظات) تُرسل تلقائياً للمساعد. توجيهاتك تُضاف فوقها لتخصيص الأسلوب.
+            </div>
+            <textarea id="aiSystemPrompt" rows="8" placeholder="مثال: أنت مساعد ودود لمعلم مادة الكيمياء. تحدث بأسلوب مهذب ومختصر. ابدأ التحية بـ 'مرحباً بحضرتكم'. إذا سأل ولي الأمر عن تفاصيل الاختبار، أخبره بموعده واسم الأداة فقط دون إفشاء الأسئلة. وجّه ولي الأمر لمقابلة المعلم إذا كان موضوع الاستفسار حساساً."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>📋 قوالب توجيهات جاهزة</label>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <button type="button" class="btn btn-info btn-sm" onclick="loadAiPreset('friendly')">😊 ودود ومبسّط</button>
+              <button type="button" class="btn btn-info btn-sm" onclick="loadAiPreset('formal')">🎩 رسمي ومهني</button>
+              <button type="button" class="btn btn-info btn-sm" onclick="loadAiPreset('detailed')">📊 تفصيلي وشامل</button>
+              <button type="button" class="btn btn-info btn-sm" onclick="loadAiPreset('brief')">⚡ مختصر وسريع</button>
+            </div>
+          </div>
+
+          <div style="text-align:left;margin-top:10px">
+            <button class="btn btn-success" onclick="saveAiSettings()">💾 حفظ الإعدادات</button>
+          </div>
+        </div>
+
+        <!-- Test Card -->
+        <div class="card">
+          <div class="card-header">
+            <h3>🧪 اختبر المساعد</h3>
+          </div>
+          <div class="info-box">
+            💡 جرّب المساعد الذكي بإدخال رقم هاتف ولي أمر من قائمة طلابك ورسالة تجريبية. سترى رد المساعد فوراً.
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>اختر طالباً للاختبار</label>
+              <select id="aiTestStudent" onchange="onAiTestStudentChange()">
+                <option value="">-- اختر طالباً --</option>
+              </select>
+            </div>
+            <div class="form-group"><label>رقم ولي الأمر</label>
+              <input type="text" id="aiTestPhone" placeholder="+96899xxxxxxx">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>رسالة تجريبية من ولي الأمر</label>
+            <textarea id="aiTestMessage" rows="3" placeholder="مثال: السلام عليكم، كيف درجات ابني في الكيمياء؟"></textarea>
+          </div>
+          <button class="btn btn-primary" onclick="testAi()" id="aiTestBtn">🧪 جرّب الآن</button>
+          <div id="aiTestResult" class="hidden" style="margin-top:12px;padding:12px;background:#eef2ff;border-radius:8px;border:1px solid #c7d2fe"></div>
+        </div>
+
+        <!-- Conversations History -->
+        <div class="card">
+          <div class="card-header">
+            <h3>💬 سجل المحادثات الأخيرة</h3>
+            <button class="btn btn-secondary btn-sm" onclick="loadAiConversations()">🔄 تحديث</button>
+          </div>
+          <div id="aiConversationsList">
+            <div class="empty-state"><h4>اضغط "تحديث" لعرض المحادثات</h4></div>
+          </div>
+        </div>
+
+        <!-- Integration Info -->
+        <div class="card">
+          <div class="card-header"><h3>🔗 معلومات الربط</h3></div>
+          <div class="info-box">
+            <b>🔑 مفتاح OpenAI:</b> يُستخدم المفتاح المُسجّل في بيانات المدرسة. إن لم يكن مسجلاً، اتصل بإدارة المدرسة.<br>
+            <b>📱 واتساب:</b> يُستخدم رقم Twilio المُسجّل في بيانات المدرسة. تأكد من إعداد الـ webhook في لوحة Twilio إلى:<br>
+            <code style="background:white;padding:2px 6px;border-radius:4px;font-size:11px">https://stutracker.com/api/webhook/twilio</code>
           </div>
         </div>
       </div>
@@ -1299,7 +1400,7 @@ function renderAll() {
 // ========= NAVIGATION =========
 function switchView(v) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === v));
-  ['home','classes','students','grades','attendance','notes','evaluation','reports','templates','whatsapp','settings'].forEach(n => {
+  ['home','classes','students','grades','attendance','notes','evaluation','reports','templates','whatsapp','assistant','settings'].forEach(n => {
     const el = document.getElementById('view-' + n);
     if (el) el.classList.toggle('hidden', n !== v);
   });
@@ -1313,6 +1414,7 @@ function switchView(v) {
   if (v === 'reports') { initReports(); renderCurrentReport(); }
   if (v === 'templates') { renderTemplates(); updateTemplateVariablesHint(); }
   if (v === 'whatsapp') { refreshSendFilters(); }
+  if (v === 'assistant') { loadAiSettings(); populateAiTestStudents(); }
   if (v === 'settings') { loadProfileForm(); renderRubric(); renderNoteBank(); renderAssessmentsSettings(); }
   toggleSidebar(true);
 }
@@ -4001,6 +4103,239 @@ async function sendWhatsApp() {
     rd.innerHTML = `<div class="success">✅ أُرسلت (SID: ${esc(data.sid || '')})</div>`;
   } catch (e) { rd.innerHTML = `<div class="error">❌ ${esc(e.message)}</div>`; }
   finally { btn.disabled = false; btn.textContent = '📤 إرسال الرسالة'; }
+}
+
+// ========= AI ASSISTANT =========
+const AI_PRESETS = {
+  friendly: `أنت مساعد ودود لمعلم يتواصل مع أولياء أمور الطلاب.
+- استخدم أسلوباً دافئاً ومرحّباً في ردودك.
+- ابدأ كل محادثة جديدة بتحية مناسبة للوقت (صباح الخير / مساء الخير).
+- تجنّب المصطلحات التقنية المعقدة.
+- استخدم الإيموجي باعتدال لإضافة لمسة ودية.
+- إذا كانت الملاحظات سلبية، قدّمها بتعاطف وتشجيع.
+- اختم كل رد بعرض المساعدة في أي استفسار آخر.`,
+
+  formal: `أنت مساعد رسمي لمعلم يتواصل مع أولياء أمور الطلاب.
+- استخدم أسلوباً مهنياً رسمياً في جميع الردود.
+- ابدأ بتحية رسمية مثل "السلام عليكم ورحمة الله وبركاته".
+- استخدم ألقاب الاحترام (الأستاذ/ة، ولي الأمر الكريم).
+- قدّم المعلومات بشكل منظّم ومرتّب.
+- اختم الردود بعبارات مثل "تفضلوا بقبول فائق الاحترام".
+- تجنّب الاختصارات والإيموجي.`,
+
+  detailed: `أنت مساعد تفصيلي لمعلم يتواصل مع أولياء أمور الطلاب.
+- قدّم المعلومات بشكل شامل ومفصّل.
+- اشرح السياق والمعنى خلف الأرقام (مثلاً: هل الدرجة جيدة، متوسطة، تحتاج تحسين).
+- قارن الأداء الحالي بما سبق إن أمكن.
+- اقترح خطوات عملية لتحسين الأداء عند الحاجة.
+- استخدم قوائم منظمة لتسهيل القراءة.
+- قدّم تحليلاً للاتجاهات (تحسّن، ثبات، تراجع).`,
+
+  brief: `أنت مساعد مختصر لمعلم يتواصل مع أولياء أمور الطلاب.
+- قدّم إجابات مباشرة ومختصرة.
+- لا تتجاوز 3-4 أسطر في كل رد إلا عند الضرورة.
+- ركّز على المعلومة المطلوبة فقط دون شرح إضافي.
+- استخدم النقاط القصيرة بدل الجمل الطويلة.
+- إذا احتاج ولي الأمر لتفاصيل أكثر، أشر إليه أنه يمكنه السؤال.`
+};
+
+function loadAiPreset(type) {
+  const prompt = AI_PRESETS[type];
+  if (!prompt) return;
+  if (document.getElementById('aiSystemPrompt').value.trim() &&
+      !confirm('سيتم استبدال النص الحالي بالقالب الجاهز. متابعة؟')) return;
+  document.getElementById('aiSystemPrompt').value = prompt;
+}
+
+async function loadAiSettings() {
+  const msg = document.getElementById('aiSettingsMessage');
+  const statusBody = document.getElementById('aiStatusBody');
+  const badge = document.getElementById('aiStatusBadge');
+  try {
+    const r = await fetch('/api/teacher/ai-settings');
+    if (!r.ok) throw new Error('فشل تحميل الإعدادات');
+    const data = await r.json();
+    document.getElementById('aiEnabled').checked = !!data.ai_enabled;
+    document.getElementById('aiSystemPrompt').value = data.ai_system_prompt || '';
+
+    // Status card
+    const webhookUrl = `${location.origin}/api/webhook/twilio`;
+    let statusHtml = '';
+    if (!data.school_has_openai) {
+      badge.textContent = '⚠️ مفتاح OpenAI غير مُضاف';
+      badge.className = 'pill pill-red';
+      statusHtml = `<div class="warn-box">
+        ⚠️ <b>لم يُضف مفتاح OpenAI في بيانات المدرسة.</b><br>
+        تواصل مع <b>مدير المدرسة</b> لإضافة مفتاح OpenAI API حتى يعمل المساعد الذكي.
+      </div>`;
+    } else if (data.ai_enabled) {
+      badge.textContent = '🟢 نشط';
+      badge.className = 'pill pill-green';
+      statusHtml = `<div class="success" style="display:block">
+        ✅ المساعد الذكي <b>مُفعّل ويعمل</b>. يستخدم نموذج: <code>${esc(data.school_openai_model)}</code>
+      </div>
+      <div style="margin-top:8px;font-size:12px;color:#374151">
+        📱 أي ولي أمر يُرسل رسالة على رقم واتساب المدرسة، وكان رقمه مسجّلاً لدى أحد طلابك، سيحصل على رد ذكي تلقائياً.
+      </div>`;
+    } else {
+      badge.textContent = '⚪ غير مُفعّل';
+      badge.className = 'pill pill-gray';
+      statusHtml = `<div class="info-box">
+        💡 المساعد الذكي <b>متوفر ولكن غير مُفعّل</b>. فعّله أدناه لتبدأ الخدمة.
+      </div>`;
+    }
+    statusBody.innerHTML = statusHtml;
+  } catch (e) {
+    msg.innerHTML = `<div class="error">❌ ${esc(e.message)}</div>`;
+    badge.textContent = '❌ خطأ';
+    badge.className = 'pill pill-red';
+  }
+}
+
+async function saveAiSettings() {
+  const msg = document.getElementById('aiSettingsMessage');
+  msg.innerHTML = '';
+  try {
+    const payload = {
+      ai_enabled: document.getElementById('aiEnabled').checked,
+      ai_system_prompt: document.getElementById('aiSystemPrompt').value.trim()
+    };
+    const r = await fetch('/api/teacher/ai-settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!r.ok) {
+      const d = await r.json();
+      throw new Error(d.error || 'فشل الحفظ');
+    }
+    msg.innerHTML = '<div class="success">✅ حُفظت إعدادات المساعد الذكي</div>';
+    setTimeout(() => msg.innerHTML = '', 2500);
+    loadAiSettings(); // refresh status
+  } catch (e) {
+    msg.innerHTML = `<div class="error">❌ ${esc(e.message)}</div>`;
+  }
+}
+
+function populateAiTestStudents() {
+  const sel = document.getElementById('aiTestStudent');
+  if (!sel) return;
+  const studentsWithPhone = teacherData.students.filter(s => s.parent_phone && s.parent_phone.trim());
+  sel.innerHTML = '<option value="">-- اختر طالباً --</option>' +
+    studentsWithPhone.map(s => {
+      const g = teacherData.grades.find(x => x.id === s.grade_id);
+      return `<option value="${s.id}">${esc(s.name)}${g ? ' - ' + esc(g.name) : ''}</option>`;
+    }).join('');
+}
+
+function onAiTestStudentChange() {
+  const sid = document.getElementById('aiTestStudent').value;
+  const phoneInput = document.getElementById('aiTestPhone');
+  if (!sid) { phoneInput.value = ''; return; }
+  const student = teacherData.students.find(s => s.id === sid);
+  if (student) phoneInput.value = student.parent_phone || '';
+}
+
+async function testAi() {
+  const phone = document.getElementById('aiTestPhone').value.trim();
+  const message = document.getElementById('aiTestMessage').value.trim();
+  const resultDiv = document.getElementById('aiTestResult');
+  const btn = document.getElementById('aiTestBtn');
+  if (!phone || !message) {
+    resultDiv.innerHTML = '<div class="error">الرقم والرسالة مطلوبان</div>';
+    resultDiv.classList.remove('hidden');
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = '⏳ جاري التجربة...';
+  resultDiv.innerHTML = '<div style="text-align:center;color:#6b7280">⏳ جاري الاتصال بالمساعد...</div>';
+  resultDiv.classList.remove('hidden');
+  try {
+    const r = await fetch('/api/teacher/ai-test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, message })
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'فشل الاتصال');
+    if (!data.matched) {
+      resultDiv.innerHTML = `<div class="warn-box">⚠️ ${esc(data.reply)}</div>`;
+    } else {
+      resultDiv.innerHTML = `
+        <div style="font-size:11px;color:#4338ca;font-weight:600;margin-bottom:8px">
+          ✅ تم التعرف على الطالب: ${esc(data.student_name)}
+        </div>
+        <div style="font-size:11px;color:#6b7280;margin-bottom:6px">📨 رسالة ولي الأمر:</div>
+        <div style="background:white;padding:8px 10px;border-radius:6px;margin-bottom:10px;border-right:3px solid #9ca3af;font-size:12px">
+          ${esc(message)}
+        </div>
+        <div style="font-size:11px;color:#6b7280;margin-bottom:6px">🤖 رد المساعد:</div>
+        <div style="background:#ecfdf5;padding:10px 12px;border-radius:6px;border-right:3px solid #10b981;font-size:13px;line-height:1.7;white-space:pre-wrap">
+          ${esc(data.reply)}
+        </div>`;
+    }
+  } catch (e) {
+    resultDiv.innerHTML = `<div class="error" style="display:block">❌ ${esc(e.message)}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🧪 جرّب الآن';
+  }
+}
+
+async function loadAiConversations() {
+  const listEl = document.getElementById('aiConversationsList');
+  listEl.innerHTML = '<div style="text-align:center;padding:10px;color:#6b7280">⏳ جاري التحميل...</div>';
+  try {
+    const r = await fetch('/api/teacher/ai-conversations');
+    if (!r.ok) throw new Error('فشل التحميل');
+    const data = await r.json();
+    const convs = data.conversations || [];
+    if (!convs.length) {
+      listEl.innerHTML = '<div class="empty-state"><h4>💬 لا توجد محادثات بعد</h4><p>عندما يرسل ولي أمر رسالة على واتساب المدرسة، ستظهر هنا</p></div>';
+      return;
+    }
+    // Group by from_phone
+    const grouped = {};
+    convs.forEach(c => {
+      if (!grouped[c.from_phone]) grouped[c.from_phone] = [];
+      grouped[c.from_phone].push(c);
+    });
+    let html = '';
+    Object.entries(grouped).forEach(([phone, msgs]) => {
+      // Find student name
+      const cleanPhone = phone.replace(/whatsapp:/g, '').replace(/[^\d+]/g, '');
+      const student = teacherData.students.find(s => {
+        if (!s.parent_phone) return false;
+        const sp = String(s.parent_phone).replace(/[^\d+]/g, '');
+        return sp === cleanPhone || sp.slice(-9) === cleanPhone.slice(-9);
+      });
+      html += `<div class="card" style="margin-bottom:8px;padding:10px;background:#f9fafb">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div>
+            <b style="font-size:13px">${student ? esc(student.name) : '👤 غير معروف'}</b>
+            <span style="font-size:11px;color:#6b7280;margin-right:8px">📱 ${esc(phone)}</span>
+          </div>
+          <span class="pill pill-gray" style="font-size:10px">${msgs.length} رسالة</span>
+        </div>
+        <div style="max-height:200px;overflow-y:auto;border-top:1px solid #e5e7eb;padding-top:6px">
+          ${msgs.slice(0, 5).map(m => `
+            <div style="margin-bottom:6px;font-size:11px">
+              <div style="color:#6b7280;font-size:10px">${esc(m.created_at)}</div>
+              <div style="background:white;padding:5px 8px;border-radius:5px;margin-top:2px">
+                <b style="color:#4338ca">📨 ولي الأمر:</b> ${esc(m.message || '').slice(0, 150)}${(m.message || '').length > 150 ? '...' : ''}
+              </div>
+              ${m.reply ? `<div style="background:#ecfdf5;padding:5px 8px;border-radius:5px;margin-top:3px">
+                <b style="color:#166534">🤖 المساعد:</b> ${esc(m.reply).slice(0, 200)}${m.reply.length > 200 ? '...' : ''}
+              </div>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      </div>`;
+    });
+    listEl.innerHTML = html;
+  } catch (e) {
+    listEl.innerHTML = `<div class="error">❌ ${esc(e.message)}</div>`;
+  }
 }
 
 // ========= PROFILE & SECURITY =========
