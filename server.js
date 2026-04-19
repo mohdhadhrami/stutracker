@@ -81,6 +81,116 @@ CREATE TABLE IF NOT EXISTS bot_conversations (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY(school_id) REFERENCES schools(id) ON DELETE CASCADE
 );
+
+-- School staff (admins, deputies, supervisors with roles)
+CREATE TABLE IF NOT EXISTS school_staff (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  school_id INTEGER NOT NULL,
+  username TEXT NOT NULL,
+  password_hash TEXT NOT NULL,
+  full_name TEXT,
+  email TEXT,
+  phone TEXT,
+  role TEXT NOT NULL DEFAULT 'supervisor',
+  permissions TEXT DEFAULT '[]',
+  status TEXT DEFAULT 'active',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(school_id, username),
+  FOREIGN KEY(school_id) REFERENCES schools(id) ON DELETE CASCADE
+);
+
+-- Central grades (managed by school admin, shared with teachers)
+CREATE TABLE IF NOT EXISTS school_grades (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  school_id INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  display_order INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(school_id) REFERENCES schools(id) ON DELETE CASCADE
+);
+
+-- Central sections for each grade
+CREATE TABLE IF NOT EXISTS school_sections (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  grade_id INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  display_order INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(grade_id) REFERENCES school_grades(id) ON DELETE CASCADE
+);
+
+-- Central students (imported by school admin)
+CREATE TABLE IF NOT EXISTS school_students (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  school_id INTEGER NOT NULL,
+  grade_id INTEGER NOT NULL,
+  section_id INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  student_id TEXT,
+  parent_phone TEXT,
+  nationality TEXT,
+  gender TEXT,
+  date_of_birth TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(school_id) REFERENCES schools(id) ON DELETE CASCADE,
+  FOREIGN KEY(grade_id) REFERENCES school_grades(id) ON DELETE CASCADE,
+  FOREIGN KEY(section_id) REFERENCES school_sections(id) ON DELETE CASCADE
+);
+
+-- School schedule periods (e.g. Summer, Winter, Ramadan)
+CREATE TABLE IF NOT EXISTS school_schedules (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  school_id INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  periods TEXT DEFAULT '[]',
+  is_active INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(school_id) REFERENCES schools(id) ON DELETE CASCADE
+);
+
+-- School-level attendance (separate from teacher-level)
+CREATE TABLE IF NOT EXISTS school_attendance (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  school_id INTEGER NOT NULL,
+  student_id INTEGER NOT NULL,
+  date TEXT NOT NULL,
+  period_index INTEGER DEFAULT 0,
+  status TEXT NOT NULL,
+  recorded_by_type TEXT,
+  recorded_by_id INTEGER,
+  notes TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(school_id, student_id, date, period_index),
+  FOREIGN KEY(school_id) REFERENCES schools(id) ON DELETE CASCADE,
+  FOREIGN KEY(student_id) REFERENCES school_students(id) ON DELETE CASCADE
+);
+
+-- School-level notes
+CREATE TABLE IF NOT EXISTS school_notes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  school_id INTEGER NOT NULL,
+  student_id INTEGER NOT NULL,
+  type TEXT NOT NULL,
+  text TEXT NOT NULL,
+  date TEXT,
+  time TEXT,
+  recorded_by_type TEXT,
+  recorded_by_id INTEGER,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(school_id) REFERENCES schools(id) ON DELETE CASCADE,
+  FOREIGN KEY(student_id) REFERENCES school_students(id) ON DELETE CASCADE
+);
+
+-- Teacher-student links (which school-students belong to each teacher)
+CREATE TABLE IF NOT EXISTS teacher_students (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  teacher_id INTEGER NOT NULL,
+  school_student_id INTEGER NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(teacher_id, school_student_id),
+  FOREIGN KEY(teacher_id) REFERENCES teachers(id) ON DELETE CASCADE,
+  FOREIGN KEY(school_student_id) REFERENCES school_students(id) ON DELETE CASCADE
+);
 `);
 
 // ========== Lightweight migrations (idempotent) ==========
@@ -329,6 +439,274 @@ app.post('/api/school/teachers/:id/reset-password', requireSchool, (req, res) =>
 app.delete('/api/school/teachers/:id', requireSchool, (req, res) => {
   db.prepare('DELETE FROM teachers WHERE id = ? AND school_id = ?').run(req.params.id, req.session.school_id);
   res.json({ success: true });
+});
+
+// ========================================
+// School Staff (Admins with roles)
+// ========================================
+app.get('/api/school/staff', requireSchool, (req, res) => {
+  try {
+    const rows = db.prepare(`SELECT id, username, full_name, email, phone, role, permissions, status, created_at
+                             FROM school_staff WHERE school_id = ? ORDER BY created_at DESC`).all(req.session.school_id);
+    rows.forEach(r => { try { r.permissions = JSON.parse(r.permissions || '[]'); } catch(e) { r.permissions = []; } });
+    res.json({ staff: rows });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/school/staff', requireSchool, (req, res) => {
+  try {
+    const { username, password, full_name, email, phone, role, permissions } = req.body;
+    if (!username || !password) return res.status(400).json({ error: 'اسم المستخدم وكلمة المرور مطلوبان' });
+    const hash = bcrypt.hashSync(password, 10);
+    const permsStr = JSON.stringify(Array.isArray(permissions) ? permissions : []);
+    const info = db.prepare(`INSERT INTO school_staff (school_id, username, password_hash, full_name, email, phone, role, permissions)
+                             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).run(
+      req.session.school_id, username, hash, full_name || '', email || '', phone || '', role || 'supervisor', permsStr
+    );
+    res.json({ success: true, id: info.lastInsertRowid });
+  } catch (e) {
+    if (String(e.message).includes('UNIQUE')) return res.status(400).json({ error: 'اسم المستخدم موجود بالفعل' });
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.put('/api/school/staff/:id', requireSchool, (req, res) => {
+  try {
+    const { full_name, email, phone, role, permissions, status } = req.body;
+    const permsStr = JSON.stringify(Array.isArray(permissions) ? permissions : []);
+    db.prepare(`UPDATE school_staff SET full_name=?, email=?, phone=?, role=?, permissions=?, status=?
+                WHERE id = ? AND school_id = ?`).run(
+      full_name || '', email || '', phone || '', role || 'supervisor', permsStr, status || 'active',
+      req.params.id, req.session.school_id
+    );
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/school/staff/:id/reset-password', requireSchool, (req, res) => {
+  try {
+    const { password } = req.body;
+    if (!password || password.length < 6) return res.status(400).json({ error: 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' });
+    const hash = bcrypt.hashSync(password, 10);
+    db.prepare('UPDATE school_staff SET password_hash = ? WHERE id = ? AND school_id = ?').run(hash, req.params.id, req.session.school_id);
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/school/staff/:id', requireSchool, (req, res) => {
+  db.prepare('DELETE FROM school_staff WHERE id = ? AND school_id = ?').run(req.params.id, req.session.school_id);
+  res.json({ success: true });
+});
+
+// ========================================
+// Grades & Sections (School-level, shared)
+// ========================================
+app.get('/api/school/grades', requireSchool, (req, res) => {
+  try {
+    const grades = db.prepare(`SELECT * FROM school_grades WHERE school_id = ? ORDER BY display_order, id`)
+      .all(req.session.school_id);
+    grades.forEach(g => {
+      g.sections = db.prepare(`SELECT * FROM school_sections WHERE grade_id = ? ORDER BY display_order, id`).all(g.id);
+      g.student_count = db.prepare(`SELECT COUNT(*) AS c FROM school_students WHERE grade_id = ?`).get(g.id).c;
+    });
+    res.json({ grades });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/school/grades', requireSchool, (req, res) => {
+  try {
+    const { name, display_order } = req.body;
+    if (!name) return res.status(400).json({ error: 'الاسم مطلوب' });
+    const info = db.prepare(`INSERT INTO school_grades (school_id, name, display_order) VALUES (?, ?, ?)`)
+      .run(req.session.school_id, name, display_order || 0);
+    res.json({ success: true, id: info.lastInsertRowid });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put('/api/school/grades/:id', requireSchool, (req, res) => {
+  try {
+    const { name, display_order } = req.body;
+    db.prepare(`UPDATE school_grades SET name = ?, display_order = ? WHERE id = ? AND school_id = ?`)
+      .run(name, display_order || 0, req.params.id, req.session.school_id);
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/school/grades/:id', requireSchool, (req, res) => {
+  db.prepare(`DELETE FROM school_grades WHERE id = ? AND school_id = ?`).run(req.params.id, req.session.school_id);
+  res.json({ success: true });
+});
+
+app.post('/api/school/grades/:id/sections', requireSchool, (req, res) => {
+  try {
+    const { name, display_order } = req.body;
+    const grade = db.prepare(`SELECT id FROM school_grades WHERE id = ? AND school_id = ?`)
+      .get(req.params.id, req.session.school_id);
+    if (!grade) return res.status(404).json({ error: 'الصف غير موجود' });
+    const info = db.prepare(`INSERT INTO school_sections (grade_id, name, display_order) VALUES (?, ?, ?)`)
+      .run(grade.id, name, display_order || 0);
+    res.json({ success: true, id: info.lastInsertRowid });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/school/sections/:id', requireSchool, (req, res) => {
+  // Verify section belongs to this school's grade
+  const row = db.prepare(`SELECT ss.id FROM school_sections ss 
+                          JOIN school_grades sg ON ss.grade_id = sg.id 
+                          WHERE ss.id = ? AND sg.school_id = ?`).get(req.params.id, req.session.school_id);
+  if (!row) return res.status(404).json({ error: 'الشعبة غير موجودة' });
+  db.prepare(`DELETE FROM school_sections WHERE id = ?`).run(req.params.id);
+  res.json({ success: true });
+});
+
+// Bulk import grades+sections+students from Excel (client sends parsed JSON)
+app.post('/api/school/grades/import', requireSchool, (req, res) => {
+  try {
+    const { grade_name, sections } = req.body;
+    if (!grade_name) return res.status(400).json({ error: 'اسم الصف مطلوب' });
+    if (!Array.isArray(sections) || !sections.length) return res.status(400).json({ error: 'يجب توفير شعبة واحدة على الأقل' });
+    // Find or create grade
+    let grade = db.prepare(`SELECT id FROM school_grades WHERE school_id = ? AND name = ?`)
+      .get(req.session.school_id, grade_name);
+    if (!grade) {
+      const info = db.prepare(`INSERT INTO school_grades (school_id, name) VALUES (?, ?)`)
+        .run(req.session.school_id, grade_name);
+      grade = { id: info.lastInsertRowid };
+    }
+    let totalStudents = 0, totalSections = 0;
+    const txn = db.transaction(() => {
+      for (const sec of sections) {
+        if (!sec.name || !Array.isArray(sec.students)) continue;
+        let section = db.prepare(`SELECT id FROM school_sections WHERE grade_id = ? AND name = ?`)
+          .get(grade.id, sec.name);
+        if (!section) {
+          const info = db.prepare(`INSERT INTO school_sections (grade_id, name) VALUES (?, ?)`)
+            .run(grade.id, sec.name);
+          section = { id: info.lastInsertRowid };
+          totalSections++;
+        }
+        const insertStmt = db.prepare(`INSERT INTO school_students 
+          (school_id, grade_id, section_id, name, student_id, parent_phone, nationality, gender, date_of_birth)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+        for (const st of sec.students) {
+          if (!st.name) continue;
+          insertStmt.run(req.session.school_id, grade.id, section.id, st.name,
+            st.student_id || '', st.parent_phone || '', st.nationality || '',
+            st.gender || '', st.date_of_birth || '');
+          totalStudents++;
+        }
+      }
+    });
+    txn();
+    res.json({ success: true, grade_id: grade.id, total_students: totalStudents, total_sections: totalSections });
+  } catch (e) { console.error(e); res.status(500).json({ error: e.message }); }
+});
+
+// ========================================
+// School Students (CRUD + list)
+// ========================================
+app.get('/api/school/students', requireSchool, (req, res) => {
+  try {
+    const students = db.prepare(`
+      SELECT ss.*, sg.name AS grade_name, sec.name AS section_name
+      FROM school_students ss
+      JOIN school_grades sg ON ss.grade_id = sg.id
+      JOIN school_sections sec ON ss.section_id = sec.id
+      WHERE ss.school_id = ?
+      ORDER BY sg.display_order, sec.display_order, ss.name
+    `).all(req.session.school_id);
+    res.json({ students });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/school/students', requireSchool, (req, res) => {
+  try {
+    const { grade_id, section_id, name, student_id, parent_phone, nationality, gender, date_of_birth } = req.body;
+    if (!name || !grade_id || !section_id) return res.status(400).json({ error: 'الاسم والصف والشعبة مطلوبة' });
+    const info = db.prepare(`INSERT INTO school_students 
+      (school_id, grade_id, section_id, name, student_id, parent_phone, nationality, gender, date_of_birth)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+      req.session.school_id, grade_id, section_id, name,
+      student_id || '', parent_phone || '', nationality || '', gender || '', date_of_birth || ''
+    );
+    res.json({ success: true, id: info.lastInsertRowid });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put('/api/school/students/:id', requireSchool, (req, res) => {
+  try {
+    const { grade_id, section_id, name, student_id, parent_phone, nationality, gender, date_of_birth } = req.body;
+    db.prepare(`UPDATE school_students SET grade_id=?, section_id=?, name=?, student_id=?, parent_phone=?, 
+                nationality=?, gender=?, date_of_birth=? WHERE id = ? AND school_id = ?`).run(
+      grade_id, section_id, name, student_id || '', parent_phone || '', nationality || '',
+      gender || '', date_of_birth || '', req.params.id, req.session.school_id
+    );
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/school/students/:id', requireSchool, (req, res) => {
+  db.prepare(`DELETE FROM school_students WHERE id = ? AND school_id = ?`).run(req.params.id, req.session.school_id);
+  res.json({ success: true });
+});
+
+// ========================================
+// School Schedules (periods)
+// ========================================
+app.get('/api/school/schedules', requireSchool, (req, res) => {
+  try {
+    const rows = db.prepare(`SELECT * FROM school_schedules WHERE school_id = ? ORDER BY is_active DESC, name`)
+      .all(req.session.school_id);
+    rows.forEach(r => { try { r.periods = JSON.parse(r.periods || '[]'); } catch(e) { r.periods = []; } });
+    res.json({ schedules: rows });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/school/schedules', requireSchool, (req, res) => {
+  try {
+    const { name, periods, is_active } = req.body;
+    if (!name) return res.status(400).json({ error: 'الاسم مطلوب' });
+    if (is_active) db.prepare(`UPDATE school_schedules SET is_active = 0 WHERE school_id = ?`).run(req.session.school_id);
+    const info = db.prepare(`INSERT INTO school_schedules (school_id, name, periods, is_active) VALUES (?, ?, ?, ?)`)
+      .run(req.session.school_id, name, JSON.stringify(periods || []), is_active ? 1 : 0);
+    res.json({ success: true, id: info.lastInsertRowid });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put('/api/school/schedules/:id', requireSchool, (req, res) => {
+  try {
+    const { name, periods, is_active } = req.body;
+    if (is_active) db.prepare(`UPDATE school_schedules SET is_active = 0 WHERE school_id = ?`).run(req.session.school_id);
+    db.prepare(`UPDATE school_schedules SET name=?, periods=?, is_active=? WHERE id = ? AND school_id = ?`)
+      .run(name, JSON.stringify(periods || []), is_active ? 1 : 0, req.params.id, req.session.school_id);
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/school/schedules/:id', requireSchool, (req, res) => {
+  db.prepare(`DELETE FROM school_schedules WHERE id = ? AND school_id = ?`).run(req.params.id, req.session.school_id);
+  res.json({ success: true });
+});
+
+// ========================================
+// School Dashboard Stats
+// ========================================
+app.get('/api/school/stats', requireSchool, (req, res) => {
+  try {
+    const sid = req.session.school_id;
+    const today = new Date().toISOString().slice(0, 10);
+    const stats = {
+      teachers_count: db.prepare(`SELECT COUNT(*) AS c FROM teachers WHERE school_id = ? AND status = 'active'`).get(sid).c,
+      staff_count: db.prepare(`SELECT COUNT(*) AS c FROM school_staff WHERE school_id = ? AND status = 'active'`).get(sid).c,
+      students_count: db.prepare(`SELECT COUNT(*) AS c FROM school_students WHERE school_id = ?`).get(sid).c,
+      grades_count: db.prepare(`SELECT COUNT(*) AS c FROM school_grades WHERE school_id = ?`).get(sid).c,
+      sections_count: db.prepare(`SELECT COUNT(*) AS c FROM school_sections ss JOIN school_grades sg ON ss.grade_id = sg.id WHERE sg.school_id = ?`).get(sid).c,
+      attendance_today: db.prepare(`SELECT status, COUNT(*) AS c FROM school_attendance WHERE school_id = ? AND date = ? GROUP BY status`).all(sid, today),
+      notes_week_positive: db.prepare(`SELECT COUNT(*) AS c FROM school_notes WHERE school_id = ? AND type = 'positive' AND date >= date('now', '-7 days')`).get(sid).c,
+      notes_week_negative: db.prepare(`SELECT COUNT(*) AS c FROM school_notes WHERE school_id = ? AND type = 'negative' AND date >= date('now', '-7 days')`).get(sid).c
+    };
+    res.json({ stats, today });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 // ========================================
