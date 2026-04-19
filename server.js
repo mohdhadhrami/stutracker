@@ -832,6 +832,27 @@ app.post('/api/teacher/data', requireTeacher, (req, res) => {
   } catch (e) { res.status(400).json({ error: e.message }); }
 });
 
+// Get school's grades, sections, and students for teacher to import
+app.get('/api/teacher/school-data', requireTeacher, (req, res) => {
+  try {
+    const t = db.prepare('SELECT school_id FROM teachers WHERE id = ?').get(req.session.teacher_id);
+    if (!t || !t.school_id) return res.json({ grades: [] });
+    const schoolId = t.school_id;
+    const grades = db.prepare('SELECT id, name, display_order FROM school_grades WHERE school_id = ? ORDER BY display_order, id').all(schoolId);
+    grades.forEach(g => {
+      g.sections = db.prepare('SELECT id, name, display_order FROM school_sections WHERE grade_id = ? ORDER BY display_order, id').all(g.id);
+      g.sections.forEach(s => {
+        s.students = db.prepare('SELECT id, name, student_id, parent_phone, nationality, gender FROM school_students WHERE section_id = ? ORDER BY name').all(s.id);
+      });
+      // Also include students in this grade without a section
+      g.orphan_students = db.prepare('SELECT id, name, student_id, parent_phone, nationality, gender FROM school_students WHERE grade_id = ? AND (section_id IS NULL OR section_id = 0) ORDER BY name').all(g.id);
+    });
+    res.json({ grades });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Update teacher's personal profile (subject, academic year, etc.)
 app.put('/api/teacher/profile', requireTeacher, (req, res) => {
   try {
