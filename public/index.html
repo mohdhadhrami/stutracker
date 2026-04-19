@@ -690,7 +690,10 @@ tr:hover td{background:#fafbfc}
         <div class="card">
           <div class="card-header">
             <h3 id="reportCardTitle">التقرير</h3>
-            <span id="reportResultCount" class="pill pill-gray">0 نتيجة</span>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+              <span id="reportResultCount" class="pill pill-gray">0 نتيجة</span>
+              <button id="reportSendBtn" class="btn btn-success btn-sm hidden" onclick="openReportSendModal()">📱 إرسال واتساب</button>
+            </div>
           </div>
           <div id="reportBody"></div>
         </div>
@@ -998,6 +1001,79 @@ tr:hover td{background:#fafbfc}
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('noteModal')">إلغاء</button>
       <button class="btn btn-primary" onclick="saveNote()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Report Send (Bulk WhatsApp) Modal -->
+<div id="reportSendModal" class="modal-backdrop hidden">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3 id="reportSendTitle">📱 إرسال تقرير عبر واتساب</h3>
+      <button class="close" onclick="closeReportSendModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="reportSendError" class="error hidden"></div>
+
+      <div class="info-box" id="reportSendInfo"></div>
+
+      <div class="section-title">1️⃣ نطاق الإرسال</div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>النطاق</label>
+          <select id="rsendScope" onchange="onReportSendScopeChange()">
+            <option value="grade">كل طلاب الصف</option>
+            <option value="section">طلاب شعبة محددة</option>
+            <option value="manual">طلاب محددون يدوياً</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>الصف</label>
+          <select id="rsendGrade" onchange="onReportSendFilterChange()"></select>
+        </div>
+        <div class="form-group" id="rsendSectionGroup">
+          <label>الشعبة</label>
+          <select id="rsendSection" onchange="onReportSendFilterChange()"></select>
+        </div>
+      </div>
+
+      <div class="section-title">2️⃣ اختر القالب</div>
+      <div class="form-group">
+        <select id="rsendTemplate" onchange="onReportSendTemplateChange()">
+          <option value="">-- اختر قالباً من قوالبك --</option>
+        </select>
+        <div id="rsendNoTemplates" class="warn-box hidden" style="margin-top:6px">
+          ⚠️ ليس لديك قوالب محفوظة. 
+          <button class="btn btn-info btn-sm" onclick="closeReportSendModal();switchView('templates');setTimeout(()=>openTemplateModal(),100)">➕ إنشاء قالب جديد</button>
+        </div>
+      </div>
+
+      <div class="section-title">3️⃣ قائمة المستلمين</div>
+      <div id="rsendRecipientsSummary" style="margin-bottom:6px;font-size:12px;color:#4f46e5;font-weight:600"></div>
+      <div id="rsendRecipientsList" style="max-height:240px;overflow-y:auto;border:1px solid #e5e7eb;border-radius:8px;padding:6px;background:#f9fafb"></div>
+
+      <div class="section-title">4️⃣ معاينة <small style="color:#9ca3af">(اختياري)</small></div>
+      <div style="display:flex;gap:6px;margin-bottom:8px">
+        <button class="btn btn-info btn-sm" onclick="previewReportMessage()">👁️ معاينة الرسالة للطالب الأول</button>
+      </div>
+      <div id="rsendPreviewBox" class="hidden" style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:8px;padding:10px 12px;font-size:12px;color:#1e293b;white-space:pre-wrap;line-height:1.7"></div>
+
+      <!-- Progress -->
+      <div id="rsendProgress" class="hidden" style="margin-top:12px;padding:10px;background:#f9fafb;border-radius:8px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+          <span id="rsendProgressLabel">جاري الإرسال...</span>
+          <span id="rsendProgressCount">0 / 0</span>
+        </div>
+        <div style="height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden">
+          <div id="rsendProgressBar" style="height:100%;background:#10b981;width:0%;transition:width .3s"></div>
+        </div>
+      </div>
+
+      <div id="rsendResults" class="hidden" style="margin-top:10px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeReportSendModal()">إغلاق</button>
+      <button class="btn btn-success" id="rsendStartBtn" onclick="startBulkSend()">🚀 بدء الإرسال</button>
     </div>
   </div>
 </div>
@@ -2860,6 +2936,7 @@ function renderCurrentReport() {
     student: '🔍 تقرير طالب'
   };
   title.textContent = titles[currentReportTab] || 'التقرير';
+  updateReportSendButtonVisibility();
   if (currentReportTab === 'overview') renderOverviewReport();
   else if (currentReportTab === 'attendance') renderAttendanceReport();
   else if (currentReportTab === 'notes') renderNotesReport();
@@ -3234,6 +3311,296 @@ function exportCurrentReport() {
 }
 
 function printCurrentReport() { window.print(); }
+
+// ========= BULK WHATSAPP SEND (from reports) =========
+let bulkSendReportType = null; // 'grades' | 'notes' | 'evaluation'
+
+function updateReportSendButtonVisibility() {
+  const btn = document.getElementById('reportSendBtn');
+  if (!btn) return;
+  const allowed = ['grades', 'notes', 'evaluation'];
+  if (allowed.includes(currentReportTab)) btn.classList.remove('hidden');
+  else btn.classList.add('hidden');
+}
+
+function openReportSendModal() {
+  if (!['grades', 'notes', 'evaluation'].includes(currentReportTab)) return;
+  bulkSendReportType = currentReportTab;
+  const titles = { grades: '📊 تقرير الدرجات', notes: '📝 تقرير الملاحظات', evaluation: '⭐ تقرير التقييم' };
+  document.getElementById('reportSendTitle').textContent = `📱 إرسال ${titles[bulkSendReportType]} عبر واتساب`;
+  const f = getReportFilters();
+  document.getElementById('reportSendError').classList.add('hidden');
+  document.getElementById('rsendProgress').classList.add('hidden');
+  document.getElementById('rsendResults').classList.add('hidden');
+  document.getElementById('rsendPreviewBox').classList.add('hidden');
+  document.getElementById('rsendStartBtn').disabled = false;
+  fillGradeSelect('rsendGrade');
+  document.getElementById('rsendGrade').value = f.gradeId || '';
+  fillSectionSelect('rsendSection', f.gradeId || '');
+  document.getElementById('rsendSection').value = f.sectionId || '';
+  const scope = f.sectionId ? 'section' : 'grade';
+  document.getElementById('rsendScope').value = scope;
+  const tplSel = document.getElementById('rsendTemplate');
+  const noTplWarn = document.getElementById('rsendNoTemplates');
+  const tpls = teacherData.templates || [];
+  if (!tpls.length) {
+    tplSel.innerHTML = '<option value="">-- لا يوجد قوالب --</option>';
+    tplSel.disabled = true;
+    noTplWarn.classList.remove('hidden');
+  } else {
+    tplSel.innerHTML = '<option value="">-- اختر قالباً --</option>' + tpls.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
+    tplSel.disabled = false;
+    noTplWarn.classList.add('hidden');
+  }
+  const info = document.getElementById('reportSendInfo');
+  if (bulkSendReportType === 'evaluation') {
+    info.innerHTML = `💡 <b>تقرير التقييم:</b> استخدم المتغير <code>{{التقييم_الدوري}}</code> في القالب لإدراج العبارة المجمّعة.<br>⚠️ تأكد من اختيار الفترة في تبويب التقرير الرئيسي.`;
+  } else if (bulkSendReportType === 'grades') {
+    info.innerHTML = `💡 <b>تقرير الدرجات:</b> القالب سيُعبأ بدرجات كل طالب. استخدم <code>{{المجموع}}</code> و <code>{{درجة_اسم_الأداة}}</code>.`;
+  } else if (bulkSendReportType === 'notes') {
+    info.innerHTML = `💡 <b>تقرير الملاحظات:</b> استخدم المتغير <code>{{الملاحظات}}</code> لإدراج قائمة ملاحظات الطالب.`;
+  }
+  onReportSendFilterChange();
+  document.getElementById('reportSendModal').classList.remove('hidden');
+}
+
+function closeReportSendModal() {
+  document.getElementById('reportSendModal').classList.add('hidden');
+}
+
+function onReportSendScopeChange() {
+  const scope = document.getElementById('rsendScope').value;
+  const secGroup = document.getElementById('rsendSectionGroup');
+  if (scope === 'grade' || scope === 'manual') {
+    secGroup.style.opacity = '0.5';
+    secGroup.style.pointerEvents = 'none';
+  } else {
+    secGroup.style.opacity = '1';
+    secGroup.style.pointerEvents = 'auto';
+  }
+  onReportSendFilterChange();
+}
+
+function onReportSendFilterChange() {
+  const scope = document.getElementById('rsendScope').value;
+  const gradeId = document.getElementById('rsendGrade').value;
+  const secId = document.getElementById('rsendSection').value;
+  fillSectionSelect('rsendSection', gradeId);
+  if (secId) document.getElementById('rsendSection').value = secId;
+  let students = [];
+  if (!gradeId) students = [];
+  else if (scope === 'grade') students = teacherData.students.filter(s => s.grade_id === gradeId);
+  else if (scope === 'section') students = teacherData.students.filter(s => s.grade_id === gradeId && (!secId || s.section_id === secId));
+  else students = teacherData.students.filter(s => s.grade_id === gradeId);
+  renderReportSendRecipients(students, scope);
+}
+
+function renderReportSendRecipients(students, scope) {
+  const listEl = document.getElementById('rsendRecipientsList');
+  const summaryEl = document.getElementById('rsendRecipientsSummary');
+  if (!students.length) {
+    listEl.innerHTML = '<div style="padding:14px;text-align:center;color:#9ca3af;font-size:12px">لا يوجد طلاب مطابقون</div>';
+    summaryEl.textContent = '';
+    return;
+  }
+  const withPhone = students.filter(s => s.parent_phone && s.parent_phone.trim());
+  const withoutPhone = students.filter(s => !s.parent_phone || !s.parent_phone.trim());
+  summaryEl.innerHTML = `📊 إجمالي ${students.length} طالب · <span style="color:#10b981">✅ ${withPhone.length} بأرقام</span>${withoutPhone.length ? ` · <span style="color:#ef4444">⚠️ ${withoutPhone.length} بدون رقم</span>` : ''}`;
+  const manualMode = scope === 'manual';
+  let html = '';
+  if (manualMode) {
+    html += `<div style="padding:6px;display:flex;gap:4px;justify-content:flex-end;border-bottom:1px solid #e5e7eb;margin-bottom:4px;background:white">
+      <button class="btn btn-info btn-sm" onclick="rsendSelectAll(true)">☑️ الكل</button>
+      <button class="btn btn-secondary btn-sm" onclick="rsendSelectAll(false)">☐ لا شيء</button>
+    </div>`;
+  }
+  html += students.map(s => {
+    const hasPhone = !!(s.parent_phone && s.parent_phone.trim());
+    const defaultChecked = hasPhone && !manualMode;
+    return `<label style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-bottom:1px solid #f3f4f6;background:white;margin-bottom:2px;border-radius:4px;cursor:${hasPhone?'pointer':'not-allowed'}">
+      <input type="checkbox" ${defaultChecked ? 'checked' : ''} ${!hasPhone ? 'disabled' : ''} data-student-id="${s.id}" onchange="updateRsendSelectedCount()">
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:500;font-size:12px">${esc(s.name)}</div>
+        <div style="font-size:10px;color:#6b7280">
+          ${hasPhone ? `📱 ${esc(s.parent_phone)}` : '<span style="color:#ef4444">⚠️ بدون رقم ولي أمر</span>'}
+        </div>
+      </div>
+    </label>`;
+  }).join('');
+  listEl.innerHTML = html;
+  updateRsendSelectedCount();
+}
+
+function rsendSelectAll(checked) {
+  document.querySelectorAll('#rsendRecipientsList input[type="checkbox"]').forEach(cb => { if (!cb.disabled) cb.checked = checked; });
+  updateRsendSelectedCount();
+}
+
+function updateRsendSelectedCount() {
+  const selected = document.querySelectorAll('#rsendRecipientsList input[type="checkbox"]:checked').length;
+  const btn = document.getElementById('rsendStartBtn');
+  btn.textContent = selected ? `🚀 إرسال إلى ${selected} ولي أمر` : '🚀 بدء الإرسال';
+  btn.disabled = selected === 0;
+}
+
+function buildReportMessage(student, template) {
+  let body = template?.body || '';
+  if (!body) {
+    if (bulkSendReportType === 'grades') body = 'السلام عليكم ولي أمر الطالب {{اسم_الطالب}}،\nدرجات ابنكم/ابنتكم: {{المجموع}}\nمع تحيات {{اسم_المعلم}}';
+    else if (bulkSendReportType === 'notes') body = 'السلام عليكم ولي أمر الطالب {{اسم_الطالب}}،\nالملاحظات المسجلة:\n{{الملاحظات}}\nمع تحيات {{اسم_المعلم}}';
+    else if (bulkSendReportType === 'evaluation') body = '{{التقييم_الدوري}}';
+  }
+  const grade = teacherData.grades.find(g => g.id === student.grade_id);
+  const section = grade?.sections?.find(sc => sc.id === student.section_id);
+  let p = 0, a = 0;
+  Object.values(teacherData.attendance).forEach(day => { const st = day[student.id]; if (st === 'present') p++; else if (st === 'absent') a++; });
+  const total = p + a;
+  const attRate = total ? Math.round((p / total) * 100) + '%' : '—';
+  let totalScore = 0, hasScore = false;
+  (grade?.assessments || []).forEach(ass => { const v = num(student.scores?.[ass.id]); if (v !== null) { totalScore += v; hasScore = true; } });
+  const maxT = gradeTotal(student.grade_id) || 100;
+  const totalStr = hasScore ? `${totalScore.toFixed(1)} من ${maxT}` : '—';
+  const replacements = {
+    'اسم_الطالب': student.name || '',
+    'الرقم_المدرسي': student.student_id || '',
+    'الجنسية': student.nationality || '',
+    'الصف': grade?.name || '',
+    'الشعبة': section?.name || '',
+    'المجموع': totalStr,
+    'نسبة_الحضور': attRate,
+    'عدد_الغياب': String(a),
+    'اسم_المدرسة': teacherInfo?.school?.name || '',
+    'اسم_المعلم': teacherInfo?.full_name || teacherInfo?.username || '',
+    'المادة': teacherInfo?.subject || '',
+    'العام_الدراسي': teacherInfo?.academic_year || '',
+    'الفصل_الدراسي': teacherInfo?.academic_term || ''
+  };
+  (grade?.assessments || []).forEach(ass => {
+    const key = `درجة_${varKey(ass.name)}`;
+    const v = student.scores?.[ass.id];
+    replacements[key] = v != null ? `${v} من ${ass.max}` : '—';
+  });
+  if (body.includes('{{الملاحظات}}')) {
+    const f = getReportFilters();
+    const notes = (teacherData.notes[student.id] || [])
+      .filter(n => dateInRange(n.date, f.fromDate, f.toDate))
+      .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    if (notes.length) {
+      replacements['الملاحظات'] = notes.slice(0, 10).map(n => {
+        const icon = n.type === 'positive' ? '✅' : '⚠️';
+        return `${icon} ${n.date || ''}: ${n.text}`;
+      }).join('\n');
+    } else {
+      replacements['الملاحظات'] = '(لا توجد ملاحظات)';
+    }
+  }
+  if (body.includes('{{التقييم_الدوري}}')) {
+    const period = getCurrentPeriodLabel();
+    if (period) {
+      const rec = teacherData.evaluations.find(ev => ev.student_id === student.id && ev.period === period);
+      if (rec && rec.scores && Object.keys(rec.scores).length) {
+        replacements['التقييم_الدوري'] = buildEvalPhrase(student, rec.scores, rec.included_assessment);
+      } else {
+        replacements['التقييم_الدوري'] = '(لم يُقيّم في هذه الفترة)';
+      }
+    } else {
+      replacements['التقييم_الدوري'] = '(لم تُحدد فترة التقييم)';
+    }
+  }
+  Object.entries(replacements).forEach(([k, v]) => { body = body.split(`{{${k}}}`).join(v); });
+  return body;
+}
+
+function previewReportMessage() {
+  const errEl = document.getElementById('reportSendError');
+  errEl.classList.add('hidden');
+  const tid = document.getElementById('rsendTemplate').value;
+  if (!tid) {
+    errEl.textContent = 'اختر قالباً أولاً للمعاينة';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  const tpl = teacherData.templates.find(t => t.id === tid);
+  const checkboxes = document.querySelectorAll('#rsendRecipientsList input[type="checkbox"]:checked');
+  if (!checkboxes.length) {
+    errEl.textContent = 'اختر طلاباً للمعاينة';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  const firstStudentId = checkboxes[0].dataset.studentId;
+  const student = teacherData.students.find(s => s.id === firstStudentId);
+  if (!student) return;
+  const message = buildReportMessage(student, tpl);
+  const previewBox = document.getElementById('rsendPreviewBox');
+  previewBox.innerHTML = `<div style="font-size:10px;color:#6b7280;margin-bottom:6px;font-weight:600">👁️ معاينة لـ: ${esc(student.name)} · 📱 ${esc(student.parent_phone)}</div><div>${esc(message)}</div>`;
+  previewBox.classList.remove('hidden');
+}
+
+async function startBulkSend() {
+  const errEl = document.getElementById('reportSendError');
+  errEl.classList.add('hidden');
+  const tid = document.getElementById('rsendTemplate').value;
+  if (!tid) {
+    errEl.textContent = 'اختر قالباً أولاً';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  const tpl = teacherData.templates.find(t => t.id === tid);
+  const checkboxes = document.querySelectorAll('#rsendRecipientsList input[type="checkbox"]:checked');
+  const recipients = [];
+  checkboxes.forEach(cb => {
+    const s = teacherData.students.find(x => x.id === cb.dataset.studentId);
+    if (s && s.parent_phone) recipients.push(s);
+  });
+  if (!recipients.length) {
+    errEl.textContent = 'لا يوجد مستلمون';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  if (!confirm(`سيتم إرسال ${recipients.length} رسالة واتساب. متابعة؟`)) return;
+
+  document.getElementById('rsendStartBtn').disabled = true;
+  document.getElementById('rsendStartBtn').textContent = '⏳ جاري الإرسال...';
+  const progressDiv = document.getElementById('rsendProgress');
+  const progressBar = document.getElementById('rsendProgressBar');
+  const progressCount = document.getElementById('rsendProgressCount');
+  const progressLabel = document.getElementById('rsendProgressLabel');
+  progressDiv.classList.remove('hidden');
+  document.getElementById('rsendResults').classList.add('hidden');
+  let sent = 0, failed = 0;
+  const failures = [];
+  for (let i = 0; i < recipients.length; i++) {
+    const student = recipients[i];
+    progressLabel.textContent = `إرسال إلى: ${student.name}`;
+    progressCount.textContent = `${i + 1} / ${recipients.length}`;
+    progressBar.style.width = `${((i + 1) / recipients.length) * 100}%`;
+    try {
+      const message = buildReportMessage(student, tpl);
+      const r = await fetch('/api/bot/send', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to: student.parent_phone, message })
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || 'فشل الإرسال');
+      sent++;
+    } catch (e) {
+      failed++;
+      failures.push({ name: student.name, error: e.message });
+    }
+    if (i < recipients.length - 1) await new Promise(res => setTimeout(res, 600));
+  }
+  const resultsEl = document.getElementById('rsendResults');
+  resultsEl.classList.remove('hidden');
+  let html = `<div class="success" style="display:block">✅ نجح: <b>${sent}</b> من ${recipients.length}</div>`;
+  if (failed) {
+    html += `<div class="error" style="display:block;margin-top:6px">❌ فشل: <b>${failed}</b></div>`;
+    html += `<div style="max-height:120px;overflow-y:auto;margin-top:6px;padding:6px;background:#fef2f2;border-radius:6px;font-size:11px">${failures.map(f => `• ${esc(f.name)}: ${esc(f.error)}`).join('<br>')}</div>`;
+  }
+  resultsEl.innerHTML = html;
+  progressLabel.textContent = '✅ اكتمل الإرسال';
+  document.getElementById('rsendStartBtn').disabled = false;
+  document.getElementById('rsendStartBtn').textContent = '🚀 إرسال جديد';
+}
 
 // ========= ASSESSMENTS (Settings) =========
 function renderAssessmentsSettings() {
