@@ -440,6 +440,20 @@ tbody tr:hover{background:#f9fafb}
   </div>
 </div>
 
+<!-- Confirm Modal (replaces browser confirm) -->
+<div id="confirmModal" class="modal-backdrop hidden">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header"><h3 id="confirmTitle">⚠️ تأكيد</h3><button class="close" onclick="closeConfirmModal(false)">×</button></div>
+    <div class="modal-body">
+      <p id="confirmMessage" style="font-size:14px;line-height:1.7;color:#374151"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeConfirmModal(false)">إلغاء</button>
+      <button class="btn btn-danger" onclick="closeConfirmModal(true)" id="confirmBtn">✅ موافق</button>
+    </div>
+  </div>
+</div>
+
 <!-- Schedule Modal -->
 <div id="scheduleModal" class="modal-backdrop hidden">
   <div class="modal modal-lg">
@@ -465,6 +479,21 @@ tbody tr:hover{background:#f9fafb}
 
 <script>
 const esc = s => String(s ?? '').replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
+
+// Custom confirm dialog (replaces browser confirm which can be blocked)
+let _confirmResolver = null;
+function confirmDialog(message, title) {
+  return new Promise(resolve => {
+    _confirmResolver = resolve;
+    document.getElementById('confirmTitle').textContent = title || '⚠️ تأكيد';
+    document.getElementById('confirmMessage').textContent = message;
+    document.getElementById('confirmModal').classList.remove('hidden');
+  });
+}
+function closeConfirmModal(result) {
+  document.getElementById('confirmModal').classList.add('hidden');
+  if (_confirmResolver) { const r = _confirmResolver; _confirmResolver = null; r(!!result); }
+}
 
 let schoolInfo = null;
 let staffData = [], teachersData = [], gradesData = [], studentsData = [], schedulesData = [];
@@ -670,7 +699,7 @@ async function saveStaff() {
 }
 
 async function deleteStaff(id) {
-  if (!confirm('حذف هذا الإداري؟')) return;
+  if (!(await confirmDialog('حذف هذا الإداري؟'))) return;
   await fetch(`/api/school/staff/${id}`, { method: 'DELETE' });
   await loadStaff();
 }
@@ -772,7 +801,7 @@ async function saveTeacher() {
 }
 
 async function deleteTeacher(id) {
-  if (!confirm('حذف هذا المعلم؟')) return;
+  if (!(await confirmDialog('حذف هذا المعلم؟'))) return;
   await fetch(`/api/school/teachers/${id}`, { method: 'DELETE' });
   await loadTeachers();
 }
@@ -826,14 +855,14 @@ function renderGradesList() {
         <div style="display:flex;gap:4px">
           <button class="btn btn-secondary btn-sm" onclick='openSectionModalFor(${g.id},${JSON.stringify(g.name).replace(/'/g,"&#39;")})'>➕ شعبة</button>
           <button class="btn btn-info btn-sm" onclick='editGrade(${g.id},${JSON.stringify(g.name).replace(/'/g,"&#39;")},${g.display_order||0})'>✏️</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteGrade(${g.id},${JSON.stringify(g.name).replace(/'/g,"&#39;")})">🗑️</button>
+          <button class="btn btn-danger btn-sm" onclick='deleteGrade(${g.id},${JSON.stringify(g.name).replace(/'/g,"&#39;")})'>🗑️</button>
         </div>
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:5px">
         ${(g.sections||[]).length ? (g.sections||[]).map(s => `
           <span class="pill pill-blue" style="display:inline-flex;align-items:center;gap:4px">
             ${esc(s.name)}
-            <button onclick="deleteSection(${s.id},${JSON.stringify(s.name).replace(/'/g,"&#39;")})" style="background:none;border:none;color:#991b1b;cursor:pointer;padding:0 2px;font-size:13px">×</button>
+            <button onclick='deleteSection(${s.id},${JSON.stringify(s.name).replace(/'/g,"&#39;")})' style="background:none;border:none;color:#991b1b;cursor:pointer;padding:0 2px;font-size:13px">×</button>
           </span>`).join('') : '<span style="font-size:11px;color:#9ca3af">لا توجد شعب</span>'}
       </div>
     </div>`).join('');
@@ -926,7 +955,7 @@ async function saveGrade() {
   } catch (e) { err.textContent = e.message; err.classList.remove('hidden'); }
 }
 async function deleteGrade(id, name) {
-  if (!confirm(`حذف "${name}" مع جميع شعبه وطلابه؟`)) return;
+  if (!(await confirmDialog(`حذف "${name}" مع جميع شعبه وطلابه؟`))) return;
   await fetch(`/api/school/grades/${id}`, { method: 'DELETE' });
   await loadClasses();
 }
@@ -953,7 +982,7 @@ async function saveSection() {
   } catch (e) { err.textContent = e.message; err.classList.remove('hidden'); }
 }
 async function deleteSection(id, name) {
-  if (!confirm(`حذف الشعبة "${name}" مع جميع طلابها؟`)) return;
+  if (!(await confirmDialog(`حذف الشعبة "${name}" مع جميع طلابها؟`))) return;
   await fetch(`/api/school/sections/${id}`, { method: 'DELETE' });
   await loadClasses();
 }
@@ -1004,7 +1033,7 @@ async function saveStudent() {
   } catch (e) { err.textContent = e.message; err.classList.remove('hidden'); }
 }
 async function deleteStudent(id) {
-  if (!confirm('حذف هذا الطالب؟')) return;
+  if (!(await confirmDialog('حذف هذا الطالب؟'))) return;
   await fetch(`/api/school/students/${id}`, { method: 'DELETE' });
   await loadClasses();
 }
@@ -1200,7 +1229,7 @@ async function saveSchedule() {
 }
 
 async function deleteSchedule(id) {
-  if (!confirm('حذف هذه الفترة؟')) return;
+  if (!(await confirmDialog('حذف هذه الفترة؟'))) return;
   await fetch(`/api/school/schedules/${id}`, { method: 'DELETE' });
   await loadSchedules();
 }
