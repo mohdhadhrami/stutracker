@@ -334,6 +334,10 @@ tr:hover td{background:#fafbfc}
     <div class="form-group"><label>رمز المدرسة</label><input type="text" id="loginSchoolCode" placeholder="مثل: Khalili4314" autocomplete="organization"></div>
     <div class="form-group"><label>اسم المستخدم</label><input type="text" id="loginUsername" autocomplete="username"></div>
     <div class="form-group"><label>كلمة المرور</label><input type="password" id="loginPassword" autocomplete="current-password"></div>
+    <div class="form-group" style="display:flex;align-items:center;gap:8px;background:#f9fafb;padding:10px 12px;border-radius:8px;margin-bottom:14px">
+      <input type="checkbox" id="loginRemember" style="width:18px;height:18px;cursor:pointer;accent-color:#4f46e5">
+      <label for="loginRemember" style="margin:0;cursor:pointer;font-size:13px;color:#374151">🔒 تذكرني (دخول تلقائي لمدة 30 يوماً)</label>
+    </div>
     <button class="btn btn-primary btn-full" onclick="doLogin()" id="loginBtn">دخول</button>
     <div style="text-align:center;margin-top:14px"><span class="link" onclick="openRecovery()">🔑 نسيت كلمة المرور؟</span></div>
     <div class="portal-links">
@@ -510,9 +514,10 @@ tr:hover td{background:#fafbfc}
             <div><label>بحث</label><input type="text" id="grFilterSearch" placeholder="اسم أو رقم..." oninput="renderGradesTable()"></div>
           </div>
         </div>
-        <div class="card" id="assessmentsManageCard">
+        <div class="card" id="assessmentsManageCard" style="display:none">
           <div class="card-header">
             <h3>🔧 أدوات التقويم <span id="assessmentsForGradeLabel" style="font-weight:400;font-size:12px;color:#6b7280"></span></h3>
+            <button class="btn btn-info btn-sm" onclick="switchView('settings');setTimeout(()=>switchSettingsSub('assessments'),50)">⚙️ إدارة من الإعدادات</button>
           </div>
           <div id="assessmentsManageBody"></div>
         </div>
@@ -623,7 +628,13 @@ tr:hover td{background:#fafbfc}
             <div class="filter-bar">
               <div><label>الصف</label><select id="evalFilterGrade" onchange="onEvalFilterGradeChange()"></select></div>
               <div><label>الشعبة</label><select id="evalFilterSection" onchange="renderEvalTable()"></select></div>
-              <div><label>فترة التقييم</label><input type="text" id="evalPeriod" placeholder="مثل: الأسبوع 1 · سبتمبر 2025" oninput="renderEvalTable()"></div>
+              <div><label>نوع الفترة</label>
+                <select id="evalPeriodType" onchange="refreshEvalPeriodList()">
+                  <option value="weekly">أسبوعي</option>
+                  <option value="monthly">شهري</option>
+                </select>
+              </div>
+              <div><label>الفترة</label><select id="evalPeriod" onchange="renderEvalTable()"></select></div>
               <div><label>بحث</label><input type="text" id="evalSearch" placeholder="اسم أو رقم..." oninput="renderEvalTable()"></div>
             </div>
           </div>
@@ -718,8 +729,9 @@ tr:hover td{background:#fafbfc}
         <div class="settings-tabs">
           <button class="settings-tab active" data-sub="profile" onclick="switchSettingsSub('profile')">👤 الملف الشخصي</button>
           <button class="settings-tab" data-sub="security" onclick="switchSettingsSub('security')">🔐 الأمان</button>
+          <button class="settings-tab" data-sub="assessments" onclick="switchSettingsSub('assessments')">📝 أدوات التقويم</button>
           <button class="settings-tab" data-sub="rubric" onclick="switchSettingsSub('rubric')">⭐ بنود التقييم</button>
-          <button class="settings-tab" data-sub="noteBank" onclick="switchSettingsSub('noteBank')">📝 بنود الملاحظات</button>
+          <button class="settings-tab" data-sub="noteBank" onclick="switchSettingsSub('noteBank')">📌 بنود الملاحظات</button>
         </div>
 
         <div id="settings-profile">
@@ -741,6 +753,10 @@ tr:hover td{background:#fafbfc}
               <div class="form-group"><label>الفصل الدراسي</label>
                 <select id="profAcademicTerm"><option value="">--</option><option>الفصل الأول</option><option>الفصل الثاني</option><option>الفصل الصيفي</option></select>
               </div>
+            </div>
+            <div class="form-group" style="max-width:300px">
+              <label>📅 تاريخ بداية العام الدراسي <small style="color:#6b7280">(للتقييم الدوري)</small></label>
+              <input type="date" id="profAcademicStartDate">
             </div>
             <button class="btn btn-primary" onclick="saveProfile()">💾 حفظ البيانات</button>
           </div>
@@ -774,6 +790,21 @@ tr:hover td{background:#fafbfc}
             </div>
             <div class="form-group"><label>الإجابة</label><input type="text" id="sqAnswer"></div>
             <button class="btn btn-primary" onclick="saveSecurityQuestion()">💾 حفظ السؤال</button>
+          </div>
+        </div>
+
+        <div id="settings-assessments" class="hidden">
+          <div class="card">
+            <div class="info-box">
+              💡 أدوات التقويم <b>خاصة بكل صف</b> — اختر الصف ثم أضف الأدوات. لكل أداة:<br>
+              📘 <b>التقويم المستمر</b>: الواجبات، التقويم اليومي، اختبارات قصيرة، مشاركة، إلخ<br>
+              📕 <b>التقويم النهائي</b>: الاختبار الفصلي النهائي
+            </div>
+            <div id="assessMessage"></div>
+            <div class="filter-bar">
+              <div><label>اختر الصف</label><select id="assessGradeSelect" onchange="renderAssessmentsEditor()"></select></div>
+            </div>
+            <div id="assessmentsEditorBody"></div>
           </div>
         </div>
 
@@ -963,6 +994,7 @@ async function doLogin() {
   const school_code = document.getElementById('loginSchoolCode').value.trim();
   const username = document.getElementById('loginUsername').value.trim();
   const password = document.getElementById('loginPassword').value;
+  const remember = document.getElementById('loginRemember').checked;
   if (!school_code || !username || !password) { err.textContent = 'الرجاء تعبئة جميع الحقول'; err.classList.remove('hidden'); return; }
   const btn = document.getElementById('loginBtn');
   btn.disabled = true; btn.textContent = 'جاري الدخول...';
@@ -970,12 +1002,56 @@ async function doLogin() {
     const r = await fetch('/api/teacher/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ school_code, username, password }) });
     const data = await r.json();
     if (!r.ok) throw new Error(data.error);
+    // Handle remember me
+    if (remember) {
+      const expiry = Date.now() + (30 * 24 * 60 * 60 * 1000); // 30 days
+      try {
+        localStorage.setItem('stutracker_remember', JSON.stringify({ school_code, username, password, expiry }));
+      } catch (e) { console.warn('localStorage save failed', e); }
+    } else {
+      try { localStorage.removeItem('stutracker_remember'); } catch (e) {}
+    }
     initDashboard(data.teacher);
   } catch (e) { err.textContent = e.message; err.classList.remove('hidden'); }
   finally { btn.disabled = false; btn.textContent = 'دخول'; }
 }
 
-async function doLogout() { await fetch('/api/teacher/logout', { method:'POST' }); location.reload(); }
+function loadRememberedCredentials() {
+  try {
+    const saved = localStorage.getItem('stutracker_remember');
+    if (!saved) return null;
+    const data = JSON.parse(saved);
+    if (!data.expiry || Date.now() > data.expiry) {
+      localStorage.removeItem('stutracker_remember');
+      return null;
+    }
+    return data;
+  } catch (e) { return null; }
+}
+
+async function attemptAutoLogin() {
+  const saved = loadRememberedCredentials();
+  if (!saved) return false;
+  // Pre-fill form
+  document.getElementById('loginSchoolCode').value = saved.school_code || '';
+  document.getElementById('loginUsername').value = saved.username || '';
+  document.getElementById('loginPassword').value = saved.password || '';
+  document.getElementById('loginRemember').checked = true;
+  // Try silent login
+  try {
+    const r = await fetch('/api/teacher/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ school_code: saved.school_code, username: saved.username, password: saved.password }) });
+    if (!r.ok) return false;
+    const data = await r.json();
+    initDashboard(data.teacher);
+    return true;
+  } catch (e) { return false; }
+}
+
+async function doLogout() {
+  try { localStorage.removeItem('stutracker_remember'); } catch (e) {}
+  await fetch('/api/teacher/logout', { method:'POST' });
+  location.reload();
+}
 
 function openRecovery() {
   document.getElementById('loginScreen').classList.add('hidden');
@@ -1131,7 +1207,7 @@ function switchView(v) {
   if (v === 'reports') { initReports(); renderCurrentReport(); }
   if (v === 'templates') { renderTemplates(); updateTemplateVariablesHint(); }
   if (v === 'whatsapp') { refreshSendFilters(); }
-  if (v === 'settings') { loadProfileForm(); renderRubric(); renderNoteBank(); }
+  if (v === 'settings') { loadProfileForm(); renderRubric(); renderNoteBank(); renderAssessmentsSettings(); }
   toggleSidebar(true);
 }
 
@@ -1143,9 +1219,10 @@ function toggleSidebar(forceClose) {
 
 function switchSettingsSub(n) {
   document.querySelectorAll('.settings-tab').forEach(t => t.classList.toggle('active', t.dataset.sub === n));
-  ['profile','security','rubric','noteBank'].forEach(x => document.getElementById('settings-' + x).classList.toggle('hidden', x !== n));
+  ['profile','security','assessments','rubric','noteBank'].forEach(x => document.getElementById('settings-' + x).classList.toggle('hidden', x !== n));
   if (n === 'rubric') renderRubric();
   if (n === 'noteBank') renderNoteBank();
+  if (n === 'assessments') renderAssessmentsSettings();
 }
 
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
@@ -1900,9 +1977,35 @@ function renderStudentNotes() {
   }
   body.innerHTML = `<div style="display:flex;flex-direction:column;gap:6px">${notes.map(n => `
     <div class="note-item ${n.type}" style="padding:10px 12px">
-      <div><div style="font-size:11px;color:#6b7280;margin-bottom:3px">${n.type === 'positive' ? '✅ إيجابية' : '⚠️ سلبية'} · ${esc(n.date || '')}</div><div>${esc(n.text)}</div></div>
+      <div style="flex:1">
+        <div style="font-size:11px;color:#6b7280;margin-bottom:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          ${n.type === 'positive' ? '✅ إيجابية' : '⚠️ سلبية'} · 
+          📅 ${esc(n.date || '')}
+          ${n.time ? `· 🕐 <span id="time_${n.id}">${esc(n.time)}</span> <button onclick="editNoteTime('${sid}','${n.id}')" style="background:none;border:none;color:#4f46e5;cursor:pointer;font-size:11px;padding:0 3px" title="تعديل الوقت">✏️</button>` : ''}
+        </div>
+        <div>${esc(n.text)}</div>
+      </div>
       <button class="note-remove" onclick="deleteNote('${sid}','${n.id}')">×</button>
     </div>`).join('')}</div>`;
+}
+
+async function editNoteTime(sid, noteId) {
+  const notes = teacherData.notes[sid] || [];
+  const n = notes.find(x => x.id === noteId);
+  if (!n) return;
+  const current = n.time || '';
+  const newTime = prompt('الوقت الجديد (HH:MM):', current);
+  if (newTime === null) return; // cancelled
+  const trimmed = newTime.trim();
+  if (!trimmed) return;
+  // Validate HH:MM format
+  if (!/^([01]?\d|2[0-3]):[0-5]\d$/.test(trimmed)) {
+    alert('صيغة غير صحيحة. استخدم HH:MM مثل 08:30 أو 14:45');
+    return;
+  }
+  n.time = trimmed;
+  await saveData();
+  renderStudentNotes();
 }
 
 function renderNoteBankIcons() {
@@ -1956,7 +2059,10 @@ async function saveNoteForStudent(type, text) {
   const sid = document.getElementById('noteStudent').value;
   if (!sid) return;
   if (!teacherData.notes[sid]) teacherData.notes[sid] = [];
-  teacherData.notes[sid].push({ id: uid('n'), type, text, date: todayStr() });
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  teacherData.notes[sid].push({ id: uid('n'), type, text, date: todayStr(), time: `${hh}:${mm}` });
   await saveData();
   cancelExtraText();
   renderStudentNotes();
@@ -1981,7 +2087,10 @@ async function saveNote() {
   const text = document.getElementById('noteModalText').value.trim();
   if (!text) { err.textContent = 'النص مطلوب'; err.classList.remove('hidden'); return; }
   if (!teacherData.notes[sid]) teacherData.notes[sid] = [];
-  teacherData.notes[sid].push({ id: uid('n'), type, text, date: date || todayStr() });
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  teacherData.notes[sid].push({ id: uid('n'), type, text, date: date || todayStr(), time: `${hh}:${mm}` });
   await saveData();
   closeModal('noteModal');
   renderStudentNotes();
@@ -2049,6 +2158,73 @@ async function saveNoteBank() {
 
 // ========= EVALUATION =========
 function onEvalFilterGradeChange() { fillSectionSelect('evalFilterSection', document.getElementById('evalFilterGrade').value); renderEvalTable(); }
+
+function getAcademicStartDate() {
+  const raw = teacherData.profile?.academic_start_date;
+  if (!raw) return null;
+  const d = new Date(raw + 'T00:00:00');
+  if (isNaN(d.getTime())) return null;
+  return d;
+}
+
+const ARABIC_MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+
+function fmtDateShort(d) {
+  return `${d.getDate()}/${d.getMonth()+1}`;
+}
+
+function generateWeeklyPeriods(startDate, count = 40) {
+  // In Oman, school week: Sunday -> Thursday
+  // Find first Sunday at or after startDate
+  const start = new Date(startDate);
+  while (start.getDay() !== 0) { // 0 = Sunday
+    start.setDate(start.getDate() + 1);
+  }
+  const periods = [];
+  for (let i = 0; i < count; i++) {
+    const sun = new Date(start);
+    sun.setDate(start.getDate() + i*7);
+    const thu = new Date(sun);
+    thu.setDate(sun.getDate() + 4);
+    const label = `الأسبوع ${i+1} (${fmtDateShort(sun)} - ${fmtDateShort(thu)})`;
+    const key = `w${i+1}_${sun.toISOString().slice(0,10)}`;
+    periods.push({ key, label });
+  }
+  return periods;
+}
+
+function generateMonthlyPeriods(startDate, count = 12) {
+  const periods = [];
+  const d = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+  for (let i = 0; i < count; i++) {
+    const monthIdx = d.getMonth();
+    const year = d.getFullYear();
+    const label = `${ARABIC_MONTHS[monthIdx]} ${year}`;
+    const key = `m_${year}_${String(monthIdx+1).padStart(2,'0')}`;
+    periods.push({ key, label });
+    d.setMonth(d.getMonth() + 1);
+  }
+  return periods;
+}
+
+function refreshEvalPeriodList() {
+  const typeSel = document.getElementById('evalPeriodType');
+  const periodSel = document.getElementById('evalPeriod');
+  if (!typeSel || !periodSel) return;
+  const type = typeSel.value;
+  const startDate = getAcademicStartDate();
+  if (!startDate) {
+    periodSel.innerHTML = '<option value="">-- حدد تاريخ البداية في الإعدادات --</option>';
+    renderEvalTable();
+    return;
+  }
+  const periods = type === 'weekly' ? generateWeeklyPeriods(startDate, 40) : generateMonthlyPeriods(startDate, 12);
+  const cur = periodSel.value;
+  periodSel.innerHTML = '<option value="">-- اختر الفترة --</option>' + periods.map(p => `<option value="${p.key}|${esc(p.label)}">${esc(p.label)}</option>`).join('');
+  if (cur && [...periodSel.options].some(o => o.value === cur)) periodSel.value = cur;
+  renderEvalTable();
+}
+
 function renderEvalMain() {
   if (!teacherData.rubric || !teacherData.rubric.length) {
     document.getElementById('evalNoRubric').classList.remove('hidden');
@@ -2057,7 +2233,15 @@ function renderEvalMain() {
   }
   document.getElementById('evalNoRubric').classList.add('hidden');
   document.getElementById('evalMain').classList.remove('hidden');
+  refreshEvalPeriodList();
   renderEvalTable();
+}
+
+function getCurrentPeriodLabel() {
+  const val = document.getElementById('evalPeriod')?.value || '';
+  if (!val) return '';
+  const idx = val.indexOf('|');
+  return idx > 0 ? val.slice(idx + 1) : val;
 }
 
 function renderEvalTable() {
@@ -2066,9 +2250,14 @@ function renderEvalTable() {
   if (!body) return;
   const gradeId = document.getElementById('evalFilterGrade').value;
   const secId = document.getElementById('evalFilterSection').value;
-  const period = document.getElementById('evalPeriod').value.trim();
+  const period = getCurrentPeriodLabel();
   const search = document.getElementById('evalSearch').value.trim();
 
+  if (!getAcademicStartDate()) {
+    titleEl.textContent = 'جدول التقييم';
+    body.innerHTML = `<div class="warn-box">⚠️ لم تحدد <b>تاريخ بداية العام الدراسي</b> بعد.<br>اذهب إلى <b>الإعدادات → الملف الشخصي</b> وحدد التاريخ ليتم توليد الفترات.</div>`;
+    return;
+  }
   if (!gradeId || !secId) {
     titleEl.textContent = 'جدول التقييم';
     body.innerHTML = `<div class="empty-state"><h4>📋 اختر الصف والشعبة أولاً</h4></div>`;
@@ -2076,7 +2265,7 @@ function renderEvalTable() {
   }
   if (!period) {
     titleEl.textContent = 'جدول التقييم';
-    body.innerHTML = `<div class="empty-state"><h4>📅 أدخل فترة التقييم</h4><p>مثل: الأسبوع 1 · سبتمبر 2025</p></div>`;
+    body.innerHTML = `<div class="empty-state"><h4>📅 اختر فترة التقييم</h4></div>`;
     return;
   }
   const list = filterStudents(gradeId, secId, search);
@@ -2091,23 +2280,19 @@ function renderEvalTable() {
   }
   titleEl.innerHTML = `جدول التقييم — <b style="color:#4f46e5">${esc(period)}</b> <span class="pill pill-gray">${list.length} طالب</span>`;
 
-  // Grade's assessments for the dropdown
   const grade = teacherData.grades.find(g => g.id === gradeId);
   const assessments = grade?.assessments || [];
 
-  // Build table
   let html = '<div class="eval-table-wrap"><table class="eval-table"><thead><tr>';
   html += '<th class="student-cell">الطالب</th>';
-  rubric.forEach(axis => {
-    html += `<th class="axis-header">${esc(axis.name)}</th>`;
-  });
+  rubric.forEach(axis => { html += `<th class="axis-header">${esc(axis.name)}</th>`; });
   html += '</tr></thead><tbody>';
 
   list.forEach(student => {
     const existing = teacherData.evaluations.find(e => e.student_id === student.id && e.period === period);
     const scores = existing ? existing.scores || {} : {};
     const hasAnyScore = Object.keys(scores).length > 0;
-    const includedAssessment = existing?.included_assessment || null; // id of assessment to include in phrase
+    const includedAssessment = existing?.included_assessment || null;
 
     html += '<tr>';
     html += `<td class="student-cell"><div class="student-name">${esc(student.name)}</div><div style="font-size:10px;color:#6b7280">${esc(student.student_id || '')}</div></td>`;
@@ -2121,23 +2306,17 @@ function renderEvalTable() {
         html += `<button class="rank-mini-btn rank-${r} ${isSel ? 'selected' : ''}" onclick="setEvalCell('${student.id}','${axis.id}',${r})" title="${esc(axis.ranks[r-1] || '')}">${r}</button>`;
       }
       html += `</div>`;
-      if (selectedText) {
-        html += `<div class="eval-selected-label">${esc(selectedText)}</div>`;
-      } else {
-        html += `<div class="eval-selected-label"></div>`;
-      }
+      html += `<div class="eval-selected-label">${selectedText ? esc(selectedText) : ''}</div>`;
       html += `</td>`;
     });
     html += '</tr>';
 
-    // Phrase row — only show if student has at least one rank selected
     if (hasAnyScore) {
       const phrase = buildEvalPhrase(student, scores, includedAssessment);
       const colspan = rubric.length + 1;
       html += `<tr class="eval-phrase-row"><td colspan="${colspan}" class="eval-phrase-cell">`;
       html += `<div class="eval-phrase-header">
         <span class="eval-phrase-label">📝 العبارة المجمّعة:</span>`;
-      // Assessment dropdown (only if assessments exist for this grade)
       if (assessments.length) {
         html += `<span class="eval-phrase-assess">
           <label>أضف درجة:</label>
@@ -2164,7 +2343,6 @@ function renderEvalTable() {
   body.innerHTML = html;
 }
 
-// Build evaluation phrase from selected ranks
 function buildEvalPhrase(student, scores, includedAssessmentId) {
   const rubric = teacherData.rubric;
   const parts = [];
@@ -2177,7 +2355,6 @@ function buildEvalPhrase(student, scores, includedAssessmentId) {
   if (!parts.length) return '';
   const studentName = student.name || '';
   let phrase = `تم تقييم الطالب/ة ${studentName}: ` + parts.join('، ');
-  // Add assessment score if chosen
   if (includedAssessmentId) {
     const grade = teacherData.grades.find(g => g.id === student.grade_id);
     const assess = grade?.assessments?.find(a => a.id === includedAssessmentId);
@@ -2191,7 +2368,7 @@ function buildEvalPhrase(student, scores, includedAssessmentId) {
 }
 
 async function setEvalAssessment(studentId, assessmentId) {
-  const period = document.getElementById('evalPeriod').value.trim();
+  const period = getCurrentPeriodLabel();
   if (!period) return;
   let rec = teacherData.evaluations.find(e => e.student_id === studentId && e.period === period);
   if (!rec) return;
@@ -2214,38 +2391,28 @@ function copyEvalPhrase(studentId) {
     }
   };
   if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(text).then(setCopied).catch(() => {
-      fallbackCopy(text); setCopied();
-    });
-  } else {
-    fallbackCopy(text); setCopied();
-  }
+    navigator.clipboard.writeText(text).then(setCopied).catch(() => { fallbackCopy(text); setCopied(); });
+  } else { fallbackCopy(text); setCopied(); }
 }
 function fallbackCopy(text) {
   const ta = document.createElement('textarea');
-  ta.value = text;
-  ta.style.position = 'fixed';
-  ta.style.opacity = '0';
-  document.body.appendChild(ta);
-  ta.select();
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
   try { document.execCommand('copy'); } catch (e) {}
   document.body.removeChild(ta);
 }
 
 async function setEvalCell(studentId, axisId, rank) {
-  const period = document.getElementById('evalPeriod').value.trim();
-  if (!period) return alert('أدخل فترة التقييم أولاً');
-  // Find or create evaluation record for this student+period
+  const period = getCurrentPeriodLabel();
+  if (!period) return alert('اختر فترة التقييم أولاً');
   let rec = teacherData.evaluations.find(e => e.student_id === studentId && e.period === period);
   if (!rec) {
     rec = { id: uid('ev'), student_id: studentId, period, scores: {}, date: todayStr() };
     teacherData.evaluations.push(rec);
   }
   if (!rec.scores) rec.scores = {};
-  // Toggle: if same rank clicked again, clear it
   if (rec.scores[axisId] === rank) {
     delete rec.scores[axisId];
-    // Remove record entirely if no scores left
     if (Object.keys(rec.scores).length === 0) {
       teacherData.evaluations = teacherData.evaluations.filter(e => e.id !== rec.id);
     }
@@ -2260,7 +2427,7 @@ async function setEvalCell(studentId, axisId, rank) {
 async function clearAllEvalsForPeriod() {
   const gradeId = document.getElementById('evalFilterGrade').value;
   const secId = document.getElementById('evalFilterSection').value;
-  const period = document.getElementById('evalPeriod').value.trim();
+  const period = getCurrentPeriodLabel();
   if (!gradeId || !secId || !period) return alert('اختر الصف والشعبة والفترة');
   const list = filterStudents(gradeId, secId, '');
   const ids = new Set(list.map(s => s.id));
@@ -2271,6 +2438,7 @@ async function clearAllEvalsForPeriod() {
   await saveData();
   renderEvalTable();
 }
+
 
 // ========= REPORTS =========
 let currentReportTab = 'overview';
@@ -2717,6 +2885,112 @@ function exportCurrentReport() {
 
 function printCurrentReport() { window.print(); }
 
+// ========= ASSESSMENTS (Settings) =========
+function renderAssessmentsSettings() {
+  const sel = document.getElementById('assessGradeSelect');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">-- اختر الصف --</option>' + teacherData.grades.map(g => `<option value="${g.id}">${esc(g.name)}</option>`).join('');
+  if (cur && teacherData.grades.find(g => g.id === cur)) sel.value = cur;
+  renderAssessmentsEditor();
+}
+
+function renderAssessmentsEditor() {
+  const gradeId = document.getElementById('assessGradeSelect')?.value || '';
+  const body = document.getElementById('assessmentsEditorBody');
+  if (!body) return;
+  if (!gradeId) {
+    body.innerHTML = `<div class="empty-state"><h4>📝 اختر الصف لإدارة أدواته</h4></div>`;
+    return;
+  }
+  const g = teacherData.grades.find(x => x.id === gradeId);
+  if (!g) return;
+  const assessments = g.assessments || [];
+  // Split by category
+  const continuous = assessments.filter(a => (a.category || 'continuous') === 'continuous');
+  const final = assessments.filter(a => a.category === 'final');
+
+  const continuousTotal = continuous.reduce((s, a) => s + (parseFloat(a.max) || 0), 0);
+  const finalTotal = final.reduce((s, a) => s + (parseFloat(a.max) || 0), 0);
+  const grandTotal = continuousTotal + finalTotal;
+
+  body.innerHTML = `
+    <div class="card" style="background:#ecfdf5;border:1px solid #86efac;margin-bottom:10px">
+      <div class="card-header">
+        <h3>📘 التقويم المستمر <span class="pill pill-green">${continuous.length}</span></h3>
+        <span style="font-size:11px;color:#166534;font-weight:600">المجموع: ${continuousTotal}</span>
+      </div>
+      <div class="assessments-list">
+        ${continuous.length ? continuous.map(a => `<div class="assessment-row">
+          <div><span class="name">${esc(a.name)}</span> <span class="max">(من ${a.max})</span></div>
+          <button class="btn btn-danger btn-sm" onclick="deleteAssessmentFromSettings('${g.id}','${a.id}')">🗑️</button>
+        </div>`).join('') : '<div style="color:#9ca3af;font-size:12px;padding:6px;text-align:center">لم تُضف أدوات تقويم مستمر بعد</div>'}
+      </div>
+      <div class="inline-input" style="margin-top:8px">
+        <input type="text" id="newContName" placeholder="اسم الأداة (مثل: الواجب الأول)">
+        <input type="number" id="newContMax" placeholder="الدرجة" class="small" min="1" max="1000">
+        <button class="btn btn-success btn-sm" onclick="addAssessmentFromSettings('${g.id}','continuous')">➕ إضافة</button>
+      </div>
+    </div>
+
+    <div class="card" style="background:#fef2f2;border:1px solid #fca5a5;margin-bottom:10px">
+      <div class="card-header">
+        <h3>📕 التقويم النهائي <span class="pill pill-red">${final.length}</span></h3>
+        <span style="font-size:11px;color:#991b1b;font-weight:600">المجموع: ${finalTotal}</span>
+      </div>
+      <div class="assessments-list">
+        ${final.length ? final.map(a => `<div class="assessment-row">
+          <div><span class="name">${esc(a.name)}</span> <span class="max">(من ${a.max})</span></div>
+          <button class="btn btn-danger btn-sm" onclick="deleteAssessmentFromSettings('${g.id}','${a.id}')">🗑️</button>
+        </div>`).join('') : '<div style="color:#9ca3af;font-size:12px;padding:6px;text-align:center">لم تُضف أدوات تقويم نهائي بعد</div>'}
+      </div>
+      <div class="inline-input" style="margin-top:8px">
+        <input type="text" id="newFinalName" placeholder="اسم الأداة (مثل: الاختبار النهائي)">
+        <input type="number" id="newFinalMax" placeholder="الدرجة" class="small" min="1" max="1000">
+        <button class="btn btn-warning btn-sm" onclick="addAssessmentFromSettings('${g.id}','final')">➕ إضافة</button>
+      </div>
+    </div>
+
+    <div class="info-box" style="background:#eef2ff;border:1px solid #c7d2fe;color:#3730a3">
+      📊 <b>إجمالي درجات الصف:</b> ${grandTotal}
+      ${continuousTotal && finalTotal ? `(مستمر ${continuousTotal} + نهائي ${finalTotal})` : ''}
+    </div>`;
+}
+
+async function addAssessmentFromSettings(gradeId, category) {
+  const prefix = category === 'final' ? 'newFinal' : 'newCont';
+  const nameEl = document.getElementById(prefix + 'Name');
+  const maxEl = document.getElementById(prefix + 'Max');
+  const name = nameEl.value.trim();
+  const max = parseFloat(maxEl.value);
+  const msg = document.getElementById('assessMessage');
+  if (!name) { msg.innerHTML = '<div class="error">الاسم مطلوب</div>'; setTimeout(() => msg.innerHTML = '', 2500); return; }
+  if (isNaN(max) || max <= 0) { msg.innerHTML = '<div class="error">الدرجة يجب أن تكون رقماً موجباً</div>'; setTimeout(() => msg.innerHTML = '', 2500); return; }
+  const g = teacherData.grades.find(x => x.id === gradeId);
+  if (!g) return;
+  if (!g.assessments) g.assessments = [];
+  g.assessments.push({ id: uid('a'), name, max, category });
+  await saveData();
+  nameEl.value = ''; maxEl.value = '';
+  msg.innerHTML = '<div class="success">✅ تمت الإضافة</div>';
+  setTimeout(() => msg.innerHTML = '', 2000);
+  renderAssessmentsEditor();
+  renderGradesTable();
+  updateTemplateVariablesHint();
+}
+
+async function deleteAssessmentFromSettings(gradeId, aid) {
+  const g = teacherData.grades.find(x => x.id === gradeId); if (!g) return;
+  const a = (g.assessments || []).find(x => x.id === aid); if (!a) return;
+  if (!confirm(`حذف "${a.name}"؟ ستحذف الدرجات المسجلة لها.`)) return;
+  g.assessments = g.assessments.filter(x => x.id !== aid);
+  teacherData.students.forEach(s => { if (s.grade_id === gradeId && s.scores) delete s.scores[aid]; });
+  await saveData();
+  renderAssessmentsEditor();
+  renderGradesTable();
+  updateTemplateVariablesHint();
+}
+
 // ========= RUBRIC (Settings) =========
 function renderRubric() {
   const body = document.getElementById('rubricAxesBody');
@@ -2952,6 +3226,7 @@ function loadProfileForm() {
   document.getElementById('profSubject').value = teacherInfo.subject || '';
   document.getElementById('profAcademicYear').value = teacherInfo.academic_year || '';
   document.getElementById('profAcademicTerm').value = teacherInfo.academic_term || '';
+  document.getElementById('profAcademicStartDate').value = teacherData.profile?.academic_start_date || '';
   const info = document.getElementById('currentSecQuestionInfo');
   if (teacherInfo.security_question) {
     info.innerHTML = `✅ السؤال الحالي: <b>${esc(teacherInfo.security_question)}</b>`;
@@ -2976,11 +3251,17 @@ async function saveProfile() {
     const data = await r.json();
     if (!r.ok) throw new Error(data.error);
     Object.assign(teacherInfo, payload);
+    // Save academic_start_date into teacherData.profile (app_data)
+    if (!teacherData.profile) teacherData.profile = {};
+    teacherData.profile.academic_start_date = document.getElementById('profAcademicStartDate').value;
+    await saveData();
     document.getElementById('tName').textContent = teacherInfo.full_name || teacherInfo.username;
     document.getElementById('tGreeting').textContent = teacherInfo.full_name || teacherInfo.username;
     renderMeta();
     msg.innerHTML = '<div class="success">✅ حُفظت البيانات</div>';
     setTimeout(() => msg.innerHTML = '', 2500);
+    // Refresh evaluation periods if currently there
+    refreshEvalPeriodList();
   } catch (e) { msg.innerHTML = `<div class="error">❌ ${esc(e.message)}</div>`; }
 }
 async function changePassword() {
@@ -3029,7 +3310,10 @@ async function saveSecurityQuestion() {
         security_question: data.teacher.security_question,
         school: { id: data.school.id, name: data.school.name_ar }
       });
+      return;
     }
+    // Not authenticated — try auto-login if remembered
+    await attemptAutoLogin();
   } catch (e) { console.error(e); }
 })();
 document.querySelectorAll('#loginScreen input, #recoveryScreen input').forEach(el => {
