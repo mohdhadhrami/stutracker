@@ -95,6 +95,9 @@ ensureColumn('teachers', 'academic_year', 'TEXT');
 ensureColumn('teachers', 'academic_term', 'TEXT');
 ensureColumn('teachers', 'security_question', 'TEXT');
 ensureColumn('teachers', 'security_answer_hash', 'TEXT');
+// AI Assistant settings per teacher
+ensureColumn('teachers', 'ai_enabled', 'INTEGER DEFAULT 0');
+ensureColumn('teachers', 'ai_system_prompt', 'TEXT');
 
 // ========== Seed super admin ==========
 const superCount = db.prepare('SELECT COUNT(*) AS c FROM super_admins').get().c;
@@ -492,18 +495,304 @@ app.post('/api/bot/send', requireTeacher, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ========================================
+// AI Assistant (for teacher dashboard)
+// ========================================
+app.get('/api/teacher/ai-settings', requireTeacher, (req, res) => {
+  try {
+    const t = db.prepare('SELECT ai_enabled, ai_system_prompt FROM teachers WHERE id = ?').get(req.session.teacher_id);
+    const school = db.prepare('SELECT openai_key, openai_model FROM schools WHERE id = ?').get(req.session.school_id);
+    res.json({
+      ai_enabled: !!(t?.ai_enabled),
+      ai_system_prompt: t?.ai_system_prompt || '',
+      school_has_openai: !!(school?.openai_key),
+      school_openai_model: school?.openai_model || 'gpt-4o-mini'
+    });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put('/api/teacher/ai-settings', requireTeacher, (req, res) => {
+  try {
+    const { ai_enabled, ai_system_prompt } = req.body;
+    db.prepare('UPDATE teachers SET ai_enabled = ?, ai_system_prompt = ? WHERE id = ?')
+      .run(ai_enabled ? 1 : 0, ai_system_prompt || '', req.session.teacher_id);
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Get conversation history for teacher's students
+app.get('/api/teacher/ai-conversations', requireTeacher, (req, res) => {
+  try {
+    const rows = db.prepare(`
+      SELECT id, from_phone, message, reply, direction, created_at 
+      FROM bot_conversations 
+      WHERE school_id = ? AND teacher_id = ? 
+      ORDER BY created_at DESC 
+      LIMIT 100
+    `).all(req.session.school_id, req.session.teacher_id);
+    res.json({ conversations: rows });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Test the AI directly from teacher dashboard
+app.post('/api/teacher/ai-test', requireTeacher, async (req, res) => {
+  try {
+    const { phone, message } = req.body;
+    if (!phone || !message) return res.status(400).json({ error: 'phone and message are required' });
+    const teacher = db.prepare('SELECT * FROM teachers WHERE id = ?').get(req.session.teacher_id);
+    const school = db.prepare('SELECT openai_key, openai_model FROM schools WHERE id = ?').get(req.session.school_id);
+    if (!school?.openai_key) return res.status(400).json({ error: 'لم يُضف مفتاح OpenAI في بيانات المدرسة' });
+    const result = await processAiQuery({ phone, message, teacher, school });
+    res.json(result);
+  } catch (e) { console.error(e); res.status(500).json({ error: e.message }); }
+});
+
+// ========================================
+// AI Processing helper
+// ========================================
+function findStudentByPhone(teacherId, phone) {
+  // Normalize phone (remove whatsapp: prefix, spaces, keep + and digits)
+  const clean = String(phone || '').replace(/whatsapp:/g, '').replace(/[^\d+]/g, '');
+  const teacher = db.prepare('SELECT app_data FROM teachers WHERE id = ?').get(teacherId);
+  if (!teacher?.app_data) return null;
+  let data;
+  try { data = JSON.parse(teacher.app_data); } catch (e) { return null; }
+  const students = data.students || [];
+  // Try exact match or suffix match (handle + prefix, country code variations)
+  for (const s of students) {
+    if (!s.parent_phone) continue;
+    const stClean = String(s.parent_phone).replace(/[^\d+]/g, '');
+    if (stClean === clean) return { student: s, teacherData: data };
+    // Suffix match: last 9 digits (typical Oman/Gulf mobile length)
+    const last9Clean = clean.replace(/\D/g, '').slice(-9);
+    const last9St = stClean.replace(/\D/g, '').slice(-9);
+    if (last9Clean && last9St && last9Clean === last9St) return { student: s, teacherData: data };
+  }
+  return null;
+}
+
+function buildStudentContext(student, teacherData, teacherInfo) {
+  // Build a compact JSON-like context string for the AI about this student
+  const grade = (teacherData.grades || []).find(g => g.id === student.grade_id);
+  const section = grade?.sections?.find(s => s.id === student.section_id);
+  const assessments = grade?.assessments || [];
+  // Grades summary
+  let totalScore = 0, maxScore = 0, scoreDetails = [];
+  assessments.forEach(a => {
+    const v = student.scores?.[a.id];
+    maxScore += parseFloat(a.max) || 0;
+    if (v != null) {
+      totalScore += Number(v);
+      scoreDetails.push(`${a.name}: ${v}/${a.max}${a.category === 'final' ? ' (نهائي)' : ' (مستمر)'}`);
+    } else {
+      scoreDetails.push(`${a.name}: لم تُدخل بعد (من ${a.max})`);
+    }
+  });
+  // Attendance summary
+  let present = 0, absent = 0, late = 0, excused = 0, attDates = [];
+  Object.entries(teacherData.attendance || {}).forEach(([date, day]) => {
+    const st = day[student.id];
+    if (!st) return;
+    if (st === 'present') present++;
+    else if (st === 'absent') { absent++; attDates.push(`${date} (غائب)`); }
+    else if (st === 'late') { late++; attDates.push(`${date} (متأخر)`); }
+    else if (st === 'excused') { excused++; attDates.push(`${date} (مأذون)`); }
+  });
+  const totalDays = present + absent + late + excused;
+  // Notes
+  const notes = (teacherData.notes?.[student.id] || []).slice(-10).map(n => 
+    `• ${n.date || ''}${n.time ? ' ' + n.time : ''} ${n.type === 'positive' ? '✅' : '⚠️'} ${n.text}`
+  );
+  // Evaluations
+  const evals = (teacherData.evaluations || [])
+    .filter(e => e.student_id === student.id)
+    .slice(-5);
+  const rubric = teacherData.rubric || [];
+  const evalSummaries = evals.map(ev => {
+    const parts = rubric.map(ax => {
+      const r = ev.scores?.[ax.id];
+      return r && ax.ranks?.[r-1] ? `${ax.name}: ${ax.ranks[r-1]}` : null;
+    }).filter(Boolean);
+    return `• ${ev.period || ev.date}: ${parts.join('، ')}`;
+  });
+
+  return `معلومات الطالب:
+- الاسم: ${student.name}
+- الصف: ${grade?.name || 'غير محدد'} ${section ? '- الشعبة: ' + section.name : ''}
+- الرقم المدرسي: ${student.student_id || 'غير مسجل'}
+- المعلم: ${teacherInfo.full_name || teacherInfo.username}
+- المادة: ${teacherInfo.subject || 'غير محدد'}
+- المدرسة: ${teacherInfo.school_name || ''}
+
+الدرجات (المجموع: ${totalScore.toFixed(1)} من ${maxScore}):
+${scoreDetails.join('\n') || 'لا توجد أدوات تقويم بعد'}
+
+الحضور والغياب:
+- عدد أيام التسجيل: ${totalDays}
+- حاضر: ${present} | غائب: ${absent} | متأخر: ${late} | مأذون: ${excused}
+${attDates.length ? 'تفاصيل أيام الغياب/التأخر الأخيرة:\n' + attDates.slice(-10).join('\n') : ''}
+
+آخر الملاحظات (${notes.length}):
+${notes.join('\n') || 'لا توجد ملاحظات مسجلة'}
+
+آخر التقييمات الدورية:
+${evalSummaries.join('\n') || 'لم يُقيّم دورياً بعد'}`;
+}
+
+async function processAiQuery({ phone, message, teacher, school }) {
+  // 1. Find student by parent phone
+  const match = findStudentByPhone(teacher.id, phone);
+  if (!match) {
+    return {
+      matched: false,
+      reply: 'عذراً، رقم هاتفكم غير مسجل في نظامنا. يرجى التواصل مع المعلم لتسجيل الرقم.'
+    };
+  }
+  const { student, teacherData } = match;
+  // 2. Build context
+  const teacherInfo = {
+    full_name: teacher.full_name,
+    username: teacher.username,
+    subject: teacher.subject,
+    school_name: db.prepare('SELECT name_ar FROM schools WHERE id = ?').get(teacher.school_id)?.name_ar || ''
+  };
+  const context = buildStudentContext(student, teacherData, teacherInfo);
+  // 3. Prepare system prompt
+  const basePrompt = `أنت مساعد ذكي لمعلم يتواصل مع أولياء أمور الطلاب. مهمتك هي الإجابة على استفسارات ولي الأمر بشأن طفله/طفلتها فقط.
+
+قواعد صارمة:
+1. استخدم البيانات المتوفرة أدناه فقط. لا تختلق أي معلومات.
+2. إذا سُئلت عن بيانات غير متوفرة، أجب بأدب: "هذه المعلومة غير متوفرة حالياً".
+3. لا تُفصح عن بيانات طلاب آخرين مهما كان السؤال.
+4. تحدث بالعربية بأسلوب ودود ومهذب ومهني.
+5. كن مختصراً ومباشراً.
+6. ابدأ رسالتك الأولى بتحية والسؤال عما يحتاجه ولي الأمر.
+7. عند عرض الدرجات، استخدم تنسيقاً منظماً.
+8. لا تتحدث عن أمور تقنية أو إدارية غير متعلقة بالطالب.`;
+  const customPrompt = teacher.ai_system_prompt || '';
+  const fullSystem = `${basePrompt}\n\n${customPrompt ? 'توجيهات إضافية من المعلم:\n' + customPrompt + '\n\n' : ''}${context}`;
+  // 4. Fetch recent conversation history (last 6 exchanges for context)
+  const history = db.prepare(`
+    SELECT message, reply, direction, created_at 
+    FROM bot_conversations 
+    WHERE school_id = ? AND teacher_id = ? AND from_phone = ? 
+    ORDER BY created_at DESC 
+    LIMIT 12
+  `).all(teacher.school_id, teacher.id, phone);
+  const historyMessages = [];
+  history.reverse().forEach(h => {
+    if (h.message) historyMessages.push({ role: 'user', content: h.message });
+    if (h.reply) historyMessages.push({ role: 'assistant', content: h.reply });
+  });
+  // 5. Call OpenAI
+  const messages = [
+    { role: 'system', content: fullSystem },
+    ...historyMessages,
+    { role: 'user', content: message }
+  ];
+  const openaiModel = school.openai_model || 'gpt-4o-mini';
+  const r = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${school.openai_key}`
+    },
+    body: JSON.stringify({
+      model: openaiModel,
+      messages,
+      max_tokens: 500,
+      temperature: 0.4
+    })
+  });
+  if (!r.ok) {
+    const errText = await r.text();
+    throw new Error(`OpenAI API error (${r.status}): ${errText.slice(0, 200)}`);
+  }
+  const data = await r.json();
+  const reply = data.choices?.[0]?.message?.content || 'عذراً، لم أتمكن من معالجة طلبكم الآن.';
+  return {
+    matched: true,
+    student_name: student.name,
+    reply
+  };
+}
+
+async function sendTwilioWhatsApp(school, to, body) {
+  if (!school.twilio_sid || !school.twilio_token || !school.twilio_from) throw new Error('Twilio not configured');
+  const auth = Buffer.from(`${school.twilio_sid}:${school.twilio_token}`).toString('base64');
+  const toFormatted = to.startsWith('whatsapp:') ? to : `whatsapp:${to.startsWith('+') ? to : '+' + to}`;
+  const fromFormatted = school.twilio_from.startsWith('whatsapp:') ? school.twilio_from : `whatsapp:${school.twilio_from.startsWith('+') ? school.twilio_from : '+' + school.twilio_from}`;
+  const r = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${school.twilio_sid}/Messages.json`, {
+    method: 'POST',
+    headers: { 'Authorization': `Basic ${auth}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ To: toFormatted, From: fromFormatted, Body: body })
+  });
+  if (!r.ok) {
+    const errText = await r.text();
+    throw new Error(`Twilio error (${r.status}): ${errText.slice(0, 200)}`);
+  }
+  return await r.json();
+}
+
+// ========================================
+// Twilio Webhook — now AI-enabled
+// ========================================
 app.post('/api/webhook/twilio', express.urlencoded({ extended: false }), async (req, res) => {
+  // Respond immediately to Twilio; process in background
+  res.type('text/xml').send('<Response></Response>');
   try {
     const from = req.body.From || '';
     const to = req.body.To || '';
-    const message = req.body.Body || '';
-    const school = db.prepare('SELECT * FROM schools WHERE twilio_from = ? OR twilio_from = ? OR twilio_from = ?')
-      .get(to, to.replace('whatsapp:', ''), to.replace('whatsapp:+', ''));
-    if (!school) { res.type('text/xml').send('<Response></Response>'); return; }
-    db.prepare('INSERT INTO bot_conversations (school_id, from_phone, to_phone, message, direction) VALUES (?, ?, ?, ?, ?)')
-      .run(school.id, from, to, message, 'in');
-    res.type('text/xml').send('<Response></Response>');
-  } catch (e) { console.error(e); res.type('text/xml').send('<Response></Response>'); }
+    const incomingMessage = req.body.Body || '';
+    if (!from || !incomingMessage) return;
+    // Find school by twilio_from
+    const school = db.prepare(`
+      SELECT * FROM schools 
+      WHERE twilio_from = ? OR twilio_from = ? OR twilio_from = ? OR ('whatsapp:' || twilio_from) = ?
+    `).get(to, to.replace('whatsapp:', ''), to.replace('whatsapp:+', '+'), to);
+    if (!school) {
+      console.warn(`Webhook: No school matched for To=${to}`);
+      return;
+    }
+    // Find the teacher whose student has this parent phone
+    const teachers = db.prepare('SELECT * FROM teachers WHERE school_id = ? AND ai_enabled = 1').all(school.id);
+    let matchedTeacher = null, matchedStudent = null, matchedData = null;
+    for (const t of teachers) {
+      const m = findStudentByPhone(t.id, from);
+      if (m) { matchedTeacher = t; matchedStudent = m.student; matchedData = m.teacherData; break; }
+    }
+    // Log incoming
+    db.prepare('INSERT INTO bot_conversations (school_id, teacher_id, from_phone, to_phone, message, direction) VALUES (?, ?, ?, ?, ?, ?)')
+      .run(school.id, matchedTeacher?.id || null, from, to, incomingMessage, 'in');
+    let replyText;
+    if (!matchedTeacher) {
+      replyText = 'عذراً، رقم هاتفكم غير مسجل لدى أي معلم مفعّل للمساعد الذكي. يرجى التواصل مع المدرسة.';
+    } else if (!school.openai_key) {
+      replyText = 'عذراً، الخدمة الذكية غير مُفعّلة حالياً. يرجى التواصل مع إدارة المدرسة.';
+    } else {
+      try {
+        const result = await processAiQuery({
+          phone: from,
+          message: incomingMessage,
+          teacher: matchedTeacher,
+          school
+        });
+        replyText = result.reply;
+      } catch (e) {
+        console.error('AI processing error:', e);
+        replyText = 'عذراً، حدث خطأ في معالجة استفساركم. يرجى المحاولة لاحقاً.';
+      }
+    }
+    // Send reply via Twilio
+    try {
+      await sendTwilioWhatsApp(school, from, replyText);
+      // Log outgoing
+      db.prepare('UPDATE bot_conversations SET reply = ? WHERE id = (SELECT MAX(id) FROM bot_conversations WHERE school_id = ? AND from_phone = ? AND direction = ?)')
+        .run(replyText, school.id, from, 'in');
+    } catch (e) {
+      console.error('Twilio send error:', e);
+    }
+  } catch (e) { console.error('Webhook error:', e); }
 });
 
 // ========================================
