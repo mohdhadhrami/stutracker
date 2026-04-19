@@ -210,6 +210,7 @@ ensureColumn('teachers', 'ai_enabled', 'INTEGER DEFAULT 0');
 ensureColumn('teachers', 'ai_system_prompt', 'TEXT');
 // School-level permissions for teachers (same pattern as staff)
 ensureColumn('teachers', 'permissions', 'TEXT DEFAULT "[]"');
+ensureColumn('teachers', 'status', 'TEXT DEFAULT "active"');
 
 // ========== Seed super admin ==========
 const superCount = db.prepare('SELECT COUNT(*) AS c FROM super_admins').get().c;
