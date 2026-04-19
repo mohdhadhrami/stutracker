@@ -155,6 +155,41 @@ tr:hover td{background:#fafbfc}
 .bank-item .handle{background:#f3f4f6;color:#6b7280;width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
 .bank-empty{text-align:center;padding:14px;color:#9ca3af;font-size:12px;background:white;border-radius:7px;border:1px dashed #e5e7eb}
 
+/* ===== DASHBOARD ===== */
+.dashboard-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;margin-bottom:10px}
+.dash-stat-row{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-radius:6px;margin-bottom:5px;font-size:12px}
+.dash-stat-row:nth-child(odd){background:#f9fafb}
+.dash-stat-row .label{color:#374151;font-weight:500}
+.dash-stat-row .value{font-weight:700;color:#4f46e5}
+.dash-bar{height:6px;background:#f3f4f6;border-radius:3px;overflow:hidden;margin-top:3px}
+.dash-bar-fill{height:100%;background:#4f46e5;border-radius:3px;transition:width .3s}
+.dash-empty-tile{text-align:center;padding:14px;color:#9ca3af;font-size:12px}
+
+/* ===== REPORTS ===== */
+.report-tabs{display:flex;gap:4px;background:white;padding:5px;border-radius:11px;margin-bottom:12px;overflow-x:auto;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.report-tab{padding:9px 14px;background:transparent;border:none;border-radius:7px;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:500;color:#6b7280;white-space:nowrap;transition:all .15s}
+.report-tab:hover{background:#f3f4f6}
+.report-tab.active{background:#4f46e5;color:white;box-shadow:0 2px 6px rgba(79,70,229,.25)}
+
+.report-summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:12px}
+.report-summary-tile{background:white;border:1px solid #e5e7eb;border-radius:8px;padding:11px 13px;text-align:center}
+.report-summary-tile .label{font-size:10px;color:#6b7280;margin-bottom:3px}
+.report-summary-tile .value{font-size:20px;font-weight:700;color:#4f46e5}
+.report-summary-tile.green .value{color:#10b981}
+.report-summary-tile.red .value{color:#ef4444}
+.report-summary-tile.yellow .value{color:#f59e0b}
+.report-summary-tile.blue .value{color:#3b82f6}
+
+.student-report-section{margin-bottom:14px;padding:12px;background:#f9fafb;border-radius:9px;border:1px solid #e5e7eb}
+.student-report-section h4{color:#111827;font-size:13px;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid #e5e7eb}
+
+@media print{
+  .topbar,.sidebar,.overlay,.report-tabs,#reportFiltersCard,.nav-item,button{display:none !important}
+  .main-content{padding:0 !important}
+  body{background:white !important}
+  .card{box-shadow:none !important;border:1px solid #e5e7eb !important;page-break-inside:avoid}
+}
+
 /* ===== IMPORT ZONE ===== */
 .import-zone{border:2px dashed #c7d2fe;background:#f5f3ff;border-radius:10px;padding:22px 16px;text-align:center;margin-bottom:12px;cursor:pointer}
 .import-zone .import-icon{font-size:32px;margin-bottom:7px}
@@ -345,13 +380,14 @@ tr:hover td{background:#fafbfc}
     <!-- SIDEBAR -->
     <nav class="sidebar" id="sidebar">
       <div class="section-label">الأكاديمي</div>
-      <button class="nav-item active" data-view="home" onclick="switchView('home')"><span class="icon">🏠</span>الرئيسية</button>
+      <button class="nav-item active" data-view="home" onclick="switchView('home')"><span class="icon">🏠</span>لوحة التحكم</button>
       <button class="nav-item" data-view="classes" onclick="switchView('classes')"><span class="icon">📚</span>الصفوف والشعب</button>
       <button class="nav-item" data-view="students" onclick="switchView('students')"><span class="icon">👥</span>الطلاب</button>
       <button class="nav-item" data-view="grades" onclick="switchView('grades')"><span class="icon">📊</span>سجل الدرجات</button>
       <button class="nav-item" data-view="attendance" onclick="switchView('attendance')"><span class="icon">📅</span>سجل الغياب</button>
       <button class="nav-item" data-view="notes" onclick="switchView('notes')"><span class="icon">📝</span>سجل الملاحظات</button>
       <button class="nav-item" data-view="evaluation" onclick="switchView('evaluation')"><span class="icon">⭐</span>التقييم الدوري</button>
+      <button class="nav-item" data-view="reports" onclick="switchView('reports')"><span class="icon">📈</span>التقارير</button>
 
       <div class="section-label">التواصل</div>
       <button class="nav-item" data-view="templates" onclick="switchView('templates')"><span class="icon">💬</span>قوالب الرسائل</button>
@@ -363,23 +399,64 @@ tr:hover td{background:#fafbfc}
 
     <!-- MAIN CONTENT -->
     <main class="main-content">
-      <!-- HOME -->
+      <!-- DASHBOARD (HOME) -->
       <div id="view-home">
         <div class="welcome-banner">
           <h2>مرحبا أستاذ <span id="tGreeting"></span> 👋</h2>
-          <p>أنت مسجل دخول إلى نظام التقويم الذكي الخاص بـ <b id="tSchoolBanner"></b>.</p>
+          <p>لوحة التحكم · نظرة شاملة على بياناتك التعليمية في <b id="tSchoolBanner"></b></p>
           <div class="meta" id="teacherMeta"></div>
         </div>
+
+        <div class="section-title" style="font-size:13px;color:#4f46e5;margin-top:6px">📊 الإحصائيات العامة</div>
         <div class="stats-row" id="homeStats"></div>
+
+        <div class="dashboard-grid">
+          <!-- Grades analysis -->
+          <div class="card">
+            <div class="card-header">
+              <h3>📊 تحليل سجل الدرجات</h3>
+              <button class="btn btn-info btn-sm" onclick="switchView('grades')">عرض التفاصيل</button>
+            </div>
+            <div id="dashGradesAnalysis"></div>
+          </div>
+
+          <!-- Notes summary -->
+          <div class="card">
+            <div class="card-header">
+              <h3>📝 الملاحظات المسجلة</h3>
+              <button class="btn btn-secondary btn-sm" onclick="switchView('notes')">عرض السجل</button>
+            </div>
+            <div id="dashNotesSummary"></div>
+          </div>
+
+          <!-- Evaluation summary -->
+          <div class="card">
+            <div class="card-header">
+              <h3>⭐ التقييم الدوري</h3>
+              <button class="btn btn-warning btn-sm" onclick="switchView('evaluation')">فتح التقييم</button>
+            </div>
+            <div id="dashEvalSummary"></div>
+          </div>
+
+          <!-- Attendance summary -->
+          <div class="card">
+            <div class="card-header">
+              <h3>📅 الغياب الحديث</h3>
+              <button class="btn btn-info btn-sm" onclick="switchView('attendance')">فتح السجل</button>
+            </div>
+            <div id="dashAttendanceSummary"></div>
+          </div>
+        </div>
+
         <div class="card">
           <div class="card-header"><h3>⚡ إجراءات سريعة</h3></div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px">
             <button class="btn btn-primary" onclick="switchView('students')">👥 إدارة الطلاب</button>
             <button class="btn btn-success" onclick="switchView('grades')">📊 إدخال الدرجات</button>
             <button class="btn btn-info" onclick="switchView('attendance')">📅 تسجيل الغياب</button>
             <button class="btn btn-warning" onclick="switchView('evaluation')">⭐ التقييم الدوري</button>
-            <button class="btn btn-secondary" onclick="switchView('notes')">📝 سجل الملاحظات</button>
-            <button class="btn btn-secondary" onclick="switchView('whatsapp')">📱 إرسال رسالة</button>
+            <button class="btn btn-secondary" onclick="switchView('notes')">📝 الملاحظات</button>
+            <button class="btn btn-secondary" onclick="switchView('reports')">📈 التقارير</button>
           </div>
         </div>
       </div>
@@ -559,6 +636,46 @@ tr:hover td{background:#fafbfc}
             </div>
             <div id="evalTableBody"></div>
           </div>
+        </div>
+      </div>
+
+      <!-- REPORTS -->
+      <div id="view-reports" class="hidden">
+        <h2 class="page-title">📈 التقارير</h2>
+        <p class="page-subtitle">استخراج تقارير شاملة عن الغياب والملاحظات والدرجات والتقييم الدوري بنظام فلترة مرن.</p>
+
+        <div class="report-tabs">
+          <button class="report-tab active" data-report="overview" onclick="switchReportTab('overview')">📋 نظرة شاملة</button>
+          <button class="report-tab" data-report="attendance" onclick="switchReportTab('attendance')">📅 تقرير الغياب</button>
+          <button class="report-tab" data-report="notes" onclick="switchReportTab('notes')">📝 تقرير الملاحظات</button>
+          <button class="report-tab" data-report="grades" onclick="switchReportTab('grades')">📊 تقرير الدرجات</button>
+          <button class="report-tab" data-report="evaluation" onclick="switchReportTab('evaluation')">⭐ تقرير التقييم</button>
+          <button class="report-tab" data-report="student" onclick="switchReportTab('student')">🔍 تقرير طالب</button>
+        </div>
+
+        <!-- Common filters -->
+        <div class="card" id="reportFiltersCard">
+          <div class="filter-bar">
+            <div><label>الصف</label><select id="rptFilterGrade" onchange="onReportGradeChange()"></select></div>
+            <div><label>الشعبة</label><select id="rptFilterSection" onchange="renderCurrentReport()"></select></div>
+            <div><label>من تاريخ</label><input type="date" id="rptFromDate" onchange="renderCurrentReport()"></div>
+            <div><label>إلى تاريخ</label><input type="date" id="rptToDate" onchange="renderCurrentReport()"></div>
+            <div><label>بحث عن طالب</label><input type="text" id="rptSearchStudent" placeholder="اسم أو رقم..." oninput="renderCurrentReport()"></div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+            <button class="btn btn-secondary btn-sm" onclick="clearReportFilters()">🔄 مسح الفلاتر</button>
+            <button class="btn btn-success btn-sm" onclick="exportCurrentReport()">📤 تصدير إلى Excel</button>
+            <button class="btn btn-info btn-sm" onclick="printCurrentReport()">🖨️ طباعة</button>
+          </div>
+        </div>
+
+        <!-- Report Content -->
+        <div class="card">
+          <div class="card-header">
+            <h3 id="reportCardTitle">التقرير</h3>
+            <span id="reportResultCount" class="pill pill-gray">0 نتيجة</span>
+          </div>
+          <div id="reportBody"></div>
         </div>
       </div>
 
@@ -1000,7 +1117,7 @@ function renderAll() {
 // ========= NAVIGATION =========
 function switchView(v) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === v));
-  ['home','classes','students','grades','attendance','notes','evaluation','templates','whatsapp','settings'].forEach(n => {
+  ['home','classes','students','grades','attendance','notes','evaluation','reports','templates','whatsapp','settings'].forEach(n => {
     const el = document.getElementById('view-' + n);
     if (el) el.classList.toggle('hidden', n !== v);
   });
@@ -1011,6 +1128,7 @@ function switchView(v) {
   if (v === 'attendance') renderAttendance();
   if (v === 'notes') renderNotesStudents();
   if (v === 'evaluation') renderEvalMain();
+  if (v === 'reports') { initReports(); renderCurrentReport(); }
   if (v === 'templates') { renderTemplates(); updateTemplateVariablesHint(); }
   if (v === 'whatsapp') { refreshSendFilters(); }
   if (v === 'settings') { loadProfileForm(); renderRubric(); renderNoteBank(); }
@@ -1058,23 +1176,144 @@ function refreshAllFilters() {
   onEvalFilterGradeChange(); refreshSendStudents(); refreshSendTemplates();
 }
 
-// ========= HOME STATS =========
+// ========= HOME STATS / DASHBOARD =========
 function renderHomeStats() {
   const totalStudents = teacherData.students.length;
   const totalGrades = teacherData.grades.length;
   const totalSections = teacherData.grades.reduce((n,g) => n + (g.sections?.length || 0), 0);
   const totalNotes = Object.values(teacherData.notes || {}).reduce((n,arr) => n + (arr?.length || 0), 0);
+  const positiveNotes = Object.values(teacherData.notes || {}).reduce((n,arr) => n + (arr || []).filter(x => x.type === 'positive').length, 0);
+  const negativeNotes = Object.values(teacherData.notes || {}).reduce((n,arr) => n + (arr || []).filter(x => x.type === 'negative').length, 0);
   const totalEvals = (teacherData.evaluations || []).length;
-  const todayAtt = teacherData.attendance[todayStr()] || {};
-  const todayCount = Object.keys(todayAtt).length;
+  const totalTemplates = (teacherData.templates || []).length;
+  const totalAssessments = teacherData.grades.reduce((n,g) => n + (g.assessments?.length || 0), 0);
+  // Today attendance stats
+  const today = todayStr();
+  const todayAtt = teacherData.attendance[today] || {};
+  const todayAbsent = Object.values(todayAtt).filter(s => s === 'absent').length;
+
   document.getElementById('homeStats').innerHTML = `
     <div class="stat-tile"><div class="label">الصفوف</div><div class="value">${totalGrades}</div></div>
     <div class="stat-tile"><div class="label">الشعب</div><div class="value">${totalSections}</div></div>
     <div class="stat-tile"><div class="label">الطلاب</div><div class="value">${totalStudents}</div></div>
+    <div class="stat-tile"><div class="label">أدوات التقويم</div><div class="value">${totalAssessments}</div></div>
     <div class="stat-tile"><div class="label">ملاحظات</div><div class="value">${totalNotes}</div></div>
-    <div class="stat-tile"><div class="label">تقييمات</div><div class="value">${totalEvals}</div></div>
-    <div class="stat-tile"><div class="label">غياب اليوم</div><div class="value">${todayCount}</div></div>
+    <div class="stat-tile"><div class="label">تقييمات دورية</div><div class="value">${totalEvals}</div></div>
+    <div class="stat-tile"><div class="label">غياب اليوم</div><div class="value">${todayAbsent}</div></div>
+    <div class="stat-tile"><div class="label">قوالب</div><div class="value">${totalTemplates}</div></div>
   `;
+
+  renderDashGradesAnalysis();
+  renderDashNotesSummary(positiveNotes, negativeNotes, totalNotes);
+  renderDashEvalSummary();
+  renderDashAttendanceSummary();
+}
+
+function renderDashGradesAnalysis() {
+  const el = document.getElementById('dashGradesAnalysis');
+  if (!el) return;
+  if (!teacherData.grades.length) {
+    el.innerHTML = `<div class="dash-empty-tile">لا توجد صفوف بعد</div>`;
+    return;
+  }
+  let html = '';
+  teacherData.grades.forEach(g => {
+    const gStudents = teacherData.students.filter(s => s.grade_id === g.id);
+    if (!gStudents.length) return;
+    const maxT = (g.assessments || []).reduce((sum, a) => sum + (parseFloat(a.max) || 0), 0);
+    const totals = gStudents.map(s => {
+      let t = 0, any = false;
+      (g.assessments || []).forEach(a => { const v = num(s.scores?.[a.id]); if (v !== null) { t += v; any = true; } });
+      return any ? t : null;
+    }).filter(t => t !== null);
+    const avg = totals.length ? (totals.reduce((a,b)=>a+b,0)/totals.length) : 0;
+    const avgPct = maxT ? ((avg / maxT) * 100).toFixed(1) : 0;
+    const passed = maxT ? totals.filter(t => t >= maxT*0.6).length : 0;
+    const excellent = maxT ? totals.filter(t => t >= maxT*0.9).length : 0;
+    html += `<div class="dash-stat-row"><span class="label">📘 ${esc(g.name)}</span><span class="value">${gStudents.length} طالب</span></div>`;
+    if (totals.length) {
+      html += `<div class="dash-stat-row"><span class="label">المتوسط</span><span class="value">${avg.toFixed(1)} / ${maxT} (${avgPct}%)</span></div>`;
+      html += `<div class="dash-bar"><div class="dash-bar-fill" style="width:${avgPct}%;background:${avgPct >= 75 ? '#10b981' : avgPct >= 60 ? '#f59e0b' : '#ef4444'}"></div></div>`;
+      html += `<div class="dash-stat-row"><span class="label">ناجحون · متفوقون</span><span class="value">${passed} · ${excellent}</span></div>`;
+    } else {
+      html += `<div class="dash-stat-row"><span class="label" style="color:#9ca3af">لم تُدخل درجات بعد</span><span class="value">—</span></div>`;
+    }
+  });
+  if (!html) html = `<div class="dash-empty-tile">لم تُنشئ بيانات درجات بعد</div>`;
+  el.innerHTML = html;
+}
+
+function renderDashNotesSummary(pos, neg, total) {
+  const el = document.getElementById('dashNotesSummary');
+  if (!el) return;
+  if (!total) { el.innerHTML = `<div class="dash-empty-tile">لم تُسجّل ملاحظات بعد</div>`; return; }
+  // Find students with most notes
+  const byStudent = Object.entries(teacherData.notes || {}).map(([sid, notes]) => {
+    const s = teacherData.students.find(x => x.id === sid);
+    return { name: s?.name || 'غير معروف', count: (notes || []).length, pos: (notes || []).filter(n=>n.type==='positive').length, neg: (notes || []).filter(n=>n.type==='negative').length };
+  }).filter(x => x.count > 0).sort((a,b) => b.count - a.count).slice(0, 3);
+  let html = `
+    <div class="dash-stat-row"><span class="label">✅ إيجابية</span><span class="value" style="color:#10b981">${pos}</span></div>
+    <div class="dash-stat-row"><span class="label">⚠️ سلبية</span><span class="value" style="color:#ef4444">${neg}</span></div>
+    <div class="dash-stat-row"><span class="label">📊 المجموع</span><span class="value">${total}</span></div>
+  `;
+  if (byStudent.length) {
+    html += `<div style="font-size:11px;color:#6b7280;margin-top:8px;margin-bottom:4px">الطلاب الأكثر ملاحظات:</div>`;
+    byStudent.forEach(s => {
+      html += `<div class="dash-stat-row"><span class="label">${esc(s.name)}</span><span class="value">${s.count} <span style="color:#10b981">+${s.pos}</span> <span style="color:#ef4444">-${s.neg}</span></span></div>`;
+    });
+  }
+  el.innerHTML = html;
+}
+
+function renderDashEvalSummary() {
+  const el = document.getElementById('dashEvalSummary');
+  if (!el) return;
+  const evals = teacherData.evaluations || [];
+  if (!evals.length) {
+    const hasRubric = (teacherData.rubric || []).length > 0;
+    el.innerHTML = hasRubric
+      ? `<div class="dash-empty-tile">بنود التقييم جاهزة · ابدأ التقييم الآن</div>`
+      : `<div class="dash-empty-tile">⚠️ لم تُضف بنود التقييم بعد<br><button class="btn btn-info btn-sm" style="margin-top:6px" onclick="switchView('settings');setTimeout(()=>switchSettingsSub('rubric'),50)">⚙️ إضافة بنود</button></div>`;
+    return;
+  }
+  const rubric = teacherData.rubric || [];
+  const periods = new Set(evals.map(e => e.period));
+  const evaluatedStudents = new Set(evals.map(e => e.student_id)).size;
+  let html = `
+    <div class="dash-stat-row"><span class="label">📅 عدد الفترات</span><span class="value">${periods.size}</span></div>
+    <div class="dash-stat-row"><span class="label">👥 طلاب مُقيّمون</span><span class="value">${evaluatedStudents}</span></div>
+    <div class="dash-stat-row"><span class="label">⭐ محاور التقييم</span><span class="value">${rubric.length}</span></div>
+    <div class="dash-stat-row"><span class="label">📊 إجمالي التقييمات</span><span class="value">${evals.length}</span></div>
+  `;
+  el.innerHTML = html;
+}
+
+function renderDashAttendanceSummary() {
+  const el = document.getElementById('dashAttendanceSummary');
+  if (!el) return;
+  const days = Object.keys(teacherData.attendance || {}).sort().reverse();
+  if (!days.length) { el.innerHTML = `<div class="dash-empty-tile">لم يُسجّل غياب بعد</div>`; return; }
+  // Last 5 days
+  let html = '';
+  days.slice(0, 5).forEach(d => {
+    const day = teacherData.attendance[d] || {};
+    let p=0,a=0,l=0,e=0;
+    Object.values(day).forEach(st => { if(st==='present')p++;else if(st==='absent')a++;else if(st==='late')l++;else if(st==='excused')e++; });
+    const total = p+a+l+e;
+    if (!total) return;
+    html += `<div class="dash-stat-row">
+      <span class="label">${esc(d)}</span>
+      <span class="value" style="font-size:11px">
+        <span style="color:#10b981">✅${p}</span>
+        <span style="color:#ef4444;margin-right:4px">❌${a}</span>
+        <span style="color:#f59e0b;margin-right:4px">⏰${l}</span>
+        <span style="color:#3b82f6;margin-right:4px">📋${e}</span>
+      </span>
+    </div>`;
+  });
+  if (!html) html = `<div class="dash-empty-tile">لم يُسجّل غياب فعلي بعد</div>`;
+  el.innerHTML = html;
 }
 
 // ========= CLASSES / GRADES MANAGEMENT =========
@@ -2032,6 +2271,451 @@ async function clearAllEvalsForPeriod() {
   await saveData();
   renderEvalTable();
 }
+
+// ========= REPORTS =========
+let currentReportTab = 'overview';
+
+function switchReportTab(tab) {
+  currentReportTab = tab;
+  document.querySelectorAll('.report-tab').forEach(t => t.classList.toggle('active', t.dataset.report === tab));
+  renderCurrentReport();
+}
+
+function onReportGradeChange() {
+  fillSectionSelect('rptFilterSection', document.getElementById('rptFilterGrade').value);
+  renderCurrentReport();
+}
+
+function initReports() {
+  fillGradeSelect('rptFilterGrade');
+  onReportGradeChange();
+}
+
+function clearReportFilters() {
+  document.getElementById('rptFilterGrade').value = '';
+  document.getElementById('rptFilterSection').innerHTML = '<option value="">-- كل الشعب --</option>';
+  document.getElementById('rptFromDate').value = '';
+  document.getElementById('rptToDate').value = '';
+  document.getElementById('rptSearchStudent').value = '';
+  renderCurrentReport();
+}
+
+function getReportFilters() {
+  return {
+    gradeId: document.getElementById('rptFilterGrade')?.value || '',
+    sectionId: document.getElementById('rptFilterSection')?.value || '',
+    fromDate: document.getElementById('rptFromDate')?.value || '',
+    toDate: document.getElementById('rptToDate')?.value || '',
+    search: document.getElementById('rptSearchStudent')?.value.trim() || ''
+  };
+}
+
+function filterStudentsForReport() {
+  const f = getReportFilters();
+  return teacherData.students.filter(s => {
+    if (f.gradeId && s.grade_id !== f.gradeId) return false;
+    if (f.sectionId && s.section_id !== f.sectionId) return false;
+    if (f.search) {
+      const h = `${s.name || ''} ${s.student_id || ''}`.toLowerCase();
+      if (!h.includes(f.search.toLowerCase())) return false;
+    }
+    return true;
+  });
+}
+
+function dateInRange(dateStr, from, to) {
+  if (!dateStr) return true;
+  if (from && dateStr < from) return false;
+  if (to && dateStr > to) return false;
+  return true;
+}
+
+function renderCurrentReport() {
+  const title = document.getElementById('reportCardTitle');
+  if (!title) return;
+  const titles = {
+    overview: '📋 نظرة شاملة',
+    attendance: '📅 تقرير الغياب',
+    notes: '📝 تقرير الملاحظات',
+    grades: '📊 تقرير الدرجات',
+    evaluation: '⭐ تقرير التقييم الدوري',
+    student: '🔍 تقرير طالب'
+  };
+  title.textContent = titles[currentReportTab] || 'التقرير';
+  if (currentReportTab === 'overview') renderOverviewReport();
+  else if (currentReportTab === 'attendance') renderAttendanceReport();
+  else if (currentReportTab === 'notes') renderNotesReport();
+  else if (currentReportTab === 'grades') renderGradesReport();
+  else if (currentReportTab === 'evaluation') renderEvaluationReport();
+  else if (currentReportTab === 'student') renderStudentReport();
+}
+
+function setReportCount(n) { const el = document.getElementById('reportResultCount'); if (el) el.textContent = `${n} نتيجة`; }
+
+// -- Overview --
+function renderOverviewReport() {
+  const body = document.getElementById('reportBody');
+  const students = filterStudentsForReport();
+  setReportCount(students.length);
+  const f = getReportFilters();
+  const totalAtt = Object.values(teacherData.attendance).reduce((n,day) => n + Object.keys(day).length, 0);
+  const totalNotesInFilter = students.reduce((n,s) => {
+    const notes = (teacherData.notes[s.id] || []).filter(nt => dateInRange(nt.date, f.fromDate, f.toDate));
+    return n + notes.length;
+  }, 0);
+  const totalEvals = teacherData.evaluations.filter(e => students.some(s => s.id === e.student_id)).length;
+
+  body.innerHTML = `
+    <div class="report-summary-grid">
+      <div class="report-summary-tile"><div class="label">الطلاب المطابقون</div><div class="value">${students.length}</div></div>
+      <div class="report-summary-tile green"><div class="label">ملاحظات إيجابية</div><div class="value">${students.reduce((n,s)=>n+((teacherData.notes[s.id]||[]).filter(nt=>nt.type==='positive'&&dateInRange(nt.date,f.fromDate,f.toDate)).length),0)}</div></div>
+      <div class="report-summary-tile red"><div class="label">ملاحظات سلبية</div><div class="value">${students.reduce((n,s)=>n+((teacherData.notes[s.id]||[]).filter(nt=>nt.type==='negative'&&dateInRange(nt.date,f.fromDate,f.toDate)).length),0)}</div></div>
+      <div class="report-summary-tile yellow"><div class="label">سجلات غياب</div><div class="value">${totalAtt}</div></div>
+      <div class="report-summary-tile blue"><div class="label">تقييمات دورية</div><div class="value">${totalEvals}</div></div>
+    </div>
+    ${!students.length ? `<div class="empty-state"><h4>لا يوجد طلاب مطابقون للفلاتر</h4></div>` : `
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>الطالب</th><th>الرقم</th><th>الصف/الشعبة</th><th>درجات</th><th>حضور</th><th>غياب</th><th>ملاحظات +</th><th>ملاحظات -</th><th>تقييمات</th></tr></thead>
+        <tbody>${students.map((s, i) => {
+          const g = teacherData.grades.find(x => x.id === s.grade_id);
+          const sec = g?.sections?.find(x => x.id === s.section_id);
+          // attendance
+          let p=0,a=0;
+          Object.entries(teacherData.attendance).forEach(([d, day]) => { if (!dateInRange(d, f.fromDate, f.toDate)) return; const st = day[s.id]; if (st === 'present') p++; else if (st === 'absent') a++; });
+          // notes
+          const notes = (teacherData.notes[s.id] || []).filter(nt => dateInRange(nt.date, f.fromDate, f.toDate));
+          const pos = notes.filter(n => n.type === 'positive').length;
+          const neg = notes.filter(n => n.type === 'negative').length;
+          // grades
+          const scoreCount = s.scores ? Object.keys(s.scores).length : 0;
+          // evals
+          const evCount = teacherData.evaluations.filter(e => e.student_id === s.id).length;
+          return `<tr>
+            <td>${i+1}</td>
+            <td><b>${esc(s.name)}</b></td>
+            <td><code>${esc(s.student_id || '')}</code></td>
+            <td><span class="pill">${esc(g?.name || '')}</span> ${sec ? `<span class="pill pill-gray">${esc(sec.name)}</span>` : ''}</td>
+            <td>${scoreCount}</td>
+            <td><span class="pill pill-green">${p}</span></td>
+            <td><span class="pill pill-red">${a}</span></td>
+            <td><span class="pill pill-green">${pos}</span></td>
+            <td><span class="pill pill-red">${neg}</span></td>
+            <td>${evCount}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table></div>
+    `}`;
+}
+
+// -- Attendance --
+function renderAttendanceReport() {
+  const body = document.getElementById('reportBody');
+  const students = filterStudentsForReport();
+  const f = getReportFilters();
+  const rows = students.map(s => {
+    let p=0,a=0,l=0,e=0;
+    Object.entries(teacherData.attendance).forEach(([d, day]) => {
+      if (!dateInRange(d, f.fromDate, f.toDate)) return;
+      const st = day[s.id];
+      if (st==='present') p++; else if (st==='absent') a++; else if (st==='late') l++; else if (st==='excused') e++;
+    });
+    return { s, p, a, l, e, total: p+a+l+e };
+  }).filter(r => r.total > 0);
+  setReportCount(rows.length);
+  if (!rows.length) { body.innerHTML = `<div class="empty-state"><h4>لا توجد بيانات غياب مطابقة</h4></div>`; return; }
+  const totalP = rows.reduce((n,r)=>n+r.p,0);
+  const totalA = rows.reduce((n,r)=>n+r.a,0);
+  const totalL = rows.reduce((n,r)=>n+r.l,0);
+  const totalE = rows.reduce((n,r)=>n+r.e,0);
+  body.innerHTML = `
+    <div class="report-summary-grid">
+      <div class="report-summary-tile green"><div class="label">حضور</div><div class="value">${totalP}</div></div>
+      <div class="report-summary-tile red"><div class="label">غياب</div><div class="value">${totalA}</div></div>
+      <div class="report-summary-tile yellow"><div class="label">تأخر</div><div class="value">${totalL}</div></div>
+      <div class="report-summary-tile blue"><div class="label">مأذون</div><div class="value">${totalE}</div></div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>الطالب</th><th>الرقم</th><th>الصف/الشعبة</th><th>حاضر</th><th>غائب</th><th>متأخر</th><th>مأذون</th><th>نسبة الحضور</th></tr></thead>
+      <tbody>${rows.map(r => {
+        const g = teacherData.grades.find(x => x.id === r.s.grade_id);
+        const sec = g?.sections?.find(x => x.id === r.s.section_id);
+        const rate = r.total ? ((r.p / r.total) * 100).toFixed(0) + '%' : '—';
+        return `<tr>
+          <td><b>${esc(r.s.name)}</b></td>
+          <td><code>${esc(r.s.student_id || '')}</code></td>
+          <td>${esc(g?.name || '')} · ${esc(sec?.name || '')}</td>
+          <td><span class="pill pill-green">${r.p}</span></td>
+          <td><span class="pill pill-red">${r.a}</span></td>
+          <td><span class="pill pill-yellow">${r.l}</span></td>
+          <td><span class="pill">${r.e}</span></td>
+          <td><b>${rate}</b></td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>`;
+}
+
+// -- Notes --
+function renderNotesReport() {
+  const body = document.getElementById('reportBody');
+  const students = filterStudentsForReport();
+  const f = getReportFilters();
+  const allNotes = [];
+  students.forEach(s => {
+    (teacherData.notes[s.id] || []).forEach(n => {
+      if (!dateInRange(n.date, f.fromDate, f.toDate)) return;
+      allNotes.push({ student: s, note: n });
+    });
+  });
+  allNotes.sort((a,b) => (b.note.date || '').localeCompare(a.note.date || ''));
+  setReportCount(allNotes.length);
+  if (!allNotes.length) { body.innerHTML = `<div class="empty-state"><h4>لا توجد ملاحظات مطابقة</h4></div>`; return; }
+  const pos = allNotes.filter(x => x.note.type === 'positive').length;
+  const neg = allNotes.length - pos;
+  body.innerHTML = `
+    <div class="report-summary-grid">
+      <div class="report-summary-tile"><div class="label">إجمالي الملاحظات</div><div class="value">${allNotes.length}</div></div>
+      <div class="report-summary-tile green"><div class="label">إيجابية</div><div class="value">${pos}</div></div>
+      <div class="report-summary-tile red"><div class="label">سلبية</div><div class="value">${neg}</div></div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>التاريخ</th><th>النوع</th><th>الطالب</th><th>الرقم</th><th>الصف</th><th>الملاحظة</th></tr></thead>
+      <tbody>${allNotes.map(x => {
+        const g = teacherData.grades.find(gr => gr.id === x.student.grade_id);
+        const sec = g?.sections?.find(s => s.id === x.student.section_id);
+        return `<tr>
+          <td>${esc(x.note.date || '')}</td>
+          <td>${x.note.type === 'positive' ? '<span class="pill pill-green">✅ إيجابية</span>' : '<span class="pill pill-red">⚠️ سلبية</span>'}</td>
+          <td><b>${esc(x.student.name)}</b></td>
+          <td><code>${esc(x.student.student_id || '')}</code></td>
+          <td>${esc(g?.name || '')} · ${esc(sec?.name || '')}</td>
+          <td>${esc(x.note.text)}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>`;
+}
+
+// -- Grades --
+function renderGradesReport() {
+  const body = document.getElementById('reportBody');
+  const students = filterStudentsForReport();
+  setReportCount(students.length);
+  if (!students.length) { body.innerHTML = `<div class="empty-state"><h4>لا يوجد طلاب مطابقون</h4></div>`; return; }
+  // Group by grade to show proper assessment columns
+  const byGrade = {};
+  students.forEach(s => { if (!byGrade[s.grade_id]) byGrade[s.grade_id] = []; byGrade[s.grade_id].push(s); });
+  let html = '';
+  Object.keys(byGrade).forEach(gradeId => {
+    const g = teacherData.grades.find(x => x.id === gradeId);
+    if (!g) return;
+    const list = byGrade[gradeId];
+    const assessments = g.assessments || [];
+    const maxT = assessments.reduce((sum, a) => sum + (parseFloat(a.max) || 0), 0);
+    const totals = list.map(s => { let t=0, any=false; assessments.forEach(a => { const v = num(s.scores?.[a.id]); if (v !== null) { t+=v; any=true; } }); return any ? t : null; }).filter(t => t !== null);
+    const avg = totals.length ? (totals.reduce((a,b)=>a+b,0)/totals.length).toFixed(1) : '—';
+    html += `<div class="student-report-section">
+      <h4>📘 ${esc(g.name)} · ${list.length} طالب · المتوسط ${avg}${maxT ? ` من ${maxT}` : ''}</h4>
+      ${!assessments.length ? '<div style="color:#9ca3af;font-size:12px">لا توجد أدوات تقويم</div>' :
+        `<div class="table-wrap"><table>
+          <thead><tr><th>الطالب</th><th>الرقم</th><th>الشعبة</th>${assessments.map(a => `<th>${esc(a.name)}<br><small>(${a.max})</small></th>`).join('')}<th>المجموع</th></tr></thead>
+          <tbody>${list.map(s => {
+            const sec = g.sections?.find(x => x.id === s.section_id);
+            let t=0, any=false;
+            assessments.forEach(a => { const v = num(s.scores?.[a.id]); if (v !== null) { t+=v; any=true; } });
+            return `<tr>
+              <td><b>${esc(s.name)}</b></td>
+              <td><code>${esc(s.student_id || '')}</code></td>
+              <td>${esc(sec?.name || '')}</td>
+              ${assessments.map(a => { const v = s.scores?.[a.id]; return `<td>${v != null ? v : '—'}</td>`; }).join('')}
+              <td><b>${any ? t.toFixed(1) : '—'}</b></td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table></div>`}
+    </div>`;
+  });
+  body.innerHTML = html;
+}
+
+// -- Evaluation --
+function renderEvaluationReport() {
+  const body = document.getElementById('reportBody');
+  const students = filterStudentsForReport();
+  const f = getReportFilters();
+  const rubric = teacherData.rubric || [];
+  if (!rubric.length) { body.innerHTML = `<div class="warn-box">⚠️ لم تُضف بنود التقييم بعد</div>`; setReportCount(0); return; }
+  const studentIds = new Set(students.map(s => s.id));
+  const evals = teacherData.evaluations.filter(e => studentIds.has(e.student_id) && dateInRange(e.date, f.fromDate, f.toDate));
+  setReportCount(evals.length);
+  if (!evals.length) { body.innerHTML = `<div class="empty-state"><h4>لا توجد تقييمات مطابقة</h4></div>`; return; }
+  evals.sort((a,b) => (b.date || '').localeCompare(a.date || ''));
+  body.innerHTML = `
+    <div class="table-wrap"><table>
+      <thead><tr><th>الطالب</th><th>الرقم</th><th>الفترة</th><th>التاريخ</th>${rubric.map(ax => `<th>${esc(ax.name)}</th>`).join('')}</tr></thead>
+      <tbody>${evals.map(e => {
+        const s = teacherData.students.find(x => x.id === e.student_id);
+        if (!s) return '';
+        return `<tr>
+          <td><b>${esc(s.name)}</b></td>
+          <td><code>${esc(s.student_id || '')}</code></td>
+          <td>${esc(e.period || '')}</td>
+          <td>${esc(e.date || '')}</td>
+          ${rubric.map(ax => {
+            const r = e.scores?.[ax.id];
+            const txt = r && ax.ranks?.[r-1] ? ax.ranks[r-1] : '—';
+            return `<td>${r ? `<b>${r}</b>` : '—'}${r && txt !== '—' ? `<div style="font-size:10px;color:#6b7280">${esc(txt)}</div>` : ''}</td>`;
+          }).join('')}
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>`;
+}
+
+// -- Single Student Report --
+function renderStudentReport() {
+  const body = document.getElementById('reportBody');
+  const students = filterStudentsForReport();
+  const f = getReportFilters();
+  setReportCount(students.length);
+  if (!students.length) { body.innerHTML = `<div class="empty-state"><h4>🔍 ابحث عن طالب</h4><p>استخدم شريط البحث لإيجاد الطالب</p></div>`; return; }
+  if (students.length > 10) { body.innerHTML = `<div class="warn-box">النتائج كثيرة (${students.length}). استخدم البحث لتضييق النتائج.</div>`; return; }
+  body.innerHTML = students.map(s => {
+    const g = teacherData.grades.find(x => x.id === s.grade_id);
+    const sec = g?.sections?.find(x => x.id === s.section_id);
+    // Grades
+    const assessments = g?.assessments || [];
+    let t=0, any=false;
+    assessments.forEach(a => { const v = num(s.scores?.[a.id]); if (v !== null) { t+=v; any=true; } });
+    const maxT = assessments.reduce((sum, a) => sum + (parseFloat(a.max) || 0), 0);
+    // Attendance
+    let p=0,a=0,l=0,e=0;
+    Object.entries(teacherData.attendance).forEach(([d, day]) => { if (!dateInRange(d, f.fromDate, f.toDate)) return; const st = day[s.id]; if (st==='present') p++; else if (st==='absent') a++; else if (st==='late') l++; else if (st==='excused') e++; });
+    // Notes
+    const notes = (teacherData.notes[s.id] || []).filter(n => dateInRange(n.date, f.fromDate, f.toDate)).slice().sort((a,b) => (b.date||'').localeCompare(a.date||''));
+    // Evals
+    const evals = teacherData.evaluations.filter(ev => ev.student_id === s.id && dateInRange(ev.date, f.fromDate, f.toDate)).slice().sort((x,y) => (y.date||'').localeCompare(x.date||''));
+    const rubric = teacherData.rubric || [];
+    return `<div style="margin-bottom:16px;padding:16px;background:#f9fafb;border-radius:11px;border:1px solid #e5e7eb">
+      <h3 style="color:#4f46e5;font-size:17px;margin-bottom:4px">👤 ${esc(s.name)}</h3>
+      <div style="font-size:12px;color:#6b7280;margin-bottom:12px">
+        <code>${esc(s.student_id || '')}</code> · ${esc(g?.name || '')} · ${esc(sec?.name || '')}
+        ${s.parent_phone ? `· 📱 ${esc(s.parent_phone)}` : ''}
+      </div>
+
+      <div class="student-report-section">
+        <h4>📊 الدرجات</h4>
+        ${!assessments.length ? '<div style="color:#9ca3af;font-size:12px">لا توجد أدوات تقويم للصف</div>' :
+        `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px">
+          ${assessments.map(ass => { const v = s.scores?.[ass.id]; return `<div class="dash-stat-row"><span class="label">${esc(ass.name)}</span><span class="value">${v != null ? `${v} / ${ass.max}` : '—'}</span></div>`; }).join('')}
+        </div>
+        ${any ? `<div class="dash-stat-row" style="margin-top:6px;background:#eef2ff"><span class="label"><b>المجموع</b></span><span class="value"><b>${t.toFixed(1)} / ${maxT}</b></span></div>` : ''}`}
+      </div>
+
+      <div class="student-report-section">
+        <h4>📅 الحضور والغياب</h4>
+        <div class="report-summary-grid">
+          <div class="report-summary-tile green"><div class="label">حاضر</div><div class="value">${p}</div></div>
+          <div class="report-summary-tile red"><div class="label">غائب</div><div class="value">${a}</div></div>
+          <div class="report-summary-tile yellow"><div class="label">متأخر</div><div class="value">${l}</div></div>
+          <div class="report-summary-tile blue"><div class="label">مأذون</div><div class="value">${e}</div></div>
+          <div class="report-summary-tile"><div class="label">نسبة الحضور</div><div class="value">${(p+a+l+e) ? ((p/(p+a+l+e))*100).toFixed(0) + '%' : '—'}</div></div>
+        </div>
+      </div>
+
+      <div class="student-report-section">
+        <h4>📝 الملاحظات (${notes.length})</h4>
+        ${!notes.length ? '<div style="color:#9ca3af;font-size:12px">لا توجد ملاحظات</div>' :
+          `<div style="display:flex;flex-direction:column;gap:5px;max-height:260px;overflow-y:auto">
+            ${notes.map(n => `<div class="note-item ${n.type}" style="padding:7px 10px"><div><div style="font-size:10px;color:#6b7280">${esc(n.date || '')}</div><div>${esc(n.text)}</div></div></div>`).join('')}
+          </div>`}
+      </div>
+
+      <div class="student-report-section">
+        <h4>⭐ التقييم الدوري (${evals.length})</h4>
+        ${!evals.length ? '<div style="color:#9ca3af;font-size:12px">لا توجد تقييمات</div>' :
+          `<div class="table-wrap"><table style="min-width:auto;font-size:11px">
+            <thead><tr><th>الفترة</th><th>التاريخ</th>${rubric.map(ax => `<th>${esc(ax.name)}</th>`).join('')}</tr></thead>
+            <tbody>${evals.map(ev => `<tr>
+              <td><b>${esc(ev.period || '')}</b></td>
+              <td>${esc(ev.date || '')}</td>
+              ${rubric.map(ax => { const r = ev.scores?.[ax.id]; const txt = r && ax.ranks?.[r-1] ? ax.ranks[r-1] : ''; return `<td>${r ? `<b>${r}</b> ${txt ? `<br><span style="font-size:9px;color:#6b7280">${esc(txt)}</span>` : ''}` : '—'}</td>`; }).join('')}
+            </tr>`).join('')}</tbody>
+          </table></div>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function exportCurrentReport() {
+  const students = filterStudentsForReport();
+  const f = getReportFilters();
+  let rows = []; let sheetName = 'Report';
+  if (currentReportTab === 'overview' || currentReportTab === 'student') {
+    sheetName = 'نظرة_شاملة';
+    rows = students.map(s => {
+      const g = teacherData.grades.find(x => x.id === s.grade_id);
+      const sec = g?.sections?.find(x => x.id === s.section_id);
+      let p=0, a=0;
+      Object.entries(teacherData.attendance).forEach(([d, day]) => { if (!dateInRange(d, f.fromDate, f.toDate)) return; const st = day[s.id]; if (st==='present') p++; else if (st==='absent') a++; });
+      const notes = (teacherData.notes[s.id] || []).filter(n => dateInRange(n.date, f.fromDate, f.toDate));
+      const pos = notes.filter(n => n.type === 'positive').length;
+      const neg = notes.filter(n => n.type === 'negative').length;
+      const evCount = teacherData.evaluations.filter(e => e.student_id === s.id).length;
+      let t = 0, any = false;
+      (g?.assessments || []).forEach(ass => { const v = num(s.scores?.[ass.id]); if (v !== null) { t += v; any = true; } });
+      return { 'الطالب': s.name, 'الرقم المدرسي': s.student_id || '', 'الصف': g?.name || '', 'الشعبة': sec?.name || '', 'الجنسية': s.nationality || '', 'رقم ولي الأمر': s.parent_phone || '', 'المجموع': any ? t : '', 'حضور': p, 'غياب': a, 'ملاحظات إيجابية': pos, 'ملاحظات سلبية': neg, 'تقييمات': evCount };
+    });
+  } else if (currentReportTab === 'attendance') {
+    sheetName = 'الغياب';
+    students.forEach(s => {
+      let p=0,a=0,l=0,e=0;
+      Object.entries(teacherData.attendance).forEach(([d, day]) => { if (!dateInRange(d, f.fromDate, f.toDate)) return; const st = day[s.id]; if (st==='present') p++; else if (st==='absent') a++; else if (st==='late') l++; else if (st==='excused') e++; });
+      if (p+a+l+e > 0) {
+        const g = teacherData.grades.find(x => x.id === s.grade_id);
+        const sec = g?.sections?.find(x => x.id === s.section_id);
+        rows.push({ 'الطالب': s.name, 'الرقم': s.student_id || '', 'الصف': g?.name || '', 'الشعبة': sec?.name || '', 'حاضر': p, 'غائب': a, 'متأخر': l, 'مأذون': e, 'نسبة الحضور': ((p/(p+a+l+e))*100).toFixed(0) + '%' });
+      }
+    });
+  } else if (currentReportTab === 'notes') {
+    sheetName = 'الملاحظات';
+    students.forEach(s => {
+      (teacherData.notes[s.id] || []).forEach(n => {
+        if (!dateInRange(n.date, f.fromDate, f.toDate)) return;
+        const g = teacherData.grades.find(x => x.id === s.grade_id);
+        const sec = g?.sections?.find(x => x.id === s.section_id);
+        rows.push({ 'التاريخ': n.date || '', 'النوع': n.type === 'positive' ? 'إيجابية' : 'سلبية', 'الطالب': s.name, 'الرقم': s.student_id || '', 'الصف': g?.name || '', 'الشعبة': sec?.name || '', 'الملاحظة': n.text });
+      });
+    });
+    rows.sort((a,b) => (b['التاريخ']||'').localeCompare(a['التاريخ']||''));
+  } else if (currentReportTab === 'grades') {
+    sheetName = 'الدرجات';
+    students.forEach(s => {
+      const g = teacherData.grades.find(x => x.id === s.grade_id);
+      const sec = g?.sections?.find(x => x.id === s.section_id);
+      const row = { 'الطالب': s.name, 'الرقم': s.student_id || '', 'الصف': g?.name || '', 'الشعبة': sec?.name || '' };
+      let t = 0, any = false;
+      (g?.assessments || []).forEach(a => { const v = s.scores?.[a.id]; row[a.name] = v != null ? v : ''; if (v != null) { t += Number(v); any = true; } });
+      row['المجموع'] = any ? t : '';
+      rows.push(row);
+    });
+  } else if (currentReportTab === 'evaluation') {
+    sheetName = 'التقييم';
+    const rubric = teacherData.rubric || [];
+    const studentIds = new Set(students.map(s => s.id));
+    teacherData.evaluations.filter(e => studentIds.has(e.student_id) && dateInRange(e.date, f.fromDate, f.toDate)).forEach(e => {
+      const s = teacherData.students.find(x => x.id === e.student_id);
+      if (!s) return;
+      const g = teacherData.grades.find(x => x.id === s.grade_id);
+      const row = { 'الطالب': s.name, 'الرقم': s.student_id || '', 'الصف': g?.name || '', 'الفترة': e.period || '', 'التاريخ': e.date || '' };
+      rubric.forEach(ax => { const r = e.scores?.[ax.id]; row[ax.name] = r ? `${r} - ${ax.ranks?.[r-1] || ''}` : ''; });
+      rows.push(row);
+    });
+  }
+  if (!rows.length) return alert('لا توجد بيانات للتصدير');
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  XLSX.writeFile(wb, `تقرير_${sheetName}_${todayStr()}.xlsx`);
+}
+
+function printCurrentReport() { window.print(); }
 
 // ========= RUBRIC (Settings) =========
 function renderRubric() {
