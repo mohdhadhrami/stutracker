@@ -144,6 +144,19 @@ tbody tr:hover{background:#f9fafb}
   .att-btns{justify-content:stretch}
   .att-btn{flex:1;text-align:center;min-width:55px}
 }
+
+/* === NOTES & REPORTS CSS (migrated from index.html) === */
+.note-item{display:flex;justify-content:space-between;align-items:flex-start;padding:7px 9px;background:white;border-radius:5px;font-size:12px;gap:6px;line-height:1.5}
+.note-item.positive{border-right:3px solid #10b981}
+.note-item.negative{border-right:3px solid #ef4444}
+.report-tabs{display:flex;gap:4px;background:white;padding:5px;border-radius:11px;margin-bottom:12px;overflow-x:auto;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.report-tab{padding:9px 14px;background:transparent;border:none;border-radius:7px;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:500;color:#6b7280;white-space:nowrap;transition:all .15s}
+.report-tab:hover{background:#f3f4f6}
+.report-tab.active{background:#4f46e5;color:white;box-shadow:0 2px 6px rgba(79,70,229,.25)}
+.topbar,.sidebar,.overlay,.report-tabs,#reportFiltersCard,.nav-item,button{display:none !important}
+.stat-tile{background:white;border-radius:8px;padding:11px 13px;border:1px solid #e5e7eb}
+.stat-tile .label{font-size:10px;color:#6b7280;margin-bottom:3px}
+.stat-tile .value{font-size:18px;font-weight:700;color:#4f46e5}
 </style>
 </head>
 <body>
@@ -317,13 +330,103 @@ tbody tr:hover{background:#f9fafb}
         </div>
       </div>
       <div id="view-notes" class="hidden">
-        <h2 class="page-title">📝 الملاحظات</h2>
-        <div class="card"><div class="warn-box">🚧 قيد التطوير في الجلسة القادمة.</div></div>
+        <h2 class="page-title">📝 سجل الملاحظات</h2>
+        <p class="page-subtitle">اختر طالباً ثم اضغط على أي بند من البنود الإيجابية أو السلبية لإضافته كملاحظة فورية.</p>
+        <div class="card">
+          <div class="filter-bar">
+            <div><label>الصف</label><select id="noteFilterGrade" onchange="onNoteFilterGradeChange()"></select></div>
+            <div><label>الشعبة</label><select id="noteFilterSection" onchange="renderNotesStudents()"></select></div>
+            <div><label>اختر طالباً</label><select id="noteStudent" onchange="renderStudentNotes()"></select></div>
+          </div>
+        </div>
+
+        <div id="noteBankNotice" class="hidden">
+          <div class="card">
+            <div class="warn-box">
+              ⚠️ <b>لم تُضف بنود ملاحظات بعد.</b><br>
+              لتسريع تسجيل الملاحظات، يمكنك إضافة بنود جاهزة من الإعدادات → بنود الملاحظات.
+            </div>
+            <button class="btn btn-primary" onclick="switchView('settings');setTimeout(()=>switchSettingsSub('noteBank'),50)">⚙️ الإعدادات → بنود الملاحظات</button>
+          </div>
+        </div>
+
+        <div id="noteBankPicker" class="card hidden">
+          <div class="card-header">
+            <h3 id="noteBankPickerTitle">اختر بنداً لإضافته</h3>
+            <div style="display:flex;gap:5px">
+              <button class="btn btn-secondary btn-sm" onclick="openNoteModal()" title="إضافة ملاحظة نصية مخصصة">✏️ كتابة ملاحظة مخصصة</button>
+            </div>
+          </div>
+          <div class="section-title">✅ بنود إيجابية</div>
+          <div id="positiveNoteIcons" class="note-icons-grid"></div>
+          <div class="section-title">⚠️ بنود سلبية</div>
+          <div id="negativeNoteIcons" class="note-icons-grid"></div>
+
+          <div id="extraTextArea" class="hidden" style="margin-top:14px;padding:12px;background:#fffbeb;border-radius:9px;border:1px solid #fde68a">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <b style="font-size:13px;color:#92400e" id="extraTextHeader">📎 البند المختار: </b>
+              <button class="btn btn-secondary btn-sm" onclick="cancelExtraText()">❌ إلغاء</button>
+            </div>
+            <textarea id="extraTextInput" placeholder="(اختياري) أضف تفاصيل أو شرحاً للبند..." rows="2" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px;font-family:inherit;font-size:13px;background:white;resize:vertical"></textarea>
+            <div style="margin-top:8px;display:flex;gap:6px;justify-content:flex-end">
+              <button class="btn btn-success btn-sm" onclick="confirmNoteWithExtra()">💾 حفظ</button>
+              <button class="btn btn-info btn-sm" onclick="confirmNoteWithoutExtra()">✓ حفظ بدون تفاصيل</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="notesCard">
+          <div class="card-header">
+            <h3 id="notesCardTitle">الملاحظات السابقة</h3>
+          </div>
+          <div id="notesBody"></div>
+        </div>
       </div>
+
+      <!-- EVALUATION -->
       <div id="view-reports" class="hidden">
         <h2 class="page-title">📈 التقارير</h2>
-        <div class="card"><div class="warn-box">🚧 قيد التطوير في الجلسة القادمة.</div></div>
+        <p class="page-subtitle">استخراج تقارير شاملة عن الغياب والملاحظات والدرجات والتقييم الدوري بنظام فلترة مرن.</p>
+
+        <div class="report-tabs">
+          <button class="report-tab active" data-report="overview" onclick="switchReportTab('overview')">📋 نظرة شاملة</button>
+          <button class="report-tab" data-report="attendance" onclick="switchReportTab('attendance')">📅 تقرير الغياب</button>
+          <button class="report-tab" data-report="notes" onclick="switchReportTab('notes')">📝 تقرير الملاحظات</button>
+          <button class="report-tab" data-report="grades" onclick="switchReportTab('grades')">📊 تقرير الدرجات</button>
+          <button class="report-tab" data-report="evaluation" onclick="switchReportTab('evaluation')">⭐ تقرير التقييم</button>
+          <button class="report-tab" data-report="student" onclick="switchReportTab('student')">🔍 تقرير طالب</button>
+        </div>
+
+        <!-- Common filters -->
+        <div class="card" id="reportFiltersCard">
+          <div class="filter-bar">
+            <div><label>الصف</label><select id="rptFilterGrade" onchange="onReportGradeChange()"></select></div>
+            <div><label>الشعبة</label><select id="rptFilterSection" onchange="renderCurrentReport()"></select></div>
+            <div><label>من تاريخ</label><input type="date" id="rptFromDate" onchange="renderCurrentReport()"></div>
+            <div><label>إلى تاريخ</label><input type="date" id="rptToDate" onchange="renderCurrentReport()"></div>
+            <div><label>بحث عن طالب</label><input type="text" id="rptSearchStudent" placeholder="اسم أو رقم..." oninput="renderCurrentReport()"></div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+            <button class="btn btn-secondary btn-sm" onclick="clearReportFilters()">🔄 مسح الفلاتر</button>
+            <button class="btn btn-success btn-sm" onclick="exportCurrentReport()">📤 تصدير إلى Excel</button>
+            <button class="btn btn-info btn-sm" onclick="printCurrentReport()">🖨️ طباعة</button>
+          </div>
+        </div>
+
+        <!-- Report Content -->
+        <div class="card">
+          <div class="card-header">
+            <h3 id="reportCardTitle">التقرير</h3>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+              <span id="reportResultCount" class="pill pill-gray">0 نتيجة</span>
+              <button id="reportSendBtn" class="btn btn-success btn-sm hidden" onclick="openReportSendModal()">📱 إرسال واتساب</button>
+            </div>
+          </div>
+          <div id="reportBody"></div>
+        </div>
       </div>
+
+      <!-- TEMPLATES -->
       <div id="view-templates" class="hidden">
         <h2 class="page-title">💬 قوالب الرسائل</h2>
         <div class="card"><div class="warn-box">🚧 قيد التطوير في الجلسة القادمة.</div></div>
@@ -1652,6 +1755,974 @@ async function saveSettings() {
     }
   } catch (e) { console.error(e); }
 })();
+
+
+// === NOTES & REPORTS FUNCTIONS (migrated from index.html) ===
+function onNoteFilterGradeChange() { fillSectionSelect('noteFilterSection', document.getElementById('noteFilterGrade').value); renderNotesStudents(); }
+function renderNotesStudents() {
+  const gradeId = document.getElementById('noteFilterGrade').value;
+  const secId = document.getElementById('noteFilterSection').value;
+  const list = filterStudents(gradeId, secId, '');
+  const sel = document.getElementById('noteStudent');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">-- اختر طالباً --</option>' + list.map(s => `<option value="${s.id}">${esc(s.name)} (${esc(s.student_id)})</option>`).join('');
+  if (cur && list.find(s => s.id === cur)) sel.value = cur;
+  renderStudentNotes();
+}
+
+function renderStudentNotes() {
+  const sid = document.getElementById('noteStudent').value;
+  const body = document.getElementById('notesBody');
+  const title = document.getElementById('notesCardTitle');
+  const picker = document.getElementById('noteBankPicker');
+  const notice = document.getElementById('noteBankNotice');
+  const pickerTitle = document.getElementById('noteBankPickerTitle');
+  const extraArea = document.getElementById('extraTextArea');
+
+  // Hide extra text input when switching
+  if (extraArea) extraArea.classList.add('hidden');
+  pendingNoteBankItem = null;
+
+  if (!sid) {
+    title.textContent = 'الملاحظات السابقة';
+    body.innerHTML = `<div class="empty-state"><h4>📝 اختر طالباً لعرض ملاحظاته</h4></div>`;
+    if (picker) picker.classList.add('hidden');
+    if (notice) notice.classList.add('hidden');
+    return;
+  }
+  const s = teacherData.students.find(x => x.id === sid);
+  const studentName = s?.name || '';
+  title.textContent = `ملاحظات الطالب/ة: ${studentName}`;
+
+  // Show note bank picker if bank has any items, else show notice
+  const hasBank = (teacherData.noteBank?.positive?.length > 0) || (teacherData.noteBank?.negative?.length > 0);
+  if (hasBank) {
+    picker.classList.remove('hidden');
+    notice.classList.add('hidden');
+    pickerTitle.textContent = `اضغط بنداً لإضافته إلى "${studentName}":`;
+    renderNoteBankIcons();
+  } else {
+    picker.classList.add('hidden');
+    notice.classList.remove('hidden');
+  }
+
+  // Render previous notes list
+  const notes = (teacherData.notes[sid] || []).slice().sort((a,b) => (b.date || '').localeCompare(a.date || ''));
+  if (!notes.length) {
+    body.innerHTML = `<div class="empty-state"><h4>لا توجد ملاحظات</h4><p>اضغط بنداً من الأعلى أو اكتب ملاحظة مخصصة</p></div>`;
+    return;
+  }
+  body.innerHTML = `<div style="display:flex;flex-direction:column;gap:6px">${notes.map(n => `
+    <div class="note-item ${n.type}" style="padding:10px 12px">
+      <div style="flex:1">
+        <div style="font-size:11px;color:#6b7280;margin-bottom:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          ${n.type === 'positive' ? '✅ إيجابية' : '⚠️ سلبية'} · 
+          📅 ${esc(n.date || '')}
+          ${n.time ? `· 🕐 <span id="time_${n.id}">${esc(n.time)}</span> <button onclick="editNoteTime('${sid}','${n.id}')" style="background:none;border:none;color:#4f46e5;cursor:pointer;font-size:11px;padding:0 3px" title="تعديل الوقت">✏️</button>` : ''}
+        </div>
+        <div>${esc(n.text)}</div>
+      </div>
+      <button class="note-remove" onclick="deleteNote('${sid}','${n.id}')">×</button>
+    </div>`).join('')}</div>`;
+}
+
+async function editNoteTime(sid, noteId) {
+  const notes = teacherData.notes[sid] || [];
+  const n = notes.find(x => x.id === noteId);
+  if (!n) return;
+  const current = n.time || '';
+  const newTime = prompt('الوقت الجديد (HH:MM):', current);
+  if (newTime === null) return; // cancelled
+  const trimmed = newTime.trim();
+  if (!trimmed) return;
+  // Validate HH:MM format
+  if (!/^([01]?\d|2[0-3]):[0-5]\d$/.test(trimmed)) {
+    alert('صيغة غير صحيحة. استخدم HH:MM مثل 08:30 أو 14:45');
+    return;
+  }
+  n.time = trimmed;
+  await saveData();
+  renderStudentNotes();
+}
+
+function renderNoteBankIcons() {
+  const posDiv = document.getElementById('positiveNoteIcons');
+  const negDiv = document.getElementById('negativeNoteIcons');
+  const bank = teacherData.noteBank || { positive:[], negative:[] };
+  if (posDiv) {
+    posDiv.innerHTML = bank.positive.length
+      ? bank.positive.map(item => `<button class="note-icon-btn positive" onclick="pickNoteBankItem('positive','${item.id}')"><span class="icon-text">${esc(item.text)}</span></button>`).join('')
+      : '<div class="note-icons-empty">لم تُضف بنود إيجابية بعد. اذهب للإعدادات → بنود الملاحظات.</div>';
+  }
+  if (negDiv) {
+    negDiv.innerHTML = bank.negative.length
+      ? bank.negative.map(item => `<button class="note-icon-btn negative" onclick="pickNoteBankItem('negative','${item.id}')"><span class="icon-text">${esc(item.text)}</span></button>`).join('')
+      : '<div class="note-icons-empty">لم تُضف بنود سلبية بعد.</div>';
+  }
+}
+
+function pickNoteBankItem(type, itemId) {
+  const list = teacherData.noteBank?.[type] || [];
+  const item = list.find(x => x.id === itemId);
+  if (!item) return;
+  pendingNoteBankItem = { type, text: item.text };
+  const extraArea = document.getElementById('extraTextArea');
+  const extraHeader = document.getElementById('extraTextHeader');
+  const extraInput = document.getElementById('extraTextInput');
+  extraHeader.innerHTML = `${type === 'positive' ? '✅' : '⚠️'} البند المختار: <b style="color:${type === 'positive' ? '#166534' : '#991b1b'}">${esc(item.text)}</b>`;
+  extraInput.value = '';
+  extraArea.classList.remove('hidden');
+  setTimeout(() => extraInput.focus(), 50);
+}
+
+function cancelExtraText() {
+  pendingNoteBankItem = null;
+  document.getElementById('extraTextArea').classList.add('hidden');
+}
+
+async function confirmNoteWithExtra() {
+  if (!pendingNoteBankItem) return;
+  const extra = document.getElementById('extraTextInput').value.trim();
+  const combined = extra ? `${pendingNoteBankItem.text} — ${extra}` : pendingNoteBankItem.text;
+  await saveNoteForStudent(pendingNoteBankItem.type, combined);
+}
+
+async function confirmNoteWithoutExtra() {
+  if (!pendingNoteBankItem) return;
+  await saveNoteForStudent(pendingNoteBankItem.type, pendingNoteBankItem.text);
+}
+
+async function saveNoteForStudent(type, text) {
+  const sid = document.getElementById('noteStudent').value;
+  if (!sid) return;
+  if (!teacherData.notes[sid]) teacherData.notes[sid] = [];
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  teacherData.notes[sid].push({ id: uid('n'), type, text, date: todayStr(), time: `${hh}:${mm}` });
+  await saveData();
+  cancelExtraText();
+  renderStudentNotes();
+}
+
+function openNoteModal() {
+  const sid = document.getElementById('noteStudent').value;
+  if (!sid) return alert('اختر طالباً أولاً');
+  const s = teacherData.students.find(x => x.id === sid);
+  document.getElementById('noteModalStudentName').textContent = s?.name || '';
+  document.getElementById('noteModalType').value = 'positive';
+  document.getElementById('noteModalDate').value = todayStr();
+  document.getElementById('noteModalText').value = '';
+  document.getElementById('noteModalError').classList.add('hidden');
+  document.getElementById('noteModal').classList.remove('hidden');
+}
+async function saveNote() {
+  const err = document.getElementById('noteModalError'); err.classList.add('hidden');
+  const sid = document.getElementById('noteStudent').value;
+  const type = document.getElementById('noteModalType').value;
+  const date = document.getElementById('noteModalDate').value;
+  const text = document.getElementById('noteModalText').value.trim();
+  if (!text) { err.textContent = 'النص مطلوب'; err.classList.remove('hidden'); return; }
+  if (!teacherData.notes[sid]) teacherData.notes[sid] = [];
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  teacherData.notes[sid].push({ id: uid('n'), type, text, date: date || todayStr(), time: `${hh}:${mm}` });
+  await saveData();
+  closeModal('noteModal');
+  renderStudentNotes();
+}
+async function deleteNote(sid, noteId) {
+  if (!confirm('حذف هذه الملاحظة؟')) return;
+  if (!teacherData.notes[sid]) return;
+  teacherData.notes[sid] = teacherData.notes[sid].filter(n => n.id !== noteId);
+  await saveData(); renderStudentNotes();
+}
+
+// ========= NOTE BANK (Settings) =========
+function renderNoteBank() {
+  const bank = teacherData.noteBank || { positive:[], negative:[] };
+  const posBody = document.getElementById('positiveBankBody');
+  const negBody = document.getElementById('negativeBankBody');
+  if (posBody) {
+    posBody.innerHTML = bank.positive.length
+      ? bank.positive.map((item, idx) => `<div class="bank-item">
+          <span class="handle">${idx+1}</span>
+          <input type="text" placeholder="⭐ متفوق في حل الواجبات" value="${esc(item.text)}" onchange="updateBankItem('positive','${item.id}',this.value)">
+          <button class="btn btn-danger btn-sm" onclick="deleteBankItem('positive','${item.id}')">🗑️</button>
+        </div>`).join('')
+      : '<div class="bank-empty">لم تُضف بنود إيجابية بعد. اضغط "إضافة بند إيجابي".</div>';
+  }
+  if (negBody) {
+    negBody.innerHTML = bank.negative.length
+      ? bank.negative.map((item, idx) => `<div class="bank-item">
+          <span class="handle">${idx+1}</span>
+          <input type="text" placeholder="📵 استخدام الجوال في الحصة" value="${esc(item.text)}" onchange="updateBankItem('negative','${item.id}',this.value)">
+          <button class="btn btn-danger btn-sm" onclick="deleteBankItem('negative','${item.id}')">🗑️</button>
+        </div>`).join('')
+      : '<div class="bank-empty">لم تُضف بنود سلبية بعد.</div>';
+  }
+}
+function addNoteBankItem(type) {
+  if (!teacherData.noteBank) teacherData.noteBank = { positive:[], negative:[] };
+  if (!Array.isArray(teacherData.noteBank[type])) teacherData.noteBank[type] = [];
+  teacherData.noteBank[type].push({ id: uid('nb'), text: '' });
+  renderNoteBank();
+}
+function updateBankItem(type, id, value) {
+  const item = teacherData.noteBank?.[type]?.find(x => x.id === id);
+  if (item) item.text = value;
+}
+async function deleteBankItem(type, id) {
+  const item = teacherData.noteBank?.[type]?.find(x => x.id === id);
+  if (!item) return;
+  if (!confirm(`حذف البند "${item.text || '(بدون نص)'}"؟`)) return;
+  teacherData.noteBank[type] = teacherData.noteBank[type].filter(x => x.id !== id);
+  await saveData();
+  renderNoteBank();
+}
+async function saveNoteBank() {
+  const msg = document.getElementById('noteBankMessage'); msg.innerHTML = '';
+  // Clean empty items
+  ['positive','negative'].forEach(type => {
+    teacherData.noteBank[type] = (teacherData.noteBank[type] || []).filter(x => x.text && x.text.trim());
+  });
+  await saveData();
+  renderNoteBank();
+  msg.innerHTML = '<div class="success">✅ حُفظت بنود الملاحظات</div>';
+  setTimeout(() => msg.innerHTML = '', 3000);
+}
+
+// ========= EVALUATION =========
+function onEvalFilterGradeChange() { fillSectionSelect('evalFilterSection', document.getElementById('evalFilterGrade').value); renderEvalTable(); }
+
+function getAcademicStartDate() {
+  const raw = teacherData.profile?.academic_start_date;
+  if (!raw) return null;
+  const d = new Date(raw + 'T00:00:00');
+  if (isNaN(d.getTime())) return null;
+  return d;
+}
+
+const ARABIC_MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+
+function fmtDateShort(d) {
+  return `${d.getDate()}/${d.getMonth()+1}`;
+}
+
+function generateWeeklyPeriods(startDate, count = 40) {
+  // In Oman, school week: Sunday -> Thursday
+  // Find first Sunday at or after startDate
+  const start = new Date(startDate);
+  while (start.getDay() !== 0) { // 0 = Sunday
+    start.setDate(start.getDate() + 1);
+  }
+  const periods = [];
+  for (let i = 0; i < count; i++) {
+    const sun = new Date(start);
+    sun.setDate(start.getDate() + i*7);
+    const thu = new Date(sun);
+    thu.setDate(sun.getDate() + 4);
+    const label = `الأسبوع ${i+1} (${fmtDateShort(sun)} - ${fmtDateShort(thu)})`;
+    const key = `w${i+1}_${sun.toISOString().slice(0,10)}`;
+    periods.push({ key, label });
+  }
+  return periods;
+}
+
+function generateMonthlyPeriods(startDate, count = 12) {
+  const periods = [];
+  const d = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+  for (let i = 0; i < count; i++) {
+    const monthIdx = d.getMonth();
+    const year = d.getFullYear();
+    const label = `${ARABIC_MONTHS[monthIdx]} ${year}`;
+    const key = `m_${year}_${String(monthIdx+1).padStart(2,'0')}`;
+    periods.push({ key, label });
+    d.setMonth(d.getMonth() + 1);
+  }
+  return periods;
+}
+
+function refreshEvalPeriodList() {
+  const typeSel = document.getElementById('evalPeriodType');
+  const periodSel = document.getElementById('evalPeriod');
+  if (!typeSel || !periodSel) return;
+  const type = typeSel.value;
+  const startDate = getAcademicStartDate();
+  if (!startDate) {
+    periodSel.innerHTML = '<option value="">-- حدد تاريخ البداية في الإعدادات --</option>';
+    renderEvalTable();
+    return;
+  }
+  const periods = type === 'weekly' ? generateWeeklyPeriods(startDate, 40) : generateMonthlyPeriods(startDate, 12);
+  const cur = periodSel.value;
+  periodSel.innerHTML = '<option value="">-- اختر الفترة --</option>' + periods.map(p => `<option value="${p.key}|${esc(p.label)}">${esc(p.label)}</option>`).join('');
+  if (cur && [...periodSel.options].some(o => o.value === cur)) periodSel.value = cur;
+  renderEvalTable();
+}
+
+function renderEvalMain() {
+  if (!teacherData.rubric || !teacherData.rubric.length) {
+    document.getElementById('evalNoRubric').classList.remove('hidden');
+    document.getElementById('evalMain').classList.add('hidden');
+    return;
+  }
+  document.getElementById('evalNoRubric').classList.add('hidden');
+  document.getElementById('evalMain').classList.remove('hidden');
+  refreshEvalPeriodList();
+  renderEvalTable();
+}
+
+function getCurrentPeriodLabel() {
+  const val = document.getElementById('evalPeriod')?.value || '';
+  if (!val) return '';
+  const idx = val.indexOf('|');
+  return idx > 0 ? val.slice(idx + 1) : val;
+}
+
+function renderEvalTable() {
+  const body = document.getElementById('evalTableBody');
+  const titleEl = document.getElementById('evalTableTitle');
+  if (!body) return;
+  const gradeId = document.getElementById('evalFilterGrade').value;
+  const secId = document.getElementById('evalFilterSection').value;
+  const period = getCurrentPeriodLabel();
+  const search = document.getElementById('evalSearch').value.trim();
+
+  if (!getAcademicStartDate()) {
+    titleEl.textContent = 'جدول التقييم';
+    body.innerHTML = `<div class="warn-box">⚠️ لم تحدد <b>تاريخ بداية العام الدراسي</b> بعد.<br>اذهب إلى <b>الإعدادات → الملف الشخصي</b> وحدد التاريخ ليتم توليد الفترات.</div>`;
+    return;
+  }
+  if (!gradeId || !secId) {
+    titleEl.textContent = 'جدول التقييم';
+    body.innerHTML = `<div class="empty-state"><h4>📋 اختر الصف والشعبة أولاً</h4></div>`;
+    return;
+  }
+  if (!period) {
+    titleEl.textContent = 'جدول التقييم';
+    body.innerHTML = `<div class="empty-state"><h4>📅 اختر فترة التقييم</h4></div>`;
+    return;
+  }
+  const list = filterStudents(gradeId, secId, search);
+  if (!list.length) {
+    body.innerHTML = `<div class="empty-state"><h4>📭 لا يوجد طلاب في هذه الشعبة</h4></div>`;
+    return;
+  }
+  const rubric = teacherData.rubric;
+  if (!rubric.length) {
+    body.innerHTML = `<div class="warn-box">⚠️ أضف بنود التقييم من الإعدادات أولاً.</div>`;
+    return;
+  }
+  titleEl.innerHTML = `جدول التقييم — <b style="color:#4f46e5">${esc(period)}</b> <span class="pill pill-gray">${list.length} طالب</span>`;
+
+  const grade = teacherData.grades.find(g => g.id === gradeId);
+  const assessments = grade?.assessments || [];
+
+  let html = '<div class="eval-table-wrap"><table class="eval-table"><thead><tr>';
+  html += '<th class="student-cell">الطالب</th>';
+  rubric.forEach(axis => { html += `<th class="axis-header">${esc(axis.name)}</th>`; });
+  html += '</tr></thead><tbody>';
+
+  list.forEach(student => {
+    const existing = teacherData.evaluations.find(e => e.student_id === student.id && e.period === period);
+    const scores = existing ? existing.scores || {} : {};
+    const hasAnyScore = Object.keys(scores).length > 0;
+    const includedAssessment = existing?.included_assessment || null;
+
+    html += '<tr>';
+    html += `<td class="student-cell"><div class="student-name">${esc(student.name)}</div><div style="font-size:10px;color:#6b7280">${esc(student.student_id || '')}</div></td>`;
+    rubric.forEach(axis => {
+      const selectedRank = scores[axis.id];
+      const selectedText = selectedRank && axis.ranks ? axis.ranks[selectedRank - 1] || '' : '';
+      const rankCount = (axis.ranks || []).length;
+      html += `<td><div class="rank-mini-buttons">`;
+      for (let r = 1; r <= rankCount; r++) {
+        const isSel = selectedRank === r;
+        html += `<button class="rank-mini-btn rank-${r} ${isSel ? 'selected' : ''}" onclick="setEvalCell('${student.id}','${axis.id}',${r})" title="${esc(axis.ranks[r-1] || '')}">${r}</button>`;
+      }
+      html += `</div>`;
+      html += `<div class="eval-selected-label">${selectedText ? esc(selectedText) : ''}</div>`;
+      html += `</td>`;
+    });
+    html += '</tr>';
+
+    if (hasAnyScore) {
+      const phrase = buildEvalPhrase(student, scores, includedAssessment);
+      const colspan = rubric.length + 1;
+      html += `<tr class="eval-phrase-row"><td colspan="${colspan}" class="eval-phrase-cell">`;
+      html += `<div class="eval-phrase-header">
+        <span class="eval-phrase-label">📝 العبارة المجمّعة:</span>`;
+      if (assessments.length) {
+        html += `<span class="eval-phrase-assess">
+          <label>أضف درجة:</label>
+          <select onchange="setEvalAssessment('${student.id}',this.value)">
+            <option value="">-- بدون --</option>
+            ${assessments.map(a => {
+              const score = student.scores?.[a.id];
+              const hasScore = score != null;
+              const selected = includedAssessment === a.id ? 'selected' : '';
+              const disabled = hasScore ? '' : 'disabled';
+              const suffix = hasScore ? ` (${score}/${a.max})` : ' — لم يُدخل';
+              return `<option value="${a.id}" ${selected} ${disabled}>${esc(a.name)}${suffix}</option>`;
+            }).join('')}
+          </select>
+        </span>`;
+      }
+      html += `<button class="btn btn-info btn-sm" onclick="copyEvalPhrase('${student.id}')" title="نسخ العبارة"><span id="copy_${student.id}">📋 نسخ</span></button>
+      </div>
+      <div class="eval-phrase-text" id="phrase_${student.id}">${esc(phrase)}</div>
+      </td></tr>`;
+    }
+  });
+  html += '</tbody></table></div>';
+  body.innerHTML = html;
+}
+
+function buildEvalPhrase(student, scores, includedAssessmentId) {
+  const rubric = teacherData.rubric;
+  const parts = [];
+  rubric.forEach(axis => {
+    const rank = scores[axis.id];
+    if (rank && axis.ranks && axis.ranks[rank - 1]) {
+      parts.push(axis.ranks[rank - 1]);
+    }
+  });
+  if (!parts.length) return '';
+  const studentName = student.name || '';
+  let phrase = `تم تقييم الطالب/ة ${studentName}: ` + parts.join('، ');
+  if (includedAssessmentId) {
+    const grade = teacherData.grades.find(g => g.id === student.grade_id);
+    const assess = grade?.assessments?.find(a => a.id === includedAssessmentId);
+    const score = student.scores?.[includedAssessmentId];
+    if (assess && score != null) {
+      phrase += `، وحصل/ت على ${score} من ${assess.max} في ${assess.name}`;
+    }
+  }
+  phrase += '. أشكر ولي الأمر على المتابعة.';
+  return phrase;
+}
+
+async function setEvalAssessment(studentId, assessmentId) {
+  const period = getCurrentPeriodLabel();
+  if (!period) return;
+  let rec = teacherData.evaluations.find(e => e.student_id === studentId && e.period === period);
+  if (!rec) return;
+  if (assessmentId) rec.included_assessment = assessmentId;
+  else delete rec.included_assessment;
+  await saveData();
+  renderEvalTable();
+}
+
+function copyEvalPhrase(studentId) {
+  const el = document.getElementById('phrase_' + studentId);
+  const copyLabel = document.getElementById('copy_' + studentId);
+  if (!el) return;
+  const text = el.textContent;
+  const setCopied = () => {
+    if (copyLabel) {
+      const orig = copyLabel.textContent;
+      copyLabel.textContent = '✅ تم النسخ';
+      setTimeout(() => { copyLabel.textContent = orig; }, 1800);
+    }
+  };
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(setCopied).catch(() => { fallbackCopy(text); setCopied(); });
+  } else { fallbackCopy(text); setCopied(); }
+}
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
+}
+
+async function setEvalCell(studentId, axisId, rank) {
+  const period = getCurrentPeriodLabel();
+  if (!period) return alert('اختر فترة التقييم أولاً');
+  let rec = teacherData.evaluations.find(e => e.student_id === studentId && e.period === period);
+  if (!rec) {
+    rec = { id: uid('ev'), student_id: studentId, period, scores: {}, date: todayStr() };
+    teacherData.evaluations.push(rec);
+  }
+  if (!rec.scores) rec.scores = {};
+  if (rec.scores[axisId] === rank) {
+    delete rec.scores[axisId];
+    if (Object.keys(rec.scores).length === 0) {
+      teacherData.evaluations = teacherData.evaluations.filter(e => e.id !== rec.id);
+    }
+  } else {
+    rec.scores[axisId] = rank;
+    rec.date = todayStr();
+  }
+  await saveData();
+  renderEvalTable();
+}
+
+async function clearAllEvalsForPeriod() {
+  const gradeId = document.getElementById('evalFilterGrade').value;
+  const secId = document.getElementById('evalFilterSection').value;
+  const period = getCurrentPeriodLabel();
+  if (!gradeId || !secId || !period) return alert('اختر الصف والشعبة والفترة');
+  const list = filterStudents(gradeId, secId, '');
+  const ids = new Set(list.map(s => s.id));
+  const count = teacherData.evaluations.filter(e => ids.has(e.student_id) && e.period === period).length;
+  if (!count) return alert('لا توجد تقييمات لهذه الفترة بعد');
+  if (!confirm(`مسح ${count} تقييم لهذه الفترة "${period}"؟`)) return;
+  teacherData.evaluations = teacherData.evaluations.filter(e => !(ids.has(e.student_id) && e.period === period));
+  await saveData();
+  renderEvalTable();
+}
+
+
+// ========= REPORTS =========
+let currentReportTab = 'overview';
+
+function switchReportTab(tab) {
+  currentReportTab = tab;
+  document.querySelectorAll('.report-tab').forEach(t => t.classList.toggle('active', t.dataset.report === tab));
+  renderCurrentReport();
+}
+
+function onReportGradeChange() {
+  fillSectionSelect('rptFilterSection', document.getElementById('rptFilterGrade').value);
+  renderCurrentReport();
+}
+
+function initReports() {
+  fillGradeSelect('rptFilterGrade');
+  onReportGradeChange();
+}
+
+function clearReportFilters() {
+  document.getElementById('rptFilterGrade').value = '';
+  document.getElementById('rptFilterSection').innerHTML = '<option value="">-- كل الشعب --</option>';
+  document.getElementById('rptFromDate').value = '';
+  document.getElementById('rptToDate').value = '';
+  document.getElementById('rptSearchStudent').value = '';
+  renderCurrentReport();
+}
+
+function getReportFilters() {
+  return {
+    gradeId: document.getElementById('rptFilterGrade')?.value || '',
+    sectionId: document.getElementById('rptFilterSection')?.value || '',
+    fromDate: document.getElementById('rptFromDate')?.value || '',
+    toDate: document.getElementById('rptToDate')?.value || '',
+    search: document.getElementById('rptSearchStudent')?.value.trim() || ''
+  };
+}
+
+function filterStudentsForReport() {
+  const f = getReportFilters();
+  return teacherData.students.filter(s => {
+    if (f.gradeId && s.grade_id !== f.gradeId) return false;
+    if (f.sectionId && s.section_id !== f.sectionId) return false;
+    if (f.search) {
+      const h = `${s.name || ''} ${s.student_id || ''}`.toLowerCase();
+      if (!h.includes(f.search.toLowerCase())) return false;
+    }
+    return true;
+  });
+}
+
+function dateInRange(dateStr, from, to) {
+  if (!dateStr) return true;
+  if (from && dateStr < from) return false;
+  if (to && dateStr > to) return false;
+  return true;
+}
+
+function renderCurrentReport() {
+  const title = document.getElementById('reportCardTitle');
+  if (!title) return;
+  const titles = {
+    overview: '📋 نظرة شاملة',
+    attendance: '📅 تقرير الغياب',
+    notes: '📝 تقرير الملاحظات',
+    grades: '📊 تقرير الدرجات',
+    evaluation: '⭐ تقرير التقييم الدوري',
+    student: '🔍 تقرير طالب'
+  };
+  title.textContent = titles[currentReportTab] || 'التقرير';
+  updateReportSendButtonVisibility();
+  if (currentReportTab === 'overview') renderOverviewReport();
+  else if (currentReportTab === 'attendance') renderAttendanceReport();
+  else if (currentReportTab === 'notes') renderNotesReport();
+  else if (currentReportTab === 'grades') renderGradesReport();
+  else if (currentReportTab === 'evaluation') renderEvaluationReport();
+  else if (currentReportTab === 'student') renderStudentReport();
+}
+
+function setReportCount(n) { const el = document.getElementById('reportResultCount'); if (el) el.textContent = `${n} نتيجة`; }
+
+// -- Overview --
+function renderOverviewReport() {
+  const body = document.getElementById('reportBody');
+  const students = filterStudentsForReport();
+  setReportCount(students.length);
+  const f = getReportFilters();
+  const totalAtt = Object.values(teacherData.attendance).reduce((n,day) => n + Object.keys(day).length, 0);
+  const totalNotesInFilter = students.reduce((n,s) => {
+    const notes = (teacherData.notes[s.id] || []).filter(nt => dateInRange(nt.date, f.fromDate, f.toDate));
+    return n + notes.length;
+  }, 0);
+  const totalEvals = teacherData.evaluations.filter(e => students.some(s => s.id === e.student_id)).length;
+
+  body.innerHTML = `
+    <div class="report-summary-grid">
+      <div class="report-summary-tile"><div class="label">الطلاب المطابقون</div><div class="value">${students.length}</div></div>
+      <div class="report-summary-tile green"><div class="label">ملاحظات إيجابية</div><div class="value">${students.reduce((n,s)=>n+((teacherData.notes[s.id]||[]).filter(nt=>nt.type==='positive'&&dateInRange(nt.date,f.fromDate,f.toDate)).length),0)}</div></div>
+      <div class="report-summary-tile red"><div class="label">ملاحظات سلبية</div><div class="value">${students.reduce((n,s)=>n+((teacherData.notes[s.id]||[]).filter(nt=>nt.type==='negative'&&dateInRange(nt.date,f.fromDate,f.toDate)).length),0)}</div></div>
+      <div class="report-summary-tile yellow"><div class="label">سجلات غياب</div><div class="value">${totalAtt}</div></div>
+      <div class="report-summary-tile blue"><div class="label">تقييمات دورية</div><div class="value">${totalEvals}</div></div>
+    </div>
+    ${!students.length ? `<div class="empty-state"><h4>لا يوجد طلاب مطابقون للفلاتر</h4></div>` : `
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>الطالب</th><th>الرقم</th><th>الصف/الشعبة</th><th>درجات</th><th>حضور</th><th>غياب</th><th>ملاحظات +</th><th>ملاحظات -</th><th>تقييمات</th></tr></thead>
+        <tbody>${students.map((s, i) => {
+          const g = teacherData.grades.find(x => x.id === s.grade_id);
+          const sec = g?.sections?.find(x => x.id === s.section_id);
+          // attendance
+          let p=0,a=0;
+          Object.entries(teacherData.attendance).forEach(([d, day]) => { if (!dateInRange(d, f.fromDate, f.toDate)) return; const st = day[s.id]; if (st === 'present') p++; else if (st === 'absent') a++; });
+          // notes
+          const notes = (teacherData.notes[s.id] || []).filter(nt => dateInRange(nt.date, f.fromDate, f.toDate));
+          const pos = notes.filter(n => n.type === 'positive').length;
+          const neg = notes.filter(n => n.type === 'negative').length;
+          // grades
+          const scoreCount = s.scores ? Object.keys(s.scores).length : 0;
+          // evals
+          const evCount = teacherData.evaluations.filter(e => e.student_id === s.id).length;
+          return `<tr>
+            <td>${i+1}</td>
+            <td><b>${esc(s.name)}</b></td>
+            <td><code>${esc(s.student_id || '')}</code></td>
+            <td><span class="pill">${esc(g?.name || '')}</span> ${sec ? `<span class="pill pill-gray">${esc(sec.name)}</span>` : ''}</td>
+            <td>${scoreCount}</td>
+            <td><span class="pill pill-green">${p}</span></td>
+            <td><span class="pill pill-red">${a}</span></td>
+            <td><span class="pill pill-green">${pos}</span></td>
+            <td><span class="pill pill-red">${neg}</span></td>
+            <td>${evCount}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table></div>
+    `}`;
+}
+
+// -- Attendance --
+function renderAttendanceReport() {
+  const body = document.getElementById('reportBody');
+  const students = filterStudentsForReport();
+  const f = getReportFilters();
+  const rows = students.map(s => {
+    let p=0,a=0,l=0,e=0;
+    Object.entries(teacherData.attendance).forEach(([d, day]) => {
+      if (!dateInRange(d, f.fromDate, f.toDate)) return;
+      const st = day[s.id];
+      if (st==='present') p++; else if (st==='absent') a++; else if (st==='late') l++; else if (st==='excused') e++;
+    });
+    return { s, p, a, l, e, total: p+a+l+e };
+  }).filter(r => r.total > 0);
+  setReportCount(rows.length);
+  if (!rows.length) { body.innerHTML = `<div class="empty-state"><h4>لا توجد بيانات غياب مطابقة</h4></div>`; return; }
+  const totalP = rows.reduce((n,r)=>n+r.p,0);
+  const totalA = rows.reduce((n,r)=>n+r.a,0);
+  const totalL = rows.reduce((n,r)=>n+r.l,0);
+  const totalE = rows.reduce((n,r)=>n+r.e,0);
+  body.innerHTML = `
+    <div class="report-summary-grid">
+      <div class="report-summary-tile green"><div class="label">حضور</div><div class="value">${totalP}</div></div>
+      <div class="report-summary-tile red"><div class="label">غياب</div><div class="value">${totalA}</div></div>
+      <div class="report-summary-tile yellow"><div class="label">تأخر</div><div class="value">${totalL}</div></div>
+      <div class="report-summary-tile blue"><div class="label">مأذون</div><div class="value">${totalE}</div></div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>الطالب</th><th>الرقم</th><th>الصف/الشعبة</th><th>حاضر</th><th>غائب</th><th>متأخر</th><th>مأذون</th><th>نسبة الحضور</th></tr></thead>
+      <tbody>${rows.map(r => {
+        const g = teacherData.grades.find(x => x.id === r.s.grade_id);
+        const sec = g?.sections?.find(x => x.id === r.s.section_id);
+        const rate = r.total ? ((r.p / r.total) * 100).toFixed(0) + '%' : '—';
+        return `<tr>
+          <td><b>${esc(r.s.name)}</b></td>
+          <td><code>${esc(r.s.student_id || '')}</code></td>
+          <td>${esc(g?.name || '')} · ${esc(sec?.name || '')}</td>
+          <td><span class="pill pill-green">${r.p}</span></td>
+          <td><span class="pill pill-red">${r.a}</span></td>
+          <td><span class="pill pill-yellow">${r.l}</span></td>
+          <td><span class="pill">${r.e}</span></td>
+          <td><b>${rate}</b></td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>`;
+}
+
+// -- Notes --
+function renderNotesReport() {
+  const body = document.getElementById('reportBody');
+  const students = filterStudentsForReport();
+  const f = getReportFilters();
+  const allNotes = [];
+  students.forEach(s => {
+    (teacherData.notes[s.id] || []).forEach(n => {
+      if (!dateInRange(n.date, f.fromDate, f.toDate)) return;
+      allNotes.push({ student: s, note: n });
+    });
+  });
+  allNotes.sort((a,b) => (b.note.date || '').localeCompare(a.note.date || ''));
+  setReportCount(allNotes.length);
+  if (!allNotes.length) { body.innerHTML = `<div class="empty-state"><h4>لا توجد ملاحظات مطابقة</h4></div>`; return; }
+  const pos = allNotes.filter(x => x.note.type === 'positive').length;
+  const neg = allNotes.length - pos;
+  body.innerHTML = `
+    <div class="report-summary-grid">
+      <div class="report-summary-tile"><div class="label">إجمالي الملاحظات</div><div class="value">${allNotes.length}</div></div>
+      <div class="report-summary-tile green"><div class="label">إيجابية</div><div class="value">${pos}</div></div>
+      <div class="report-summary-tile red"><div class="label">سلبية</div><div class="value">${neg}</div></div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>التاريخ</th><th>النوع</th><th>الطالب</th><th>الرقم</th><th>الصف</th><th>الملاحظة</th></tr></thead>
+      <tbody>${allNotes.map(x => {
+        const g = teacherData.grades.find(gr => gr.id === x.student.grade_id);
+        const sec = g?.sections?.find(s => s.id === x.student.section_id);
+        return `<tr>
+          <td>${esc(x.note.date || '')}</td>
+          <td>${x.note.type === 'positive' ? '<span class="pill pill-green">✅ إيجابية</span>' : '<span class="pill pill-red">⚠️ سلبية</span>'}</td>
+          <td><b>${esc(x.student.name)}</b></td>
+          <td><code>${esc(x.student.student_id || '')}</code></td>
+          <td>${esc(g?.name || '')} · ${esc(sec?.name || '')}</td>
+          <td>${esc(x.note.text)}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>`;
+}
+
+// -- Grades --
+function renderGradesReport() {
+  const body = document.getElementById('reportBody');
+  const students = filterStudentsForReport();
+  setReportCount(students.length);
+  if (!students.length) { body.innerHTML = `<div class="empty-state"><h4>لا يوجد طلاب مطابقون</h4></div>`; return; }
+  // Group by grade to show proper assessment columns
+  const byGrade = {};
+  students.forEach(s => { if (!byGrade[s.grade_id]) byGrade[s.grade_id] = []; byGrade[s.grade_id].push(s); });
+  let html = '';
+  Object.keys(byGrade).forEach(gradeId => {
+    const g = teacherData.grades.find(x => x.id === gradeId);
+    if (!g) return;
+    const list = byGrade[gradeId];
+    const assessments = g.assessments || [];
+    const maxT = assessments.reduce((sum, a) => sum + (parseFloat(a.max) || 0), 0);
+    const totals = list.map(s => { let t=0, any=false; assessments.forEach(a => { const v = num(s.scores?.[a.id]); if (v !== null) { t+=v; any=true; } }); return any ? t : null; }).filter(t => t !== null);
+    const avg = totals.length ? (totals.reduce((a,b)=>a+b,0)/totals.length).toFixed(1) : '—';
+    html += `<div class="student-report-section">
+      <h4>📘 ${esc(g.name)} · ${list.length} طالب · المتوسط ${avg}${maxT ? ` من ${maxT}` : ''}</h4>
+      ${!assessments.length ? '<div style="color:#9ca3af;font-size:12px">لا توجد أدوات تقويم</div>' :
+        `<div class="table-wrap"><table>
+          <thead><tr><th>الطالب</th><th>الرقم</th><th>الشعبة</th>${assessments.map(a => `<th>${esc(a.name)}<br><small>(${a.max})</small></th>`).join('')}<th>المجموع</th></tr></thead>
+          <tbody>${list.map(s => {
+            const sec = g.sections?.find(x => x.id === s.section_id);
+            let t=0, any=false;
+            assessments.forEach(a => { const v = num(s.scores?.[a.id]); if (v !== null) { t+=v; any=true; } });
+            return `<tr>
+              <td><b>${esc(s.name)}</b></td>
+              <td><code>${esc(s.student_id || '')}</code></td>
+              <td>${esc(sec?.name || '')}</td>
+              ${assessments.map(a => { const v = s.scores?.[a.id]; return `<td>${v != null ? v : '—'}</td>`; }).join('')}
+              <td><b>${any ? t.toFixed(1) : '—'}</b></td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table></div>`}
+    </div>`;
+  });
+  body.innerHTML = html;
+}
+
+// -- Evaluation --
+function renderEvaluationReport() {
+  const body = document.getElementById('reportBody');
+  const students = filterStudentsForReport();
+  const f = getReportFilters();
+  const rubric = teacherData.rubric || [];
+  if (!rubric.length) { body.innerHTML = `<div class="warn-box">⚠️ لم تُضف بنود التقييم بعد</div>`; setReportCount(0); return; }
+  const studentIds = new Set(students.map(s => s.id));
+  const evals = teacherData.evaluations.filter(e => studentIds.has(e.student_id) && dateInRange(e.date, f.fromDate, f.toDate));
+  setReportCount(evals.length);
+  if (!evals.length) { body.innerHTML = `<div class="empty-state"><h4>لا توجد تقييمات مطابقة</h4></div>`; return; }
+  evals.sort((a,b) => (b.date || '').localeCompare(a.date || ''));
+  body.innerHTML = `
+    <div class="table-wrap"><table>
+      <thead><tr><th>الطالب</th><th>الرقم</th><th>الفترة</th><th>التاريخ</th>${rubric.map(ax => `<th>${esc(ax.name)}</th>`).join('')}</tr></thead>
+      <tbody>${evals.map(e => {
+        const s = teacherData.students.find(x => x.id === e.student_id);
+        if (!s) return '';
+        return `<tr>
+          <td><b>${esc(s.name)}</b></td>
+          <td><code>${esc(s.student_id || '')}</code></td>
+          <td>${esc(e.period || '')}</td>
+          <td>${esc(e.date || '')}</td>
+          ${rubric.map(ax => {
+            const r = e.scores?.[ax.id];
+            const txt = r && ax.ranks?.[r-1] ? ax.ranks[r-1] : '—';
+            return `<td>${r ? `<b>${r}</b>` : '—'}${r && txt !== '—' ? `<div style="font-size:10px;color:#6b7280">${esc(txt)}</div>` : ''}</td>`;
+          }).join('')}
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>`;
+}
+
+// -- Single Student Report --
+function renderStudentReport() {
+  const body = document.getElementById('reportBody');
+  const students = filterStudentsForReport();
+  const f = getReportFilters();
+  setReportCount(students.length);
+  if (!students.length) { body.innerHTML = `<div class="empty-state"><h4>🔍 ابحث عن طالب</h4><p>استخدم شريط البحث لإيجاد الطالب</p></div>`; return; }
+  if (students.length > 10) { body.innerHTML = `<div class="warn-box">النتائج كثيرة (${students.length}). استخدم البحث لتضييق النتائج.</div>`; return; }
+  body.innerHTML = students.map(s => {
+    const g = teacherData.grades.find(x => x.id === s.grade_id);
+    const sec = g?.sections?.find(x => x.id === s.section_id);
+    // Grades
+    const assessments = g?.assessments || [];
+    let t=0, any=false;
+    assessments.forEach(a => { const v = num(s.scores?.[a.id]); if (v !== null) { t+=v; any=true; } });
+    const maxT = assessments.reduce((sum, a) => sum + (parseFloat(a.max) || 0), 0);
+    // Attendance
+    let p=0,a=0,l=0,e=0;
+    Object.entries(teacherData.attendance).forEach(([d, day]) => { if (!dateInRange(d, f.fromDate, f.toDate)) return; const st = day[s.id]; if (st==='present') p++; else if (st==='absent') a++; else if (st==='late') l++; else if (st==='excused') e++; });
+    // Notes
+    const notes = (teacherData.notes[s.id] || []).filter(n => dateInRange(n.date, f.fromDate, f.toDate)).slice().sort((a,b) => (b.date||'').localeCompare(a.date||''));
+    // Evals
+    const evals = teacherData.evaluations.filter(ev => ev.student_id === s.id && dateInRange(ev.date, f.fromDate, f.toDate)).slice().sort((x,y) => (y.date||'').localeCompare(x.date||''));
+    const rubric = teacherData.rubric || [];
+    return `<div style="margin-bottom:16px;padding:16px;background:#f9fafb;border-radius:11px;border:1px solid #e5e7eb">
+      <h3 style="color:#4f46e5;font-size:17px;margin-bottom:4px">👤 ${esc(s.name)}</h3>
+      <div style="font-size:12px;color:#6b7280;margin-bottom:12px">
+        <code>${esc(s.student_id || '')}</code> · ${esc(g?.name || '')} · ${esc(sec?.name || '')}
+        ${s.parent_phone ? `· 📱 ${esc(s.parent_phone)}` : ''}
+      </div>
+
+      <div class="student-report-section">
+        <h4>📊 الدرجات</h4>
+        ${!assessments.length ? '<div style="color:#9ca3af;font-size:12px">لا توجد أدوات تقويم للصف</div>' :
+        `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px">
+          ${assessments.map(ass => { const v = s.scores?.[ass.id]; return `<div class="dash-stat-row"><span class="label">${esc(ass.name)}</span><span class="value">${v != null ? `${v} / ${ass.max}` : '—'}</span></div>`; }).join('')}
+        </div>
+        ${any ? `<div class="dash-stat-row" style="margin-top:6px;background:#eef2ff"><span class="label"><b>المجموع</b></span><span class="value"><b>${t.toFixed(1)} / ${maxT}</b></span></div>` : ''}`}
+      </div>
+
+      <div class="student-report-section">
+        <h4>📅 الحضور والغياب</h4>
+        <div class="report-summary-grid">
+          <div class="report-summary-tile green"><div class="label">حاضر</div><div class="value">${p}</div></div>
+          <div class="report-summary-tile red"><div class="label">غائب</div><div class="value">${a}</div></div>
+          <div class="report-summary-tile yellow"><div class="label">متأخر</div><div class="value">${l}</div></div>
+          <div class="report-summary-tile blue"><div class="label">مأذون</div><div class="value">${e}</div></div>
+          <div class="report-summary-tile"><div class="label">نسبة الحضور</div><div class="value">${(p+a+l+e) ? ((p/(p+a+l+e))*100).toFixed(0) + '%' : '—'}</div></div>
+        </div>
+      </div>
+
+      <div class="student-report-section">
+        <h4>📝 الملاحظات (${notes.length})</h4>
+        ${!notes.length ? '<div style="color:#9ca3af;font-size:12px">لا توجد ملاحظات</div>' :
+          `<div style="display:flex;flex-direction:column;gap:5px;max-height:260px;overflow-y:auto">
+            ${notes.map(n => `<div class="note-item ${n.type}" style="padding:7px 10px"><div><div style="font-size:10px;color:#6b7280">${esc(n.date || '')}</div><div>${esc(n.text)}</div></div></div>`).join('')}
+          </div>`}
+      </div>
+
+      <div class="student-report-section">
+        <h4>⭐ التقييم الدوري (${evals.length})</h4>
+        ${!evals.length ? '<div style="color:#9ca3af;font-size:12px">لا توجد تقييمات</div>' :
+          `<div class="table-wrap"><table style="min-width:auto;font-size:11px">
+            <thead><tr><th>الفترة</th><th>التاريخ</th>${rubric.map(ax => `<th>${esc(ax.name)}</th>`).join('')}</tr></thead>
+            <tbody>${evals.map(ev => `<tr>
+              <td><b>${esc(ev.period || '')}</b></td>
+              <td>${esc(ev.date || '')}</td>
+              ${rubric.map(ax => { const r = ev.scores?.[ax.id]; const txt = r && ax.ranks?.[r-1] ? ax.ranks[r-1] : ''; return `<td>${r ? `<b>${r}</b> ${txt ? `<br><span style="font-size:9px;color:#6b7280">${esc(txt)}</span>` : ''}` : '—'}</td>`; }).join('')}
+            </tr>`).join('')}</tbody>
+          </table></div>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function exportCurrentReport() {
+  const students = filterStudentsForReport();
+  const f = getReportFilters();
+  let rows = []; let sheetName = 'Report';
+  if (currentReportTab === 'overview' || currentReportTab === 'student') {
+    sheetName = 'نظرة_شاملة';
+    rows = students.map(s => {
+      const g = teacherData.grades.find(x => x.id === s.grade_id);
+      const sec = g?.sections?.find(x => x.id === s.section_id);
+      let p=0, a=0;
+      Object.entries(teacherData.attendance).forEach(([d, day]) => { if (!dateInRange(d, f.fromDate, f.toDate)) return; const st = day[s.id]; if (st==='present') p++; else if (st==='absent') a++; });
+      const notes = (teacherData.notes[s.id] || []).filter(n => dateInRange(n.date, f.fromDate, f.toDate));
+      const pos = notes.filter(n => n.type === 'positive').length;
+      const neg = notes.filter(n => n.type === 'negative').length;
+      const evCount = teacherData.evaluations.filter(e => e.student_id === s.id).length;
+      let t = 0, any = false;
+      (g?.assessments || []).forEach(ass => { const v = num(s.scores?.[ass.id]); if (v !== null) { t += v; any = true; } });
+      return { 'الطالب': s.name, 'الرقم المدرسي': s.student_id || '', 'الصف': g?.name || '', 'الشعبة': sec?.name || '', 'الجنسية': s.nationality || '', 'رقم ولي الأمر': s.parent_phone || '', 'المجموع': any ? t : '', 'حضور': p, 'غياب': a, 'ملاحظات إيجابية': pos, 'ملاحظات سلبية': neg, 'تقييمات': evCount };
+    });
+  } else if (currentReportTab === 'attendance') {
+    sheetName = 'الغياب';
+    students.forEach(s => {
+      let p=0,a=0,l=0,e=0;
+      Object.entries(teacherData.attendance).forEach(([d, day]) => { if (!dateInRange(d, f.fromDate, f.toDate)) return; const st = day[s.id]; if (st==='present') p++; else if (st==='absent') a++; else if (st==='late') l++; else if (st==='excused') e++; });
+      if (p+a+l+e > 0) {
+        const g = teacherData.grades.find(x => x.id === s.grade_id);
+        const sec = g?.sections?.find(x => x.id === s.section_id);
+        rows.push({ 'الطالب': s.name, 'الرقم': s.student_id || '', 'الصف': g?.name || '', 'الشعبة': sec?.name || '', 'حاضر': p, 'غائب': a, 'متأخر': l, 'مأذون': e, 'نسبة الحضور': ((p/(p+a+l+e))*100).toFixed(0) + '%' });
+      }
+    });
+  } else if (currentReportTab === 'notes') {
+    sheetName = 'الملاحظات';
+    students.forEach(s => {
+      (teacherData.notes[s.id] || []).forEach(n => {
+        if (!dateInRange(n.date, f.fromDate, f.toDate)) return;
+        const g = teacherData.grades.find(x => x.id === s.grade_id);
+        const sec = g?.sections?.find(x => x.id === s.section_id);
+        rows.push({ 'التاريخ': n.date || '', 'النوع': n.type === 'positive' ? 'إيجابية' : 'سلبية', 'الطالب': s.name, 'الرقم': s.student_id || '', 'الصف': g?.name || '', 'الشعبة': sec?.name || '', 'الملاحظة': n.text });
+      });
+    });
+    rows.sort((a,b) => (b['التاريخ']||'').localeCompare(a['التاريخ']||''));
+  } else if (currentReportTab === 'grades') {
+    sheetName = 'الدرجات';
+    students.forEach(s => {
+      const g = teacherData.grades.find(x => x.id === s.grade_id);
+      const sec = g?.sections?.find(x => x.id === s.section_id);
+      const row = { 'الطالب': s.name, 'الرقم': s.student_id || '', 'الصف': g?.name || '', 'الشعبة': sec?.name || '' };
+      let t = 0, any = false;
+      (g?.assessments || []).forEach(a => { const v = s.scores?.[a.id]; row[a.name] = v != null ? v : ''; if (v != null) { t += Number(v); any = true; } });
+      row['المجموع'] = any ? t : '';
+      rows.push(row);
+    });
+  } else if (currentReportTab === 'evaluation') {
+    sheetName = 'التقييم';
+    const rubric = teacherData.rubric || [];
+    const studentIds = new Set(students.map(s => s.id));
+    teacherData.evaluations.filter(e => studentIds.has(e.student_id) && dateInRange(e.date, f.fromDate, f.toDate)).forEach(e => {
+      const s = teacherData.students.find(x => x.id === e.student_id);
+      if (!s) return;
+      const g = teacherData.grades.find(x => x.id === s.grade_id);
+      const row = { 'الطالب': s.name, 'الرقم': s.student_id || '', 'الصف': g?.name || '', 'الفترة': e.period || '', 'التاريخ': e.date || '' };
+      rubric.forEach(ax => { const r = e.scores?.[ax.id]; row[ax.name] = r ? `${r} - ${ax.ranks?.[r-1] || ''}` : ''; });
+      rows.push(row);
+    });
+  }
+  if (!rows.length) return alert('لا توجد بيانات للتصدير');
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  XLSX.writeFile(wb, `تقرير_${sheetName}_${todayStr()}.xlsx`);
+}
+
+function printCurrentReport() { window.print(); }
+
 </script>
 </body>
 </html>
