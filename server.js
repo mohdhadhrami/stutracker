@@ -757,40 +757,54 @@ app.delete('/api/school/schedules/:id', requireSchool, (req, res) => {
 // ========================================
 
 // GET attendance records for a specific date, optionally filtered by section/grade/period
-// Also returns the students list + active schedule so the frontend can render everything in one call.
 app.get('/api/school/attendance', requireSchool, (req, res) => {
   try {
     const sid = req.session.school_id;
+    const tid = (req.session.teacher_id && _teacherHasLinks(req.session.teacher_id)) ? req.session.teacher_id : null;
     const date = req.query.date || new Date().toISOString().slice(0, 10);
     const sectionId = req.query.section_id ? Number(req.query.section_id) : null;
     const gradeId   = req.query.grade_id   ? Number(req.query.grade_id)   : null;
     const periodIdx = (req.query.period_index !== undefined && req.query.period_index !== '')
       ? Number(req.query.period_index) : null;
 
-    // Build students query (we need all students in the filtered section/grade, even those without records yet)
-    let stuSql = `SELECT ss.id, ss.name, ss.student_id AS student_code, ss.parent_phone,
-                         ss.grade_id, ss.section_id, sg.name AS grade_name, sec.name AS section_name
+    // DEDUP: one row per unique real student (by name + student_id)
+    // Each real student has multiple rows in school_students (one per subject/section).
+    // We collapse them here and use MIN(ss.id) as the canonical record for attendance.
+    let stuSql = `SELECT MIN(ss.id) AS id, ss.name,
+                         ss.student_id AS student_code,
+                         MIN(ss.parent_phone) AS parent_phone,
+                         MIN(ss.grade_id) AS grade_id,
+                         MIN(ss.section_id) AS section_id,
+                         MIN(sg.name) AS grade_name,
+                         GROUP_CONCAT(DISTINCT sec.name) AS section_name
                   FROM school_students ss
                   JOIN school_grades sg ON ss.grade_id = sg.id
-                  JOIN school_sections sec ON ss.section_id = sec.id
-                  WHERE ss.school_id = ?`;
-    const stuParams = [sid];
+                  JOIN school_sections sec ON ss.section_id = sec.id`;
+    if (tid) stuSql += ` JOIN teacher_students ts ON ts.school_student_id = ss.id AND ts.teacher_id = ?`;
+    stuSql += ` WHERE ss.school_id = ?`;
+    const stuParams = tid ? [tid, sid] : [sid];
     if (sectionId) { stuSql += ` AND ss.section_id = ?`; stuParams.push(sectionId); }
     if (gradeId)   { stuSql += ` AND ss.grade_id = ?`;   stuParams.push(gradeId); }
-    stuSql += ` ORDER BY sg.display_order, sec.display_order, ss.name`;
+    stuSql += ` GROUP BY ss.name, COALESCE(ss.student_id, '')
+                 ORDER BY MIN(sg.display_order), ss.name`;
     const students = db.prepare(stuSql).all(...stuParams);
 
-    // Build records query for this date
+    // Build a set of canonical IDs for record lookup (the same MIN(ss.id) values)
+    const canonicalIds = new Set(students.map(s => s.id));
+
     let recSql = `SELECT sa.* FROM school_attendance sa
-                  JOIN school_students ss ON sa.student_id = ss.id
-                  WHERE sa.school_id = ? AND sa.date = ?`;
-    const recParams = [sid, date];
+                  JOIN school_students ss ON sa.student_id = ss.id`;
+    if (tid) recSql += ` JOIN teacher_students ts ON ts.school_student_id = ss.id AND ts.teacher_id = ?`;
+    recSql += ` WHERE sa.school_id = ? AND sa.date = ?`;
+    const recParams = tid ? [tid, sid, date] : [sid, date];
     if (sectionId) { recSql += ` AND ss.section_id = ?`; recParams.push(sectionId); }
     if (gradeId)   { recSql += ` AND ss.grade_id = ?`;   recParams.push(gradeId); }
     if (periodIdx !== null) { recSql += ` AND sa.period_index = ?`; recParams.push(periodIdx); }
-    const records = db.prepare(recSql).all(...recParams);
+    const allRecords = db.prepare(recSql).all(...recParams);
+    // Only surface records tied to canonical student rows (prevents duplicates
+    // if attendance was somehow saved on a non-canonical row in the past)
+    const records = allRecords.filter(r => canonicalIds.has(r.student_id));
 
-    // Active schedule (so the client can determine the current period)
     const activeSchedule = db.prepare(`SELECT id, name, periods FROM school_schedules WHERE school_id = ? AND is_active = 1 LIMIT 1`)
       .get(sid);
     if (activeSchedule) {
@@ -801,79 +815,74 @@ app.get('/api/school/attendance', requireSchool, (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// Helper: resolve "who recorded this?" from the session
 function _attendanceRecorder(req) {
   if (req.session.teacher_id) return { type: 'teacher', id: req.session.teacher_id };
   if (req.session.staff_id)   return { type: 'staff',   id: req.session.staff_id };
   return { type: 'school', id: req.session.school_id };
 }
 
-// POST / upsert a single attendance record
+function _teacherOwnsStudent(teacherId, studentId) {
+  return !!db.prepare(`SELECT 1 FROM teacher_students WHERE teacher_id = ? AND school_student_id = ?`)
+    .get(teacherId, studentId);
+}
+
+// Return true if this teacher has ANY linked students. If false, we show all school students.
+function _teacherHasLinks(teacherId) {
+  return !!db.prepare(`SELECT 1 FROM teacher_students WHERE teacher_id = ? LIMIT 1`).get(teacherId);
+}
+
 app.post('/api/school/attendance', requireSchool, (req, res) => {
   try {
     const { student_id, date, period_index, status, notes } = req.body;
-    if (!student_id || !date || !status) {
-      return res.status(400).json({ error: 'الطالب والتاريخ والحالة مطلوبة' });
-    }
+    if (!student_id || !date || !status) return res.status(400).json({ error: '   ' });
     const validStatuses = ['present', 'absent', 'late', 'excused'];
-    if (!validStatuses.includes(status)) return res.status(400).json({ error: 'حالة الغياب غير صحيحة' });
-
-    // Ensure student belongs to this school
+    if (!validStatuses.includes(status)) return res.status(400).json({ error: '   ' });
     const stu = db.prepare(`SELECT id FROM school_students WHERE id = ? AND school_id = ?`)
       .get(student_id, req.session.school_id);
-    if (!stu) return res.status(404).json({ error: 'الطالب غير موجود في هذه المدرسة' });
-
+    if (!stu) return res.status(404).json({ error: '     ' });
+    if (req.session.teacher_id && !_teacherOwnsStudent(req.session.teacher_id, student_id)) {
+      return res.status(403).json({ error: '     ' });
+    }
     const pIdx = Number(period_index) || 0;
     const rec = _attendanceRecorder(req);
-
     db.prepare(`INSERT INTO school_attendance
       (school_id, student_id, date, period_index, status, recorded_by_type, recorded_by_id, notes)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(school_id, student_id, date, period_index) DO UPDATE SET
-        status = excluded.status,
-        recorded_by_type = excluded.recorded_by_type,
-        recorded_by_id = excluded.recorded_by_id,
-        notes = excluded.notes
+        status = excluded.status, recorded_by_type = excluded.recorded_by_type,
+        recorded_by_id = excluded.recorded_by_id, notes = excluded.notes
     `).run(req.session.school_id, student_id, date, pIdx, status, rec.type, rec.id, notes || '');
-
     res.json({ success: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// POST / bulk upsert attendance records for a date+period
 app.post('/api/school/attendance/bulk', requireSchool, (req, res) => {
   try {
     const { date, period_index, records } = req.body;
-    if (!date || !Array.isArray(records)) {
-      return res.status(400).json({ error: 'التاريخ وقائمة السجلات مطلوبة' });
-    }
+    if (!date || !Array.isArray(records)) return res.status(400).json({ error: '   ' });
     const sid = req.session.school_id;
+    const tid = (req.session.teacher_id && _teacherHasLinks(req.session.teacher_id)) ? req.session.teacher_id : null;
     const pIdx = Number(period_index) || 0;
     const rec = _attendanceRecorder(req);
     const validStatuses = ['present', 'absent', 'late', 'excused'];
-
     const upsert = db.prepare(`INSERT INTO school_attendance
       (school_id, student_id, date, period_index, status, recorded_by_type, recorded_by_id, notes)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(school_id, student_id, date, period_index) DO UPDATE SET
-        status = excluded.status,
-        recorded_by_type = excluded.recorded_by_type,
-        recorded_by_id = excluded.recorded_by_id,
-        notes = excluded.notes
+        status = excluded.status, recorded_by_type = excluded.recorded_by_type,
+        recorded_by_id = excluded.recorded_by_id, notes = excluded.notes
     `);
     const clear = db.prepare(`DELETE FROM school_attendance WHERE school_id=? AND student_id=? AND date=? AND period_index=?`);
     const ownsStu = db.prepare(`SELECT 1 FROM school_students WHERE id=? AND school_id=?`);
-
+    const teacherOwnsStu = db.prepare(`SELECT 1 FROM teacher_students WHERE teacher_id=? AND school_student_id=?`);
     const txn = db.transaction((arr) => {
       let saved = 0, cleared = 0, skipped = 0;
       for (const r of arr) {
         if (!r.student_id) { skipped++; continue; }
         if (!ownsStu.get(r.student_id, sid)) { skipped++; continue; }
-        // Allow clearing a record by passing status === null/'' or status === 'clear'
+        if (tid && !teacherOwnsStu.get(tid, r.student_id)) { skipped++; continue; }
         if (!r.status || r.status === 'clear') {
-          clear.run(sid, r.student_id, date, pIdx);
-          cleared++;
-          continue;
+          clear.run(sid, r.student_id, date, pIdx); cleared++; continue;
         }
         if (!validStatuses.includes(r.status)) { skipped++; continue; }
         upsert.run(sid, r.student_id, date, pIdx, r.status, rec.type, rec.id, r.notes || '');
@@ -881,25 +890,30 @@ app.post('/api/school/attendance/bulk', requireSchool, (req, res) => {
       }
       return { saved, cleared, skipped };
     });
-
     const result = txn(records);
     res.json({ success: true, ...result });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// DELETE a single attendance record
 app.delete('/api/school/attendance/:id', requireSchool, (req, res) => {
   try {
+    if (req.session.teacher_id) {
+      const row = db.prepare(`SELECT student_id FROM school_attendance WHERE id=? AND school_id=?`)
+        .get(req.params.id, req.session.school_id);
+      if (!row || !_teacherOwnsStudent(req.session.teacher_id, row.student_id)) {
+        return res.status(403).json({ error: ' ' });
+      }
+    }
     db.prepare(`DELETE FROM school_attendance WHERE id = ? AND school_id = ?`)
       .run(req.params.id, req.session.school_id);
     res.json({ success: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// GET attendance report (date range, optional filters)
 app.get('/api/school/attendance/report', requireSchool, (req, res) => {
   try {
     const sid = req.session.school_id;
+    const tid = (req.session.teacher_id && _teacherHasLinks(req.session.teacher_id)) ? req.session.teacher_id : null;
     const from = req.query.from || new Date().toISOString().slice(0, 10);
     const to   = req.query.to   || from;
     const studentId = req.query.student_id ? Number(req.query.student_id) : null;
@@ -907,27 +921,23 @@ app.get('/api/school/attendance/report', requireSchool, (req, res) => {
     const gradeId   = req.query.grade_id   ? Number(req.query.grade_id)   : null;
     const periodIdx = (req.query.period_index !== undefined && req.query.period_index !== '')
       ? Number(req.query.period_index) : null;
-
     let sql = `SELECT sa.*, ss.name AS student_name, ss.student_id AS student_code,
                       sg.name AS grade_name, sec.name AS section_name
                FROM school_attendance sa
                JOIN school_students ss ON sa.student_id = ss.id
                JOIN school_grades sg ON ss.grade_id = sg.id
-               JOIN school_sections sec ON ss.section_id = sec.id
-               WHERE sa.school_id = ? AND sa.date BETWEEN ? AND ?`;
-    const params = [sid, from, to];
+               JOIN school_sections sec ON ss.section_id = sec.id`;
+    if (tid) sql += ` JOIN teacher_students ts ON ts.school_student_id = ss.id AND ts.teacher_id = ?`;
+    sql += ` WHERE sa.school_id = ? AND sa.date BETWEEN ? AND ?`;
+    const params = tid ? [tid, sid, from, to] : [sid, from, to];
     if (studentId) { sql += ` AND sa.student_id = ?`;  params.push(studentId); }
     if (sectionId) { sql += ` AND ss.section_id = ?`;  params.push(sectionId); }
     if (gradeId)   { sql += ` AND ss.grade_id = ?`;    params.push(gradeId); }
     if (periodIdx !== null) { sql += ` AND sa.period_index = ?`; params.push(periodIdx); }
     sql += ` ORDER BY sa.date DESC, sa.period_index, sg.display_order, sec.display_order, ss.name`;
-
     const rows = db.prepare(sql).all(...params);
-
-    // Summary counts by status
     const counts = { present: 0, absent: 0, late: 0, excused: 0 };
     rows.forEach(r => { if (counts[r.status] !== undefined) counts[r.status]++; });
-
     res.json({ from, to, records: rows, counts, total: rows.length });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
