@@ -237,18 +237,33 @@ tr:hover td{background:#fafbfc}
 .settings-tab.active{background:white;color:#4f46e5;box-shadow:0 1px 3px rgba(0,0,0,.08)}
 
 /* ===== ATTENDANCE ===== */
-.attendance-grid{display:grid;gap:8px}
-.attendance-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#f9fafb;border-radius:7px;gap:10px;flex-wrap:wrap}
-.attendance-row .stu-info{flex:1;min-width:140px;display:flex;align-items:center;gap:10px}
-.attendance-row .stu-info .name{font-weight:600;color:#111827;font-size:13px}
-.attendance-row .stu-info .sid{font-size:10px;color:#6b7280}
-.attendance-buttons{display:flex;gap:4px;flex-wrap:wrap}
-.att-btn{padding:5px 11px;border:1.5px solid #e5e7eb;background:white;border-radius:6px;cursor:pointer;font-family:inherit;font-size:11px;font-weight:500;color:#6b7280;transition:all .12s}
+/* ===== ATTENDANCE (unified with school-admin) ===== */
+.att-period-tab{padding:7px 14px;border:1px solid #e5e7eb;background:white;border-radius:7px;cursor:pointer;font-size:12px;font-family:inherit;color:#374151;transition:all .15s;white-space:nowrap}
+.att-period-tab:hover{border-color:#059669;background:#ecfdf5}
+.att-period-tab.active{background:#059669;color:white;border-color:#059669;font-weight:600}
+.att-period-tab.is-current{box-shadow:0 0 0 2px #fbbf24}
+.att-period-tab .p-time{font-size:10px;opacity:.75;margin-right:4px}
+.att-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:8px 10px;background:#f9fafb;border-radius:7px;margin-bottom:5px;border:1px solid #f3f4f6}
+.att-row.changed{background:#fffbeb;border-color:#fcd34d}
+.att-row .stu-meta{display:flex;flex-direction:column;min-width:0}
+.att-row .stu-name{font-weight:600;font-size:13px;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.att-row .stu-sid{font-size:10px;color:#6b7280}
+.att-btns{display:flex;gap:3px;flex-wrap:wrap}
+.att-btn{padding:5px 9px;border:1px solid #e5e7eb;background:white;border-radius:6px;cursor:pointer;font-size:11px;font-family:inherit;color:#6b7280;transition:all .12s;white-space:nowrap}
 .att-btn:hover{border-color:#9ca3af}
-.att-btn.selected.present{background:#10b981;border-color:#10b981;color:white}
-.att-btn.selected.absent{background:#ef4444;border-color:#ef4444;color:white}
-.att-btn.selected.late{background:#f59e0b;border-color:#f59e0b;color:white}
-.att-btn.selected.excused{background:#3b82f6;border-color:#3b82f6;color:white}
+.att-btn.active[data-st="present"]{background:#10b981;color:white;border-color:#10b981}
+.att-btn.active[data-st="absent"]{background:#ef4444;color:white;border-color:#ef4444}
+.att-btn.active[data-st="late"]{background:#f59e0b;color:white;border-color:#f59e0b}
+.att-btn.active[data-st="excused"]{background:#3b82f6;color:white;border-color:#3b82f6}
+.att-summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+.att-summary-tile{padding:10px;background:#f9fafb;border-radius:8px;text-align:center}
+.att-summary-tile .lbl{font-size:11px;color:#6b7280;margin-bottom:3px}
+.att-summary-tile .val{font-size:20px;font-weight:700}
+@media (max-width: 768px) {
+  .att-row{grid-template-columns:1fr;gap:6px}
+  .att-btns{justify-content:stretch}
+  .att-btn{flex:1;text-align:center;min-width:55px}
+}
 
 /* ===== EVALUATION ===== */
 .eval-table-wrap{overflow-x:auto}
@@ -476,7 +491,10 @@ tr:hover td{background:#fafbfc}
         <div class="card">
           <div class="card-header">
             <h3>قائمة الصفوف</h3>
-            <button class="btn btn-primary btn-sm" onclick="openGradeModal()">➕ إضافة صف جديد</button>
+            <div class="toolbar">
+              <button class="btn btn-primary btn-sm" onclick="openSchoolImportModal()" title="استيراد من المدرسة"> من المدرسة</button>
+              <button class="btn btn-success btn-sm" onclick="openGradeModal()">➕ إضافة صف جديد</button>
+            </div>
           </div>
           <div id="gradesBlocksContainer"></div>
         </div>
@@ -511,20 +529,13 @@ tr:hover td{background:#fafbfc}
       <!-- GRADES -->
       <div id="view-grades" class="hidden">
         <h2 class="page-title">📊 سجل الدرجات</h2>
-        <p class="page-subtitle">إدارة أدوات التقويم وإدخال درجات الطلاب. اختر الصف ثم الشعبة.</p>
+        <p class="page-subtitle">إدخال درجات الطلاب. أدوات التقويم: الإعدادات ▸ أدوات التقويم. اختر الصف ثم الشعبة.</p>
         <div class="card">
           <div class="filter-bar">
             <div><label>الصف</label><select id="grFilterGrade" onchange="onGrFilterGradeChange()"></select></div>
             <div><label>الشعبة</label><select id="grFilterSection" onchange="renderGradesTable()"></select></div>
             <div><label>بحث</label><input type="text" id="grFilterSearch" placeholder="اسم أو رقم..." oninput="renderGradesTable()"></div>
           </div>
-        </div>
-        <div class="card" id="assessmentsManageCard" style="display:none">
-          <div class="card-header">
-            <h3>🔧 أدوات التقويم <span id="assessmentsForGradeLabel" style="font-weight:400;font-size:12px;color:#6b7280"></span></h3>
-            <button class="btn btn-info btn-sm" onclick="switchView('settings');setTimeout(()=>switchSettingsSub('assessments'),50)">⚙️ إدارة من الإعدادات</button>
-          </div>
-          <div id="assessmentsManageBody"></div>
         </div>
         <div class="stats-row" id="gradesStatsRow"></div>
         <div class="card">
@@ -537,28 +548,38 @@ tr:hover td{background:#fafbfc}
       </div>
 
       <!-- ATTENDANCE -->
-      <div id="view-attendance" class="hidden">
-        <h2 class="page-title">📅 سجل الغياب</h2>
-        <p class="page-subtitle">تسجيل حضور وغياب الطلاب يومياً. اختر الصف والشعبة والتاريخ.</p>
+            <div id="view-attendance" class="hidden">
+        <h2 class="page-title">  </h2>
+        <p class="page-subtitle">        .</p>
+
         <div class="card">
           <div class="filter-bar">
-            <div><label>الصف</label><select id="attFilterGrade" onchange="onAttFilterGradeChange()"></select></div>
-            <div><label>الشعبة</label><select id="attFilterSection" onchange="renderAttendance()"></select></div>
-            <div><label>التاريخ</label><input type="date" id="attDate" onchange="renderAttendance()"></div>
+            <div><label></label><input type="date" id="attDate" onchange="loadAttendance()"></div>
+            <div><label></label><select id="attFilterGrade" onchange="onAttFilterGradeChange()"></select></div>
+            <div><label></label><select id="attFilterSection" onchange="loadAttendance()"></select></div>
+            <div><label>&nbsp;</label><button class="btn btn-secondary btn-sm" onclick="loadAttendance()"> </button></div>
           </div>
-        </div>
-        <div class="card">
-          <div class="card-header">
-            <h3>الحضور والغياب</h3>
-            <div class="toolbar">
-              <button class="btn btn-success btn-sm" onclick="markAllAttendance('present')">✅ الجميع حاضرون</button>
-              <button class="btn btn-secondary btn-sm" onclick="clearAttendance()">🔄 إعادة تعيين</button>
-            </div>
+
+          <div id="attScheduleNotice" style="padding:8px 10px;background:#f0f9ff;border-right:3px solid #0ea5e9;border-radius:6px;margin-bottom:10px;font-size:12px;color:#075985"></div>
+
+          <div id="attPeriodTabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div>
+
+          <div id="attBulkBar" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px" class="hidden">
+            <button class="btn btn-success btn-sm" onclick="markAllAtt('present')">  </button>
+            <button class="btn btn-danger btn-sm" onclick="markAllAtt('absent')">  </button>
+            <button class="btn btn-warning btn-sm" onclick="markAllAtt('late')">  </button>
+            <button class="btn btn-secondary btn-sm" onclick="clearAllAtt()"> </button>
+            <span style="flex:1"></span>
+            <button class="btn btn-primary btn-sm" onclick="saveAttendance()">  </button>
           </div>
+
           <div id="attendanceBody"></div>
+
+          <div id="attendanceSummary" style="margin-top:14px"></div>
         </div>
+
         <div class="card">
-          <div class="card-header"><h3>📊 ملخص الغياب حسب الطالب</h3></div>
+          <div class="card-header"><h3>    </h3></div>
           <div class="table-wrap" id="attendanceSummaryWrap"></div>
         </div>
       </div>
@@ -1431,7 +1452,7 @@ function switchView(v) {
   if (v === 'classes') renderGradeBlocks();
   if (v === 'students') renderStudentsList();
   if (v === 'grades') renderGradesTable();
-  if (v === 'attendance') renderAttendance();
+  if (v === 'attendance') initAttendanceView();
   if (v === 'notes') renderNotesStudents();
   if (v === 'evaluation') renderEvalMain();
   if (v === 'reports') { initReports(); renderCurrentReport(); }
@@ -1710,9 +1731,11 @@ async function deleteSection(gradeId, sectionId) {
 // ========= STUDENTS =========
 function onStuFilterGradeChange() { fillSectionSelect('stuFilterSection', document.getElementById('stuFilterGrade').value); renderStudentsList(); }
 function filterStudents(gradeId, sectionId, search) {
+  const g = gradeId ? String(gradeId) : '';
+  const sec = sectionId ? String(sectionId) : '';
   return teacherData.students.filter(s => {
-    if (gradeId && s.grade_id !== gradeId) return false;
-    if (sectionId && s.section_id !== sectionId) return false;
+    if (g && String(s.grade_id || '') !== g) return false;
+    if (sec && String(s.section_id || '') !== sec) return false;
     if (search) { const h = `${s.name || ''} ${s.student_id || ''}`.toLowerCase(); if (!h.includes(search.toLowerCase())) return false; }
     return true;
   });
@@ -1934,7 +1957,7 @@ function exportStudents() {
 let schoolDataCache = null;
 
 async function openSchoolImportModal() {
-  openModal('schoolImportModal');
+  document.getElementById('schoolImportModal').classList.remove('hidden');
   document.getElementById('schoolDataLoading').classList.remove('hidden');
   document.getElementById('schoolDataContent').classList.add('hidden');
   document.getElementById('confirmSchoolImportBtn').classList.add('hidden');
@@ -1962,17 +1985,20 @@ function renderSchoolImportData() {
     wrap.innerHTML = '<div class="info-box" style="text-align:center;padding:30px;color:#6b7280">🏫 لم تُسجّل إدارة المدرسة أي صفوف أو طلاب بعد.</div>';
     return;
   }
-  let totalStudents = 0;
+  // Count unique students by student_id (fallback to internal id if empty)
+  const uniqueKey = s => String(s.student_id || '').trim() || ('row_' + s.id);
+  const allStudents = new Set();
   schoolDataCache.forEach(g => {
-    (g.sections || []).forEach(s => totalStudents += (s.students || []).length);
-    totalStudents += (g.orphan_students || []).length;
+    (g.sections || []).forEach(s => (s.students || []).forEach(st => allStudents.add(uniqueKey(st))));
+    (g.orphan_students || []).forEach(st => allStudents.add(uniqueKey(st)));
   });
+  const totalStudents = allStudents.size;
   let html = `<div class="success" style="display:block;margin-bottom:12px">📊 وجدنا <b>${schoolDataCache.length}</b> صفوف · <b>${totalStudents}</b> طالباً</div>`;
   html += '<div style="display:flex;flex-direction:column;gap:10px;max-height:400px;overflow-y:auto;padding:4px">';
   schoolDataCache.forEach(g => {
     const gkey = 'sdi-g-' + g.id;
     const sectionCount = (g.sections || []).length;
-    const gStuCount = (g.sections || []).reduce((t,s)=>t+(s.students||[]).length,0) + (g.orphan_students||[]).length;
+    const gradeStudents = new Set(); (g.sections || []).forEach(s => (s.students || []).forEach(st => gradeStudents.add(uniqueKey(st)))); (g.orphan_students || []).forEach(st => gradeStudents.add(uniqueKey(st))); const gStuCount = gradeStudents.size;
     html += `
       <div style="border:1px solid #e5e7eb;border-radius:8px;padding:10px;background:#f9fafb">
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600">
@@ -2124,8 +2150,9 @@ function onGrFilterGradeChange() {
   renderGradesTable();
 }
 function renderAssessmentsManage() {
-  const gradeId = document.getElementById('grFilterGrade').value;
   const card = document.getElementById('assessmentsManageCard');
+  if (!card) return;
+  const gradeId = document.getElementById('grFilterGrade').value;
   const body = document.getElementById('assessmentsManageBody');
   const lbl = document.getElementById('assessmentsForGradeLabel');
   if (!gradeId) {
@@ -2563,99 +2590,317 @@ async function confirmGradesImport() {
   setTimeout(() => closeModal('gradesImportModal'), 2500);
 }
 
-// ========= ATTENDANCE =========
-function onAttFilterGradeChange() { fillSectionSelect('attFilterSection', document.getElementById('attFilterGrade').value); renderAttendance(); }
-function renderAttendance() {
-  const body = document.getElementById('attendanceBody');
-  const gradeId = document.getElementById('attFilterGrade').value;
-  const secId = document.getElementById('attFilterSection').value;
+// ========= ATTENDANCE (unified with school-admin, backed by /api/school/attendance) =========
+let attState = {
+  date: '',
+  activeSchedule: null,
+  currentPeriodIdx: 0,
+  autoPeriodIdx: null,
+  students: [],
+  records: {},
+  dirty: {}
+};
+
+function _k(stuId, pIdx) { return stuId + ':' + pIdx; }
+function _hm(t) {
+  if (!t || typeof t !== 'string' || !t.includes(':')) return null;
+  const [h, m] = t.split(':').map(Number);
+  if (isNaN(h) || isNaN(m)) return null;
+  return h * 60 + m;
+}
+function _nowMinutes() { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); }
+function findCurrentPeriodIdx(periods) {
+  if (!Array.isArray(periods) || !periods.length) return null;
+  const now = _nowMinutes();
+  for (let i = 0; i < periods.length; i++) {
+    const s = _hm(periods[i].start), e = _hm(periods[i].end);
+    if (s !== null && e !== null && now >= s && now < e) return i;
+  }
+  return null;
+}
+
+async function initAttendanceView() {
+  const dInput = document.getElementById('attDate');
+  if (!dInput.value) dInput.value = todayStr();
+  await loadAttendance();
+}
+
+function onAttFilterGradeChange() {
+  fillSectionSelect('attFilterSection', document.getElementById('attFilterGrade').value);
+  loadAttendance();
+}
+
+async function loadAttendance() {
+  if (Object.keys(attState.dirty).length) {
+    if (!confirm('       ')) return;
+  }
+  attState.dirty = {};
+
   const date = document.getElementById('attDate').value;
-  if (!body) return;
-  if (!gradeId || !secId || !date) {
-    body.innerHTML = `<div class="empty-state"><h4>📅 اختر الصف والشعبة والتاريخ</h4></div>`;
+  const gradeId = document.getElementById('attFilterGrade').value;
+  const sectionId = document.getElementById('attFilterSection').value;
+  attState.date = date;
+
+  const params = new URLSearchParams();
+  if (date) params.set('date', date);
+  if (gradeId) params.set('grade_id', gradeId);
+  if (sectionId) params.set('section_id', sectionId);
+
+  const body = document.getElementById('attendanceBody');
+  body.innerHTML = '<div class="empty-state"><h4>  ...</h4></div>';
+
+  try {
+    const r = await fetch('/api/school/attendance?' + params.toString());
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || ' ');
+
+    attState.activeSchedule = data.active_schedule;
+    attState.students = data.students || [];
+
+    attState.records = {};
+    (data.records || []).forEach(rec => {
+      attState.records[_k(rec.student_id, rec.period_index)] = {
+        id: rec.id, status: rec.status, notes: rec.notes || ''
+      };
+    });
+
+    const periods = (attState.activeSchedule && attState.activeSchedule.periods) || [];
+    attState.autoPeriodIdx = findCurrentPeriodIdx(periods);
+    if (attState.autoPeriodIdx !== null) {
+      attState.currentPeriodIdx = attState.autoPeriodIdx;
+    } else if (periods.length > 0) {
+      if (attState.currentPeriodIdx >= periods.length) attState.currentPeriodIdx = 0;
+    } else {
+      attState.currentPeriodIdx = 0;
+    }
+
+    renderAttendance();
     renderAttendanceSummary();
+  } catch (e) {
+    body.innerHTML = '<div class="empty-state"><h4> </h4><p>' + esc(e.message) + '</p></div>';
+  }
+}
+
+function renderAttendance() {
+  const notice = document.getElementById('attScheduleNotice');
+  if (attState.activeSchedule && (attState.activeSchedule.periods || []).length) {
+    const cur = attState.autoPeriodIdx;
+    const schName = esc(attState.activeSchedule.name);
+    if (cur !== null) {
+      const p = attState.activeSchedule.periods[cur];
+      notice.innerHTML = '  : <b>' + schName + '</b>   : <b>' + esc(p.name) + '</b> (' + esc(p.start) + '  ' + esc(p.end) + ')';
+    } else {
+      notice.innerHTML = '  : <b>' + schName + '</b>        ';
+    }
+    notice.classList.remove('hidden');
+  } else {
+    notice.innerHTML = '            ';
+    notice.classList.remove('hidden');
+  }
+
+  const tabs = document.getElementById('attPeriodTabs');
+  const periods = (attState.activeSchedule && attState.activeSchedule.periods) || [];
+  if (periods.length) {
+    tabs.innerHTML = periods.map((p, i) => {
+      const active = i === attState.currentPeriodIdx ? 'active' : '';
+      const current = i === attState.autoPeriodIdx ? 'is-current' : '';
+      return '<button class="att-period-tab ' + active + ' ' + current + '" onclick="selectPeriodTab(' + i + ')" title="' + esc(p.start) + ' - ' + esc(p.end) + '">' + esc(p.name) + '<span class="p-time"> ' + esc(p.start) + '</span></button>';
+    }).join('');
+  } else {
+    tabs.innerHTML = '<div style="color:#9ca3af;font-size:12px">         </div>';
+  }
+
+  const body = document.getElementById('attendanceBody');
+  const bulk = document.getElementById('attBulkBar');
+  if (!attState.students.length) {
+    body.innerHTML = '<div class="empty-state"><h4>  </h4><p> /        </p></div>';
+    bulk.classList.add('hidden');
+    document.getElementById('attendanceSummary').innerHTML = '';
     return;
   }
-  const list = filterStudents(gradeId, secId, '');
-  if (!list.length) { body.innerHTML = `<div class="empty-state"><h4>📭 لا يوجد طلاب</h4></div>`; renderAttendanceSummary(); return; }
-  if (!teacherData.attendance[date]) teacherData.attendance[date] = {};
-  const day = teacherData.attendance[date];
-  body.innerHTML = `<div class="attendance-grid">${list.map(s => {
-    const status = day[s.id] || '';
-    return `<div class="attendance-row">
-      <div class="stu-info"><div><div class="name">${esc(s.name)}</div><div class="sid">${esc(s.student_id || '')}</div></div></div>
-      <div class="attendance-buttons">
-        <button class="att-btn present ${status === 'present' ? 'selected' : ''}" onclick="setAttendance('${s.id}','present')">✅ حاضر</button>
-        <button class="att-btn absent ${status === 'absent' ? 'selected' : ''}" onclick="setAttendance('${s.id}','absent')">❌ غائب</button>
-        <button class="att-btn late ${status === 'late' ? 'selected' : ''}" onclick="setAttendance('${s.id}','late')">⏰ متأخر</button>
-        <button class="att-btn excused ${status === 'excused' ? 'selected' : ''}" onclick="setAttendance('${s.id}','excused')">📋 مأذون</button>
+  bulk.classList.remove('hidden');
+  const pIdx = attState.currentPeriodIdx;
+
+  body.innerHTML = attState.students.map(stu => {
+    const key = _k(stu.id, pIdx);
+    const saved = attState.records[key];
+    const pending = attState.dirty[key];
+    const current = pending ? pending.status : (saved ? saved.status : null);
+    const isDirty = !!pending;
+    const mkBtn = (st, label, emoji) => {
+      const cls = 'att-btn' + (current === st ? ' active' : '');
+      return `<button class="${cls}" data-st="${st}" onclick="setAttStatus(${stu.id}, '${st}')">${emoji} ${label}</button>`;
+    };
+    const sidParts = [];
+    if (stu.student_code) sidParts.push(esc(stu.student_code));
+    if (stu.grade_name) sidParts.push(esc(stu.grade_name));
+    if (stu.section_name) sidParts.push(esc(stu.section_name));
+    return `<div class="att-row${isDirty ? ' changed' : ''}" id="attrow-${stu.id}">
+      <div class="stu-meta">
+        <span class="stu-name">${esc(stu.name)}</span>
+        <span class="stu-sid">${sidParts.join('  ')}</span>
+      </div>
+      <div class="att-btns">
+        ${mkBtn('present', 'حاضر', '✅')}
+        ${mkBtn('late', 'متأخر', '⏰')}
+        ${mkBtn('absent', 'غائب', '❌')}
+        ${mkBtn('excused', 'مأذون', '📋')}
       </div>
     </div>`;
-  }).join('')}</div>`;
-  renderAttendanceSummary();
+  }).join('');
+
+  renderPeriodSummary();
 }
-async function setAttendance(studentId, status) {
-  const date = document.getElementById('attDate').value;
-  if (!date) return;
-  if (!teacherData.attendance[date]) teacherData.attendance[date] = {};
-  if (teacherData.attendance[date][studentId] === status) {
-    delete teacherData.attendance[date][studentId]; // toggle off
-  } else {
-    teacherData.attendance[date][studentId] = status;
+
+function selectPeriodTab(i) {
+  if (Object.keys(attState.dirty).length) {
+    if (!confirm('      .  . ')) return;
+    saveAttendance().then(() => { attState.currentPeriodIdx = i; renderAttendance(); });
+    return;
   }
-  await saveData();
-  renderAttendance();
-}
-async function markAllAttendance(status) {
-  const gradeId = document.getElementById('attFilterGrade').value;
-  const secId = document.getElementById('attFilterSection').value;
-  const date = document.getElementById('attDate').value;
-  if (!gradeId || !secId || !date) return alert('اختر الصف والشعبة والتاريخ');
-  const list = filterStudents(gradeId, secId, '');
-  if (!teacherData.attendance[date]) teacherData.attendance[date] = {};
-  list.forEach(s => { teacherData.attendance[date][s.id] = status; });
-  await saveData();
-  renderAttendance();
-}
-async function clearAttendance() {
-  const date = document.getElementById('attDate').value;
-  const gradeId = document.getElementById('attFilterGrade').value;
-  const secId = document.getElementById('attFilterSection').value;
-  if (!date) return;
-  if (!confirm(`مسح غياب تاريخ ${date} للشعبة المختارة؟`)) return;
-  const list = filterStudents(gradeId, secId, '');
-  if (teacherData.attendance[date]) list.forEach(s => delete teacherData.attendance[date][s.id]);
-  await saveData();
+  attState.currentPeriodIdx = i;
   renderAttendance();
 }
 
-function renderAttendanceSummary() {
-  const wrap = document.getElementById('attendanceSummaryWrap');
-  const gradeId = document.getElementById('attFilterGrade').value;
-  const secId = document.getElementById('attFilterSection').value;
-  const list = filterStudents(gradeId, secId, '');
-  if (!list.length) { wrap.innerHTML = `<div class="empty-state"><p>اختر الصف والشعبة</p></div>`; return; }
-  const summary = list.map(s => {
-    let p=0, a=0, l=0, e=0;
-    Object.values(teacherData.attendance).forEach(day => {
-      const st = day[s.id];
-      if (st === 'present') p++; else if (st === 'absent') a++; else if (st === 'late') l++; else if (st === 'excused') e++;
+function setAttStatus(studentId, status) {
+  const key = _k(studentId, attState.currentPeriodIdx);
+  const saved = attState.records[key];
+  if (saved && saved.status === status) {
+    delete attState.dirty[key];
+  } else if (!saved && !status) {
+    delete attState.dirty[key];
+  } else {
+    attState.dirty[key] = { student_id: studentId, status: status, notes: (saved && saved.notes) || '' };
+  }
+  const row = document.getElementById('attrow-' + studentId);
+  if (row) {
+    const pending = attState.dirty[key];
+    const current = pending ? pending.status : (saved ? saved.status : null);
+    row.classList.toggle('changed', !!pending);
+    row.querySelectorAll('.att-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.st === current);
     });
-    return { s, p, a, l, e, total: p+a+l+e };
+  }
+  renderPeriodSummary();
+}
+
+function markAllAtt(status) {
+  attState.students.forEach(stu => {
+    const key = _k(stu.id, attState.currentPeriodIdx);
+    const saved = attState.records[key];
+    if (saved && saved.status === status) {
+      delete attState.dirty[key];
+    } else {
+      attState.dirty[key] = { student_id: stu.id, status: status, notes: (saved && saved.notes) || '' };
+    }
   });
-  wrap.innerHTML = `<table><thead><tr><th>الطالب</th><th>الرقم</th><th>حاضر</th><th>غائب</th><th>متأخر</th><th>مأذون</th><th>نسبة الحضور</th></tr></thead><tbody>
-    ${summary.map(r => {
-      const rate = r.total ? ((r.p / r.total) * 100).toFixed(0) + '%' : '—';
-      return `<tr>
-        <td><div class="student-name">${esc(r.s.name)}</div></td>
-        <td><code>${esc(r.s.student_id || '')}</code></td>
-        <td><span class="pill pill-green">${r.p}</span></td>
-        <td><span class="pill pill-red">${r.a}</span></td>
-        <td><span class="pill pill-yellow">${r.l}</span></td>
-        <td><span class="pill">${r.e}</span></td>
-        <td><b>${rate}</b></td>
-      </tr>`;
-    }).join('')}</tbody></table>`;
+  renderAttendance();
+}
+
+function clearAllAtt() {
+  attState.students.forEach(stu => {
+    const key = _k(stu.id, attState.currentPeriodIdx);
+    const saved = attState.records[key];
+    if (saved) {
+      attState.dirty[key] = { student_id: stu.id, status: 'clear', notes: '' };
+    } else {
+      delete attState.dirty[key];
+    }
+  });
+  renderAttendance();
+}
+
+function renderPeriodSummary() {
+  const pIdx = attState.currentPeriodIdx;
+  let p=0, a=0, l=0, e=0, u=0;
+  attState.students.forEach(stu => {
+    const key = _k(stu.id, pIdx);
+    const pending = attState.dirty[key];
+    const saved = attState.records[key];
+    const st = pending ? pending.status : (saved ? saved.status : null);
+    if (st === 'present') p++;
+    else if (st === 'absent') a++;
+    else if (st === 'late') l++;
+    else if (st === 'excused') e++;
+    else u++;
+  });
+  const total = attState.students.length;
+  const dirtyCount = Object.keys(attState.dirty).length;
+  document.getElementById('attendanceSummary').innerHTML =
+    '<div class="att-summary-grid">' +
+      '<div class="att-summary-tile"><div class="lbl"> </div><div class="val" style="color:#10b981">' + p + '</div></div>' +
+      '<div class="att-summary-tile"><div class="lbl"> </div><div class="val" style="color:#f59e0b">' + l + '</div></div>' +
+      '<div class="att-summary-tile"><div class="lbl"> </div><div class="val" style="color:#ef4444">' + a + '</div></div>' +
+      '<div class="att-summary-tile"><div class="lbl"> </div><div class="val" style="color:#3b82f6">' + e + '</div></div>' +
+      '<div class="att-summary-tile"><div class="lbl">  </div><div class="val" style="color:#9ca3af">' + u + '</div></div>' +
+      '<div class="att-summary-tile"><div class="lbl"> </div><div class="val" style="color:#f59e0b">' + dirtyCount + '</div></div>' +
+      '<div class="att-summary-tile"><div class="lbl"></div><div class="val">' + total + '</div></div>' +
+    '</div>';
+}
+
+async function saveAttendance() {
+  const dirty = Object.values(attState.dirty);
+  if (!dirty.length) { alert('   '); return; }
+  try {
+    const r = await fetch('/api/school/attendance/bulk', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ date: attState.date, period_index: attState.currentPeriodIdx, records: dirty })
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || ' ');
+    attState.dirty = {};
+    alert('   ' + (data.saved || 0) + ' ' + (data.cleared ? ('  ' + data.cleared) : ''));
+    await loadAttendance();
+  } catch (e) {
+    alert(' : ' + e.message);
+  }
+}
+
+async function renderAttendanceSummary() {
+  const wrap = document.getElementById('attendanceSummaryWrap');
+  if (!wrap) return;
+  const gradeId = document.getElementById('attFilterGrade').value;
+  const sectionId = document.getElementById('attFilterSection').value;
+  const params = new URLSearchParams();
+  params.set('from', '2000-01-01');
+  params.set('to', '2099-12-31');
+  if (gradeId) params.set('grade_id', gradeId);
+  if (sectionId) params.set('section_id', sectionId);
+  wrap.innerHTML = '<div class="empty-state"><p>  ...</p></div>';
+  try {
+    const r = await fetch('/api/school/attendance/report?' + params.toString());
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || ' ');
+    const byStudent = {};
+    (data.records || []).forEach(rec => {
+      const k = rec.student_id;
+      if (!byStudent[k]) byStudent[k] = { name: rec.student_name, code: rec.student_code || '', p:0, a:0, l:0, e:0 };
+      if (rec.status === 'present') byStudent[k].p++;
+      else if (rec.status === 'absent') byStudent[k].a++;
+      else if (rec.status === 'late') byStudent[k].l++;
+      else if (rec.status === 'excused') byStudent[k].e++;
+    });
+    const rows = Object.values(byStudent);
+    if (!rows.length) {
+      wrap.innerHTML = '<div class="empty-state"><p>     </p></div>';
+      return;
+    }
+    wrap.innerHTML = '<table><thead><tr><th></th><th></th><th></th><th></th><th></th><th></th><th> </th></tr></thead><tbody>' +
+      rows.map(r => {
+        const total = r.p + r.a + r.l + r.e;
+        const rate = total ? ((r.p / total) * 100).toFixed(0) + '%' : '';
+        return '<tr><td><div class="student-name">' + esc(r.name) + '</div></td>' +
+          '<td><code>' + esc(r.code) + '</code></td>' +
+          '<td><span class="pill pill-green">' + r.p + '</span></td>' +
+          '<td><span class="pill pill-red">' + r.a + '</span></td>' +
+          '<td><span class="pill pill-yellow">' + r.l + '</span></td>' +
+          '<td><span class="pill">' + r.e + '</span></td>' +
+          '<td><b>' + rate + '</b></td></tr>';
+      }).join('') + '</tbody></table>';
+  } catch (e) {
+    wrap.innerHTML = '<div class="empty-state"><p> ' + esc(e.message) + '</p></div>';
+  }
 }
 
 // ========= NOTES =========
