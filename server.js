@@ -966,6 +966,54 @@ app.get('/api/school/stats', requireSchool, (req, res) => {
 // ========================================
 // Teacher APIs
 // ========================================
+
+// ==================== SCHOOL ADMIN: Access all teachers' notes & reports ====================
+
+// Get aggregated data from ALL teachers in the school (for notes/reports views)
+app.get('/api/school/all-teacher-data', requireSchool, (req, res) => {
+  try {
+    const teachers = db.prepare(`
+      SELECT id, full_name, username, subject, grade_level, app_data 
+      FROM teachers 
+      WHERE school_id = ?
+      ORDER BY full_name
+    `).all(req.session.school_id);
+    
+    const result = teachers.map(t => {
+      let data = {};
+      try { data = JSON.parse(t.app_data || '{}'); } catch(e) {}
+      return {
+        teacher_id: t.id,
+        teacher_name: t.full_name,
+        teacher_username: t.username,
+        subject: t.subject || '',
+        grade_level: t.grade_level || '',
+        data: data
+      };
+    });
+    
+    res.json({ teachers: result });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Get list of teachers (for filter dropdown)
+app.get('/api/school/teachers-list', requireSchool, (req, res) => {
+  try {
+    const teachers = db.prepare(`
+      SELECT id, full_name, username, subject 
+      FROM teachers 
+      WHERE school_id = ?
+      ORDER BY full_name
+    `).all(req.session.school_id);
+    res.json({ teachers });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+
 app.post('/api/teacher/login', (req, res) => {
   const { school_code, username, password } = req.body;
   const school = db.prepare('SELECT * FROM schools WHERE school_code = ? AND status = ?').get(school_code, 'active');
