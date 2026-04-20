@@ -112,12 +112,37 @@ tbody tr:hover{background:#f9fafb}
 .perms-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;padding:8px;background:#f9fafb;border-radius:8px}
 .perm-item{display:flex;align-items:center;gap:6px;background:white;padding:7px 9px;border-radius:6px;border:1px solid #e5e7eb;cursor:pointer;font-size:12px}
 .perm-item input{width:15px;height:15px;cursor:pointer;accent-color:#059669}
+/* ===== ATTENDANCE ===== */
+.att-period-tab{padding:7px 14px;border:1px solid #e5e7eb;background:white;border-radius:7px;cursor:pointer;font-size:12px;font-family:inherit;color:#374151;transition:all .15s;white-space:nowrap}
+.att-period-tab:hover{border-color:#059669;background:#ecfdf5}
+.att-period-tab.active{background:#059669;color:white;border-color:#059669;font-weight:600}
+.att-period-tab.is-current{box-shadow:0 0 0 2px #fbbf24}
+.att-period-tab .p-time{font-size:10px;opacity:.75;margin-right:4px}
+.att-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:8px 10px;background:#f9fafb;border-radius:7px;margin-bottom:5px;border:1px solid #f3f4f6}
+.att-row.changed{background:#fffbeb;border-color:#fcd34d}
+.att-row .stu-meta{display:flex;flex-direction:column;min-width:0}
+.att-row .stu-name{font-weight:600;font-size:13px;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.att-row .stu-sid{font-size:10px;color:#6b7280}
+.att-btns{display:flex;gap:3px;flex-wrap:wrap}
+.att-btn{padding:5px 9px;border:1px solid #e5e7eb;background:white;border-radius:6px;cursor:pointer;font-size:11px;font-family:inherit;color:#6b7280;transition:all .12s}
+.att-btn:hover{border-color:#9ca3af}
+.att-btn.active[data-st="present"]{background:#10b981;color:white;border-color:#10b981}
+.att-btn.active[data-st="absent"]{background:#ef4444;color:white;border-color:#ef4444}
+.att-btn.active[data-st="late"]{background:#f59e0b;color:white;border-color:#f59e0b}
+.att-btn.active[data-st="excused"]{background:#3b82f6;color:white;border-color:#3b82f6}
+.att-summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+.att-summary-tile{padding:10px;background:#f9fafb;border-radius:8px;text-align:center}
+.att-summary-tile .lbl{font-size:11px;color:#6b7280;margin-bottom:3px}
+.att-summary-tile .val{font-size:20px;font-weight:700}
 @media (max-width: 768px) {
   .sidebar{position:fixed;top:53px;right:-240px;transition:right 0.25s;z-index:41;box-shadow:-4px 0 12px rgba(0,0,0,.1)}
   .sidebar.open{right:0}
   .topbar .sidebar-toggle{display:block}
   .main-content{padding:14px 16px}
   .form-row,.form-row-3{grid-template-columns:1fr}
+  .att-row{grid-template-columns:1fr;gap:6px}
+  .att-btns{justify-content:stretch}
+  .att-btn{flex:1;text-align:center;min-width:55px}
 }
 </style>
 </head>
@@ -257,8 +282,39 @@ tbody tr:hover{background:#f9fafb}
       </div>
 
       <div id="view-attendance" class="hidden">
-        <h2 class="page-title">📅 الغياب</h2>
-        <div class="card"><div class="warn-box">🚧 قيد التطوير في الجلسة القادمة.</div></div>
+        <h2 class="page-title">📅 سجل الغياب</h2>
+        <p class="page-subtitle">تسجيل حضور الطلاب وربطه بالحصص حسب الجدول المدرسي النشط.</p>
+
+        <div class="card">
+          <div class="filter-bar">
+            <div><label>التاريخ</label><input type="date" id="attDate" onchange="loadAttendance()"></div>
+            <div><label>الصف</label><select id="attGrade" onchange="onAttGradeChange()"><option value="">كل الصفوف</option></select></div>
+            <div><label>الشعبة</label><select id="attSection" onchange="loadAttendance()"><option value="">كل الشعب</option></select></div>
+            <div><label>&nbsp;</label><button class="btn btn-secondary btn-sm" onclick="loadAttendance()">🔄 تحديث</button></div>
+          </div>
+
+          <!-- Active schedule notice -->
+          <div id="attScheduleNotice" style="padding:8px 10px;background:#f0f9ff;border-right:3px solid #0ea5e9;border-radius:6px;margin-bottom:10px;font-size:12px;color:#075985"></div>
+
+          <!-- Period tabs -->
+          <div id="attPeriodTabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div>
+
+          <!-- Bulk action buttons -->
+          <div id="attBulkBar" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px" class="hidden">
+            <button class="btn btn-success btn-sm" onclick="markAllAtt('present')">✅ الجميع حاضرون</button>
+            <button class="btn btn-danger btn-sm" onclick="markAllAtt('absent')">❌ الجميع غائبون</button>
+            <button class="btn btn-warning btn-sm" onclick="markAllAtt('late')">⏰ الجميع متأخرون</button>
+            <button class="btn btn-secondary btn-sm" onclick="clearAllAtt()">🔄 مسح</button>
+            <span style="flex:1"></span>
+            <button class="btn btn-primary btn-sm" onclick="saveAttendance()">💾 حفظ التغييرات</button>
+          </div>
+
+          <!-- Students list -->
+          <div id="attendanceBody"></div>
+
+          <!-- Summary -->
+          <div id="attendanceSummary" style="margin-top:14px"></div>
+        </div>
       </div>
       <div id="view-notes" class="hidden">
         <h2 class="page-title">📝 الملاحظات</h2>
@@ -565,6 +621,7 @@ function switchView(v) {
   if (v === 'teachers') loadTeachers();
   if (v === 'classes') loadClasses();
   if (v === 'schedule') loadSchedules();
+  if (v === 'attendance') initAttendanceView();
   if (v === 'settings') loadSettings();
   toggleSidebar(true);
 }
@@ -1232,6 +1289,318 @@ async function deleteSchedule(id) {
   if (!(await confirmDialog('حذف هذه الفترة؟'))) return;
   await fetch(`/api/school/schedules/${id}`, { method: 'DELETE' });
   await loadSchedules();
+}
+
+// ========= ATTENDANCE =========
+// In-memory state for the attendance view
+let attState = {
+  date: '',            // YYYY-MM-DD
+  activeSchedule: null, // { id, name, periods: [{name, start, end}, ...] }
+  currentPeriodIdx: 0, // index of the period tab the user is viewing
+  autoPeriodIdx: null, // period auto-detected from "now"; null if out-of-hours
+  students: [],        // list of students matching filters
+  records: {},         // { `${student_id}:${period_idx}`: { status, notes, id } }
+  dirty: {},           // { `${student_id}:${period_idx}`: { status, notes } } — pending changes
+  gradesLoaded: false
+};
+
+function _k(stuId, pIdx) { return `${stuId}:${pIdx}`; }
+
+// Convert "HH:MM" to minutes-since-midnight
+function _hm(t) {
+  if (!t || typeof t !== 'string' || !t.includes(':')) return null;
+  const [h, m] = t.split(':').map(Number);
+  if (isNaN(h) || isNaN(m)) return null;
+  return h * 60 + m;
+}
+
+function _nowMinutes() {
+  const d = new Date();
+  return d.getHours() * 60 + d.getMinutes();
+}
+
+// Given an array of periods (each {name,start,end}), return the index of the current period (or null)
+function findCurrentPeriodIdx(periods) {
+  if (!Array.isArray(periods) || !periods.length) return null;
+  const now = _nowMinutes();
+  for (let i = 0; i < periods.length; i++) {
+    const s = _hm(periods[i].start), e = _hm(periods[i].end);
+    if (s !== null && e !== null && now >= s && now < e) return i;
+  }
+  return null;
+}
+
+async function initAttendanceView() {
+  // Seed date to today (first time only)
+  const dInput = document.getElementById('attDate');
+  if (!dInput.value) dInput.value = new Date().toISOString().slice(0, 10);
+  // Populate grades once
+  if (!attState.gradesLoaded) {
+    try {
+      const r = await fetch('/api/school/grades');
+      const data = await r.json();
+      const grades = data.grades || [];
+      const sel = document.getElementById('attGrade');
+      sel.innerHTML = '<option value="">كل الصفوف</option>' +
+        grades.map(g => `<option value="${g.id}">${esc(g.name)}</option>`).join('');
+      // Keep grades list for cascading sections
+      attState._grades = grades;
+      attState.gradesLoaded = true;
+    } catch (e) { console.error(e); }
+  }
+  await loadAttendance();
+}
+
+function onAttGradeChange() {
+  const gradeId = document.getElementById('attGrade').value;
+  const secSel = document.getElementById('attSection');
+  secSel.innerHTML = '<option value="">كل الشعب</option>';
+  if (gradeId && attState._grades) {
+    const g = attState._grades.find(x => String(x.id) === String(gradeId));
+    (g && g.sections || []).forEach(sec => {
+      secSel.innerHTML += `<option value="${sec.id}">${esc(sec.name)}</option>`;
+    });
+  }
+  loadAttendance();
+}
+
+async function loadAttendance() {
+  if (Object.keys(attState.dirty).length) {
+    if (!(await confirmDialog('لديك تغييرات غير محفوظة، هل تريد التخلي عنها؟'))) return;
+  }
+  attState.dirty = {};
+
+  const date = document.getElementById('attDate').value;
+  const gradeId = document.getElementById('attGrade').value;
+  const sectionId = document.getElementById('attSection').value;
+  attState.date = date;
+
+  const params = new URLSearchParams();
+  if (date) params.set('date', date);
+  if (gradeId) params.set('grade_id', gradeId);
+  if (sectionId) params.set('section_id', sectionId);
+
+  const body = document.getElementById('attendanceBody');
+  body.innerHTML = '<div class="empty-state"><h4>⏳ جاري التحميل...</h4></div>';
+
+  try {
+    const r = await fetch('/api/school/attendance?' + params.toString());
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'فشل التحميل');
+
+    attState.activeSchedule = data.active_schedule;
+    attState.students = data.students || [];
+
+    // Index records for quick lookup: key = student_id:period_idx
+    attState.records = {};
+    (data.records || []).forEach(rec => {
+      attState.records[_k(rec.student_id, rec.period_index)] = {
+        id: rec.id, status: rec.status, notes: rec.notes || ''
+      };
+    });
+
+    // Determine current period
+    const periods = (attState.activeSchedule && attState.activeSchedule.periods) || [];
+    attState.autoPeriodIdx = findCurrentPeriodIdx(periods);
+    if (attState.autoPeriodIdx !== null) {
+      attState.currentPeriodIdx = attState.autoPeriodIdx;
+    } else if (periods.length > 0) {
+      // Out of hours: don't auto-select — keep current or default to 0 but mark as "manual"
+      if (attState.currentPeriodIdx >= periods.length) attState.currentPeriodIdx = 0;
+    } else {
+      attState.currentPeriodIdx = 0;
+    }
+
+    renderAttendance();
+  } catch (e) {
+    body.innerHTML = `<div class="empty-state"><h4>❌ خطأ</h4><p>${esc(e.message)}</p></div>`;
+  }
+}
+
+function renderAttendance() {
+  // 1) Schedule notice
+  const notice = document.getElementById('attScheduleNotice');
+  if (attState.activeSchedule && (attState.activeSchedule.periods || []).length) {
+    const cur = attState.autoPeriodIdx;
+    const schName = esc(attState.activeSchedule.name);
+    if (cur !== null) {
+      const p = attState.activeSchedule.periods[cur];
+      notice.innerHTML = `📅 الجدول النشط: <b>${schName}</b> — الحصة الحالية: <b>${esc(p.name)}</b> (${esc(p.start)} → ${esc(p.end)})`;
+    } else {
+      notice.innerHTML = `📅 الجدول النشط: <b>${schName}</b> — ⚠️ خارج أوقات الحصص، اختر الحصة يدوياً`;
+    }
+    notice.classList.remove('hidden');
+  } else {
+    notice.innerHTML = `⚠️ لا يوجد جدول مدرسي نشط. <a href="#" onclick="switchView('schedule');return false;" style="color:#059669;text-decoration:underline">فعّل جدولاً من قسم الجدول المدرسي</a>`;
+    notice.classList.remove('hidden');
+  }
+
+  // 2) Period tabs
+  const tabs = document.getElementById('attPeriodTabs');
+  const periods = (attState.activeSchedule && attState.activeSchedule.periods) || [];
+  if (periods.length) {
+    tabs.innerHTML = periods.map((p, i) => {
+      const active = i === attState.currentPeriodIdx ? 'active' : '';
+      const current = i === attState.autoPeriodIdx ? 'is-current' : '';
+      return `<button class="att-period-tab ${active} ${current}" onclick="selectPeriodTab(${i})" title="${esc(p.start)} - ${esc(p.end)}">
+        ${esc(p.name)}<span class="p-time"> ${esc(p.start)}</span>
+      </button>`;
+    }).join('');
+  } else {
+    tabs.innerHTML = '<div style="color:#9ca3af;font-size:12px">لا توجد حصص — أضف جدولاً مدرسياً أولاً</div>';
+  }
+
+  // 3) Students list
+  const body = document.getElementById('attendanceBody');
+  const bulk = document.getElementById('attBulkBar');
+  if (!attState.students.length) {
+    body.innerHTML = '<div class="empty-state"><h4>لا يوجد طلاب</h4><p>اختر صفاً/شعبة أو أضف طلاباً أولاً</p></div>';
+    bulk.classList.add('hidden');
+    document.getElementById('attendanceSummary').innerHTML = '';
+    return;
+  }
+  bulk.classList.remove('hidden');
+  const pIdx = attState.currentPeriodIdx;
+
+  body.innerHTML = attState.students.map(stu => {
+    const key = _k(stu.id, pIdx);
+    const saved = attState.records[key];
+    const pending = attState.dirty[key];
+    const current = pending ? pending.status : (saved ? saved.status : null);
+    const isDirty = !!pending;
+
+    const btn = (st, label, emoji) => `<button class="att-btn ${current === st ? 'active' : ''}" data-st="${st}" onclick="setAttStatus(${stu.id}, '${st}')">${emoji} ${label}</button>`;
+
+    return `<div class="att-row ${isDirty ? 'changed' : ''}" id="attrow-${stu.id}">
+      <div class="stu-meta">
+        <span class="stu-name">${esc(stu.name)}</span>
+        <span class="stu-sid">${stu.student_code ? esc(stu.student_code) + ' · ' : ''}${esc(stu.grade_name || '')} - ${esc(stu.section_name || '')}</span>
+      </div>
+      <div class="att-btns">
+        ${btn('present', 'حاضر', '✅')}
+        ${btn('late', 'متأخر', '⏰')}
+        ${btn('absent', 'غائب', '❌')}
+        ${btn('excused', 'مأذون', '📋')}
+      </div>
+    </div>`;
+  }).join('');
+
+  renderAttendanceSummary();
+}
+
+function selectPeriodTab(i) {
+  if (Object.keys(attState.dirty).length) {
+    if (!confirm('لديك تغييرات غير محفوظة في هذه الحصة. التبديل سيحفظها. متابعة؟')) return;
+    saveAttendance().then(() => {
+      attState.currentPeriodIdx = i;
+      renderAttendance();
+    });
+    return;
+  }
+  attState.currentPeriodIdx = i;
+  renderAttendance();
+}
+
+function setAttStatus(studentId, status) {
+  const key = _k(studentId, attState.currentPeriodIdx);
+  const saved = attState.records[key];
+  // If the clicked status matches what's already saved, remove from dirty (toggle-off)
+  if (saved && saved.status === status) {
+    delete attState.dirty[key];
+  } else if (!saved && !status) {
+    delete attState.dirty[key];
+  } else {
+    attState.dirty[key] = { student_id: studentId, status, notes: (saved && saved.notes) || '' };
+  }
+  // Re-render just this row for responsiveness
+  const row = document.getElementById('attrow-' + studentId);
+  if (row) {
+    const pending = attState.dirty[key];
+    const current = pending ? pending.status : (saved ? saved.status : null);
+    row.classList.toggle('changed', !!pending);
+    row.querySelectorAll('.att-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.st === current);
+    });
+  }
+  renderAttendanceSummary();
+}
+
+function markAllAtt(status) {
+  attState.students.forEach(stu => {
+    const key = _k(stu.id, attState.currentPeriodIdx);
+    const saved = attState.records[key];
+    if (saved && saved.status === status) {
+      delete attState.dirty[key];
+    } else {
+      attState.dirty[key] = { student_id: stu.id, status, notes: (saved && saved.notes) || '' };
+    }
+  });
+  renderAttendance();
+}
+
+function clearAllAtt() {
+  // Clear pending changes, and if there are saved records for this period, queue them for deletion
+  attState.students.forEach(stu => {
+    const key = _k(stu.id, attState.currentPeriodIdx);
+    const saved = attState.records[key];
+    if (saved) {
+      attState.dirty[key] = { student_id: stu.id, status: 'clear', notes: '' };
+    } else {
+      delete attState.dirty[key];
+    }
+  });
+  renderAttendance();
+}
+
+function renderAttendanceSummary() {
+  const pIdx = attState.currentPeriodIdx;
+  let p=0, a=0, l=0, e=0, u=0;
+  attState.students.forEach(stu => {
+    const key = _k(stu.id, pIdx);
+    const pending = attState.dirty[key];
+    const saved = attState.records[key];
+    const st = pending ? pending.status : (saved ? saved.status : null);
+    if (st === 'present') p++;
+    else if (st === 'absent') a++;
+    else if (st === 'late') l++;
+    else if (st === 'excused') e++;
+    else u++;
+  });
+  const total = attState.students.length;
+  const dirtyCount = Object.keys(attState.dirty).length;
+  document.getElementById('attendanceSummary').innerHTML = `
+    <div class="att-summary-grid">
+      <div class="att-summary-tile"><div class="lbl">✅ حاضر</div><div class="val" style="color:#10b981">${p}</div></div>
+      <div class="att-summary-tile"><div class="lbl">⏰ متأخر</div><div class="val" style="color:#f59e0b">${l}</div></div>
+      <div class="att-summary-tile"><div class="lbl">❌ غائب</div><div class="val" style="color:#ef4444">${a}</div></div>
+      <div class="att-summary-tile"><div class="lbl">📋 مأذون</div><div class="val" style="color:#3b82f6">${e}</div></div>
+      <div class="att-summary-tile"><div class="lbl">❓ لم يسجّل</div><div class="val" style="color:#9ca3af">${u}</div></div>
+      <div class="att-summary-tile"><div class="lbl">📝 معلّق</div><div class="val" style="color:#f59e0b">${dirtyCount}</div></div>
+      <div class="att-summary-tile"><div class="lbl">المجموع</div><div class="val">${total}</div></div>
+    </div>`;
+}
+
+async function saveAttendance() {
+  const dirty = Object.values(attState.dirty);
+  if (!dirty.length) { alert('لا توجد تغييرات للحفظ'); return; }
+  try {
+    const r = await fetch('/api/school/attendance/bulk', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        date: attState.date,
+        period_index: attState.currentPeriodIdx,
+        records: dirty
+      })
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'فشل الحفظ');
+    attState.dirty = {};
+    alert(`✅ تم حفظ ${data.saved || 0} سجلاً${data.cleared ? ` ومسح ${data.cleared}` : ''}`);
+    await loadAttendance();
+  } catch (e) {
+    alert('❌ خطأ: ' + e.message);
+  }
 }
 
 // ========= SETTINGS =========
