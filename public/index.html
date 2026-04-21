@@ -2721,7 +2721,21 @@ function renderAttendance() {
   bulk.classList.remove('hidden');
   const pIdx = attState.currentPeriodIdx;
 
-  body.innerHTML = attState.students.map(stu => {
+  // Client-side section filter (fallback in case server filter doesn't apply)
+  const _selSec = (document.getElementById('attFilterSection') || {}).value;
+  const _selGrade = (document.getElementById('attFilterGrade') || {}).value;
+  let _filteredStudents = attState.students;
+  if (_selSec) {
+    _filteredStudents = _filteredStudents.filter(s => String(s.section_id) === String(_selSec));
+  } else if (_selGrade) {
+    _filteredStudents = _filteredStudents.filter(s => String(s.grade_id) === String(_selGrade));
+  }
+  if (!_filteredStudents.length) {
+    body.innerHTML = '<div class="empty-state"><h4>لا يوجد طلاب في هذه الشعبة</h4></div>';
+    document.getElementById('attendanceSummary').innerHTML = '';
+    return;
+  }
+  body.innerHTML = _filteredStudents.map(stu => {
     const key = _k(stu.id, pIdx);
     const saved = attState.records[key];
     const pending = attState.dirty[key];
