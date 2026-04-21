@@ -1485,7 +1485,7 @@ function fillGradeSelect(selId, includeAll = true) {
   if (!sel) return;
   const cur = sel.value;
   sel.innerHTML = (includeAll ? '<option value="">-- كل الصفوف --</option>' : '<option value="">-- اختر --</option>') +
-    teacherData.grades.map(g => `<option value="${g.id}">${esc(g.name)}</option>`).join('');
+    teacherData.grades.map(g => `<option value="${esc(g.name)}">${esc(g.name)}</option>`).join('');
   if (cur && teacherData.grades.find(g => g.id === cur)) sel.value = cur;
 }
 function fillSectionSelect(selId, gradeId, includeAll = true) {
@@ -1495,7 +1495,7 @@ function fillSectionSelect(selId, gradeId, includeAll = true) {
   if (!gradeId) { sel.innerHTML = '<option value="">-- اختر الصف --</option>'; return; }
   const g = teacherData.grades.find(x => x.id === gradeId);
   sel.innerHTML = (includeAll ? '<option value="">-- كل الشعب --</option>' : '<option value="">-- اختر --</option>') +
-    (g?.sections || []).map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
+    (g?.sections || []).map(s => `<option value="${esc(s.name)}">${esc(s.name)}</option>`).join('');
   if (cur) sel.value = cur;
 }
 
@@ -2721,21 +2721,22 @@ function renderAttendance() {
   bulk.classList.remove('hidden');
   const pIdx = attState.currentPeriodIdx;
 
-  // Client-side section filter (fallback in case server filter doesn't apply)
-  const _selSec = (document.getElementById('attFilterSection') || {}).value;
-  const _selGrade = (document.getElementById('attFilterGrade') || {}).value;
-  let _filteredStudents = attState.students;
-  if (_selSec) {
-    _filteredStudents = _filteredStudents.filter(s => String(s.section_id) === String(_selSec));
-  } else if (_selGrade) {
-    _filteredStudents = _filteredStudents.filter(s => String(s.grade_id) === String(_selGrade));
+  // Filter by section name (works even when teacher IDs differ from DB IDs)
+  const _secSel = document.getElementById('attFilterSection');
+  const _secName = _secSel && _secSel.selectedIndex > 0 ? _secSel.options[_secSel.selectedIndex].text.trim() : '';
+  let _displayStudents = attState.students;
+  if (_secName) {
+    _displayStudents = attState.students.filter(s => {
+      const names = (s.section_name || '').split(',').map(n => n.trim());
+      return names.includes(_secName);
+    });
   }
-  if (!_filteredStudents.length) {
+  if (!_displayStudents.length) {
     body.innerHTML = '<div class="empty-state"><h4>لا يوجد طلاب في هذه الشعبة</h4></div>';
     document.getElementById('attendanceSummary').innerHTML = '';
     return;
   }
-  body.innerHTML = _filteredStudents.map(stu => {
+  body.innerHTML = _displayStudents.map(stu => {
     const key = _k(stu.id, pIdx);
     const saved = attState.records[key];
     const pending = attState.dirty[key];
