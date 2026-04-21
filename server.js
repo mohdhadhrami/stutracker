@@ -762,8 +762,8 @@ app.get('/api/school/attendance', requireSchool, (req, res) => {
     const sid = req.session.school_id;
     const tid = (req.session.teacher_id && _teacherHasLinks(req.session.teacher_id)) ? req.session.teacher_id : null;
     const date = req.query.date || new Date().toISOString().slice(0, 10);
-    const sectionId = req.query.section_id ? Number(req.query.section_id) : null;
-    const gradeId   = req.query.grade_id   ? Number(req.query.grade_id)   : null;
+    const sectionId = req.query.section_id || null;
+    const gradeId   = req.query.grade_id   || null;
     const periodIdx = (req.query.period_index !== undefined && req.query.period_index !== '')
       ? Number(req.query.period_index) : null;
 
@@ -783,8 +783,9 @@ app.get('/api/school/attendance', requireSchool, (req, res) => {
     if (tid) stuSql += ` JOIN teacher_students ts ON ts.school_student_id = ss.id AND ts.teacher_id = ?`;
     stuSql += ` WHERE ss.school_id = ?`;
     const stuParams = tid ? [tid, sid] : [sid];
-    if (sectionId) { stuSql += ` AND ss.section_id = ?`; stuParams.push(sectionId); }
-    if (gradeId)   { stuSql += ` AND ss.grade_id = ?`;   stuParams.push(gradeId); }
+    // IDs from app_data are strings like "sec_xxx"; match by name instead (names are identical)
+    if (sectionId) { stuSql += ` AND sec.name = ?`; stuParams.push(sectionId); }
+    if (gradeId)   { stuSql += ` AND sg.name = ?`;  stuParams.push(gradeId); }
     stuSql += ` GROUP BY ss.name, COALESCE(ss.student_id, '')
                  ORDER BY MIN(sg.display_order), ss.name`;
     const students = db.prepare(stuSql).all(...stuParams);
@@ -917,8 +918,8 @@ app.get('/api/school/attendance/report', requireSchool, (req, res) => {
     const from = req.query.from || new Date().toISOString().slice(0, 10);
     const to   = req.query.to   || from;
     const studentId = req.query.student_id ? Number(req.query.student_id) : null;
-    const sectionId = req.query.section_id ? Number(req.query.section_id) : null;
-    const gradeId   = req.query.grade_id   ? Number(req.query.grade_id)   : null;
+    const sectionId = req.query.section_id || null;
+    const gradeId   = req.query.grade_id   || null;
     const periodIdx = (req.query.period_index !== undefined && req.query.period_index !== '')
       ? Number(req.query.period_index) : null;
     let sql = `SELECT sa.*, ss.name AS student_name, ss.student_id AS student_code,
