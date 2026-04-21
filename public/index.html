@@ -557,7 +557,7 @@ tr:hover td{background:#fafbfc}
             <div><label></label><input type="date" id="attDate" onchange="loadAttendance()"></div>
             <div><label></label><select id="attFilterGrade" onchange="onAttFilterGradeChange()"></select></div>
             <div><label></label><select id="attFilterSection" onchange="loadAttendance()"></select></div>
-            <div><label>&nbsp;</label><button class="btn btn-secondary btn-sm" onclick="loadAttendance()"> </button></div>
+            <div><label>&nbsp;</label><button class="btn btn-secondary btn-sm" onclick="loadAttendance()">🔄 تحديث</button></div>
           </div>
 
           <div id="attScheduleNotice" style="padding:8px 10px;background:#f0f9ff;border-right:3px solid #0ea5e9;border-radius:6px;margin-bottom:10px;font-size:12px;color:#075985"></div>
@@ -565,10 +565,10 @@ tr:hover td{background:#fafbfc}
           <div id="attPeriodTabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div>
 
           <div id="attBulkBar" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px" class="hidden">
-            <button class="btn btn-success btn-sm" onclick="markAllAtt('present')">  </button>
-            <button class="btn btn-danger btn-sm" onclick="markAllAtt('absent')">  </button>
-            <button class="btn btn-warning btn-sm" onclick="markAllAtt('late')">  </button>
-            <button class="btn btn-secondary btn-sm" onclick="clearAllAtt()"> </button>
+            <button class="btn btn-success btn-sm" onclick="markAllAtt('present')">✅ الجميع حاضرون</button>
+            <button class="btn btn-danger btn-sm" onclick="markAllAtt('absent')">❌ الجميع غائبون</button>
+            <button class="btn btn-warning btn-sm" onclick="markAllAtt('late')">⏰ الجميع متأخرون</button>
+            <button class="btn btn-secondary btn-sm" onclick="clearAllAtt()">🗑️ مسح الكل</button>
             <span style="flex:1"></span>
             <button class="btn btn-primary btn-sm" onclick="saveAttendance()">  </button>
           </div>
